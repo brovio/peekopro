@@ -11,11 +11,7 @@ const Tasks = () => {
   const { visibleCategories } = useSettings();
 
   const getTasksByCategory = (category: string) => {
-    return tasks.filter(task => 
-      category === "Monkey Thoughts" 
-        ? !task.category 
-        : task.category === category.toLowerCase()
-    );
+    return tasks.filter(task => task.category === category.toLowerCase());
   };
 
   const updateTask = (taskId: string, updates: Partial<Task>) => {
@@ -40,7 +36,7 @@ const Tasks = () => {
             <div className="space-y-6">
               <MindDump onTasksChange={setTasks} tasks={tasks} />
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="space-y-6">
                 {[
                   "Work Day",
                   "Delegate",
@@ -49,8 +45,7 @@ const Tasks = () => {
                   "Personal",
                   "Ideas",
                   "App Ideas",
-                  "Project Ideas",
-                  "Monkey Thoughts"
+                  "Project Ideas"
                 ].map(category => (
                   visibleCategories.includes(category) && (
                     <CategoryListBox
