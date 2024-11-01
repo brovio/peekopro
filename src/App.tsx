@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import Index from "./pages/Index";
 import Tasks from "./pages/Tasks";
 import ApiKeyManager from "./components/ui/ApiKeyManager";
+import { SettingsProvider } from "./contexts/SettingsContext";
 
 const queryClient = new QueryClient();
 
@@ -39,15 +40,17 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <ApiKeyManager open={showApiManager} onOpenChange={setShowApiManager} />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/tasks" element={<Tasks />} />
-          </Routes>
-        </BrowserRouter>
+        <SettingsProvider>
+          <Toaster />
+          <Sonner />
+          <ApiKeyManager open={showApiManager} onOpenChange={setShowApiManager} />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/tasks" element={<Tasks />} />
+            </Routes>
+          </BrowserRouter>
+        </SettingsProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
