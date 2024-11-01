@@ -5,16 +5,14 @@ import { ArrowDown, File, HelpCircle, Trash2, Edit, User, Check, Clock } from "l
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useClassifyTask } from "@/hooks/useClassifyTask";
+import { Task } from "@/types/task";
 
-interface Task {
-  id: string;
-  content: string;
-  category: string | null;
-  confidence: number;
+interface MindDumpProps {
+  tasks: Task[];
+  onTasksChange: (tasks: Task[]) => void;
 }
 
-const MindDump = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
+const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
   const [inputValue, setInputValue] = useState("");
   const { toast } = useToast();
   const { classifyTask, isClassifying } = useClassifyTask();
@@ -39,7 +37,7 @@ const MindDump = () => {
           newTask.confidence = classification.confidence;
         }
         
-        setTasks(prev => [newTask, ...prev]);
+        onTasksChange([newTask, ...tasks]);
         setInputValue("");
         
         toast({
@@ -54,14 +52,14 @@ const MindDump = () => {
           description: "Task added to Monkey Thoughts",
           variant: "destructive",
         });
-        setTasks(prev => [newTask, ...prev]);
+        onTasksChange([newTask, ...tasks]);
         setInputValue("");
       }
     }
   };
 
   const handleManualClassification = (taskId: string, category: string) => {
-    setTasks(prev => prev.map(task => 
+    onTasksChange(tasks.map(task => 
       task.id === taskId 
         ? { ...task, category, confidence: 1 }
         : task
@@ -93,7 +91,7 @@ const MindDump = () => {
         </div>
 
         <div className="space-y-2">
-          {tasks.map(task => (
+          {tasks.filter(task => !task.category).map(task => (
             <div
               key={task.id}
               className={cn(

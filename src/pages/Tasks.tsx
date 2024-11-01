@@ -38,10 +38,20 @@ const Tasks = () => {
             </div>
             
             <div className="space-y-6">
-              <MindDump />
+              <MindDump onTasksChange={setTasks} tasks={tasks} />
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {["Work Day", "Delegate", "Discuss", "Family", "Personal", "Ideas", "App Ideas", "Project Ideas", "Monkey Thoughts"].map(category => (
+                {[
+                  "Work Day",
+                  "Delegate",
+                  "Discuss",
+                  "Family",
+                  "Personal",
+                  "Ideas",
+                  "App Ideas",
+                  "Project Ideas",
+                  "Monkey Thoughts"
+                ].map(category => (
                   visibleCategories.includes(category) && (
                     <CategoryListBox
                       key={category}
