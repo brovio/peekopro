@@ -78,7 +78,7 @@ const MindDump = () => {
       <div className="relative">
         <Textarea
           placeholder="Empty your monkey mind..."
-          className="min-h-[100px] bg-navy-900 text-white border-gray-700 resize-none pr-10"
+          className="min-h-[100px] bg-white text-gray-900 border-gray-200 resize-none pr-10"
           onKeyDown={handleSubmit}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
@@ -87,7 +87,7 @@ const MindDump = () => {
       </div>
 
       <div className="space-y-4">
-        <div className="flex items-center gap-2 text-white">
+        <div className="flex items-center gap-2 text-gray-900">
           <File className="h-5 w-5" />
           <h2 className="text-lg font-semibold">Monkey Thoughts</h2>
         </div>
@@ -98,19 +98,19 @@ const MindDump = () => {
               key={task.id}
               className={cn(
                 "flex items-center justify-between py-3 px-4 rounded-md",
-                "bg-navy-800 border border-gray-700"
+                "bg-white border border-gray-200"
               )}
             >
               <div className="flex items-center gap-2">
                 {!task.category && <HelpCircle className="h-4 w-4 text-yellow-500" />}
-                <span className="text-white">{task.content}</span>
+                <span className="text-gray-900">{task.content}</span>
               </div>
 
               <div className="flex items-center gap-2">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-gray-400 hover:text-white"
+                  className="h-8 w-8 text-gray-400 hover:text-gray-900"
                   onClick={() => handleManualClassification(task.id, "delete")}
                 >
                   <Trash2 className="h-4 w-4" />
@@ -118,7 +118,7 @@ const MindDump = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-gray-400 hover:text-white"
+                  className="h-8 w-8 text-gray-400 hover:text-gray-900"
                   onClick={() => handleManualClassification(task.id, "work")}
                 >
                   <Edit className="h-4 w-4" />
@@ -126,7 +126,7 @@ const MindDump = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-gray-400 hover:text-white"
+                  className="h-8 w-8 text-gray-400 hover:text-gray-900"
                   onClick={() => handleManualClassification(task.id, "personal")}
                 >
                   <User className="h-4 w-4" />
@@ -134,7 +134,7 @@ const MindDump = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-gray-400 hover:text-white"
+                  className="h-8 w-8 text-gray-400 hover:text-gray-900"
                   onClick={() => handleManualClassification(task.id, "done")}
                 >
                   <Check className="h-4 w-4" />
@@ -142,7 +142,7 @@ const MindDump = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-gray-400 hover:text-white"
+                  className="h-8 w-8 text-gray-400 hover:text-gray-900"
                   onClick={() => handleManualClassification(task.id, "later")}
                 >
                   <Clock className="h-4 w-4" />
