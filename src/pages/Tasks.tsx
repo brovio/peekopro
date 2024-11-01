@@ -8,7 +8,7 @@ import { Task } from "@/types/task";
 
 const Tasks = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const { visibleCategories } = useSettings();
+  const { visibleCategories, categorySettings } = useSettings();
 
   const getTasksByCategory = (category: string) => {
     return tasks.filter(task => task.category === category.toLowerCase());
@@ -30,6 +30,23 @@ const Tasks = () => {
     ));
   };
 
+  const sortedCategories = [
+    "Work Day",
+    "Delegate",
+    "Discuss",
+    "Family",
+    "Personal",
+    "Ideas",
+    "App Ideas",
+    "Project Ideas",
+    "Meetings",
+    "Follow-Up",
+    "Urgent",
+    "Complete"
+  ].sort((a, b) => 
+    (categorySettings[a]?.order || 0) - (categorySettings[b]?.order || 0)
+  );
+
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
@@ -47,20 +64,7 @@ const Tasks = () => {
               <MindDump onTasksChange={setTasks} tasks={tasks} />
               
               <div className="space-y-6">
-                {[
-                  "Work Day",
-                  "Delegate",
-                  "Discuss",
-                  "Family",
-                  "Personal",
-                  "Ideas",
-                  "App Ideas",
-                  "Project Ideas",
-                  "Meetings",
-                  "Follow-Up",
-                  "Urgent",
-                  "Complete"
-                ].map(category => (
+                {sortedCategories.map(category => (
                   visibleCategories.includes(category) && (
                     <CategoryListBox
                       key={category}

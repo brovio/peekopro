@@ -1,12 +1,30 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
+import { useTheme } from "next-themes";
+import { useSettings } from "@/contexts/SettingsContext";
+import { useToast } from "@/components/ui/use-toast";
 import ThemeSettings from "./ThemeSettings";
 import CategorySettings from "./CategorySettings";
 import DisplaySettings from "./DisplaySettings";
 
 const SettingsDialog = () => {
+  const { setTheme } = useTheme();
+  const { pendingTheme, saveSettings } = useSettings();
+  const { toast } = useToast();
+
+  const handleSave = () => {
+    if (pendingTheme) {
+      setTheme(pendingTheme);
+    }
+    saveSettings();
+    toast({
+      title: "Settings saved",
+      description: "Your preferences have been updated successfully.",
+    });
+  };
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -34,6 +52,9 @@ const SettingsDialog = () => {
             <DisplaySettings />
           </TabsContent>
         </Tabs>
+        <DialogFooter>
+          <Button onClick={handleSave}>Save Changes</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

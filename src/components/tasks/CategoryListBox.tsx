@@ -17,7 +17,7 @@ interface CategoryListBoxProps {
 const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove }: CategoryListBoxProps) => {
   const completedTasks = tasks.filter(task => task.completed).length;
   const { toast } = useToast();
-  const { showProgress } = useSettings();
+  const { categorySettings } = useSettings();
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -61,7 +61,6 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
             variant="outline"
             size="sm"
             onClick={() => {
-              // Implement undo functionality here
               toast({
                 title: "Task restored",
               });
@@ -82,7 +81,9 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
           {title}
           <span className="text-sm text-gray-500">({tasks.length})</span>
         </CardTitle>
-        {showProgress && <TaskProgress completed={completedTasks} total={tasks.length} />}
+        {categorySettings[title]?.showProgress && (
+          <TaskProgress completed={completedTasks} total={tasks.length} />
+        )}
       </CardHeader>
       <CardContent className="space-y-2">
         {tasks.length === 0 ? (
