@@ -20,6 +20,16 @@ const Tasks = () => {
     ));
   };
 
+  const deleteTask = (taskId: string) => {
+    setTasks(prev => prev.filter(task => task.id !== taskId));
+  };
+
+  const moveTask = (taskId: string, category: string) => {
+    setTasks(prev => prev.map(task =>
+      task.id === taskId ? { ...task, category: category.toLowerCase() } : task
+    ));
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
@@ -45,7 +55,11 @@ const Tasks = () => {
                   "Personal",
                   "Ideas",
                   "App Ideas",
-                  "Project Ideas"
+                  "Project Ideas",
+                  "Meetings",
+                  "Follow-Up",
+                  "Urgent",
+                  "Complete"
                 ].map(category => (
                   visibleCategories.includes(category) && (
                     <CategoryListBox
@@ -53,6 +67,8 @@ const Tasks = () => {
                       title={category}
                       tasks={getTasksByCategory(category)}
                       onTaskUpdate={updateTask}
+                      onTaskDelete={deleteTask}
+                      onTaskMove={moveTask}
                     />
                   )
                 ))}

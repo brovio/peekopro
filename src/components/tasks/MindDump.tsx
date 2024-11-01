@@ -96,7 +96,7 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
               key={task.id}
               className={cn(
                 "flex items-center justify-between py-3 px-4 rounded-md",
-                "bg-white border border-gray-200"
+                "bg-gray-100 hover:bg-white border border-gray-200"
               )}
             >
               <div className="flex items-center gap-2">
