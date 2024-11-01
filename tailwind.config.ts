@@ -29,6 +29,10 @@ export default {
           hover: "#f1f5f9",
           active: "#e2e8f0",
         },
+        navy: {
+          800: "#1a1f2c",
+          900: "#0f1117",
+        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
