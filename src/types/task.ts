@@ -3,4 +3,5 @@ export interface Task {
   content: string;
   category: string | null;
   confidence: number;
+  completed?: boolean;
 }

@@ -1,7 +1,8 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Task } from "@/types/task";
-import { FileText, Timer, Trash2, ArrowRight, User, Check, MoreHorizontal, Users, MessageCircle, Home, User2, Lightbulb, AppWindow, Briefcase } from "lucide-react";
+import { FileText, Timer, Trash2, ArrowRight, User, Check, Calendar, RefreshCw, AlertTriangle, Users, MessageCircle, Home, User2, Lightbulb, AppWindow, Briefcase } from "lucide-react";
+import TaskProgress from "./TaskProgress";
 
 interface CategoryListBoxProps {
   title: string;
@@ -10,6 +11,8 @@ interface CategoryListBoxProps {
 }
 
 const CategoryListBox = ({ title, tasks, onTaskUpdate }: CategoryListBoxProps) => {
+  const completedTasks = tasks.filter(task => task.completed).length;
+
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case "Work Day":
@@ -28,19 +31,26 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate }: CategoryListBoxProps) =
         return <AppWindow className="h-4 w-4" />;
       case "Project Ideas":
         return <Briefcase className="h-4 w-4" />;
+      case "Meetings":
+        return <Calendar className="h-4 w-4" />;
+      case "Follow-Up":
+        return <RefreshCw className="h-4 w-4" />;
+      case "Urgent":
+        return <AlertTriangle className="h-4 w-4" />;
       default:
         return <FileText className="h-4 w-4" />;
     }
   };
 
   return (
-    <Card className="bg-white w-full">
+    <Card className="bg-white w-full mb-6">
       <CardHeader className="pb-3">
         <CardTitle className="text-lg font-medium text-gray-900 flex items-center gap-2">
           {getCategoryIcon(title)}
           {title}
           <span className="text-sm text-gray-500">({tasks.length})</span>
         </CardTitle>
+        <TaskProgress completed={completedTasks} total={tasks.length} />
       </CardHeader>
       <CardContent className="space-y-2">
         {tasks.length === 0 ? (
@@ -53,7 +63,7 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate }: CategoryListBoxProps) =
             >
               <div className="flex items-center gap-3">
                 <button className="opacity-60 hover:opacity-100">
-                  <MoreHorizontal className="h-4 w-4" />
+                  <FileText className="h-4 w-4" />
                 </button>
                 <span className="text-sm text-gray-900">{task.content}</span>
               </div>
