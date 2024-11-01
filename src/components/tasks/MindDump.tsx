@@ -76,7 +76,7 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
       <div className="relative">
         <Textarea
           placeholder="Empty your monkey mind..."
-          className="min-h-[100px] bg-white text-gray-900 border-gray-200 resize-none pr-10"
+          className="min-h-[100px] bg-[#141e38] text-gray-100 border-gray-700 resize-none pr-10 placeholder:text-gray-400"
           onKeyDown={handleSubmit}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
@@ -85,7 +85,7 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
       </div>
 
       <div className="space-y-4">
-        <div className="flex items-center gap-2 text-gray-900">
+        <div className="flex items-center gap-2 text-gray-100">
           <File className="h-5 w-5" />
           <h2 className="text-lg font-semibold">Monkey Thoughts</h2>
         </div>
@@ -96,12 +96,12 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
               key={task.id}
               className={cn(
                 "flex items-center justify-between py-3 px-4 rounded-md",
-                "bg-gray-100 hover:bg-white border border-gray-200"
+                "bg-[#141e38] hover:bg-[#1a2747] border border-gray-700"
               )}
             >
               <div className="flex items-center gap-2">
                 <HelpCircle className="h-4 w-4 text-yellow-500" />
-                <span className="text-gray-900">{task.content}</span>
+                <span className="text-gray-100">{task.content}</span>
               </div>
               <TaskClassificationButtons 
                 taskId={task.id}

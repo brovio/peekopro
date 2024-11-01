@@ -22,31 +22,31 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case "Work Day":
-        return <Timer className="h-4 w-4" />;
+        return <Timer className="h-4 w-4 text-gray-300" />;
       case "Delegate":
-        return <Users className="h-4 w-4" />;
+        return <Users className="h-4 w-4 text-gray-300" />;
       case "Discuss":
-        return <MessageCircle className="h-4 w-4" />;
+        return <MessageCircle className="h-4 w-4 text-gray-300" />;
       case "Family":
-        return <Home className="h-4 w-4" />;
+        return <Home className="h-4 w-4 text-gray-300" />;
       case "Personal":
-        return <User2 className="h-4 w-4" />;
+        return <User2 className="h-4 w-4 text-gray-300" />;
       case "Ideas":
-        return <Lightbulb className="h-4 w-4" />;
+        return <Lightbulb className="h-4 w-4 text-gray-300" />;
       case "App Ideas":
-        return <AppWindow className="h-4 w-4" />;
+        return <AppWindow className="h-4 w-4 text-gray-300" />;
       case "Project Ideas":
-        return <Briefcase className="h-4 w-4" />;
+        return <Briefcase className="h-4 w-4 text-gray-300" />;
       case "Meetings":
-        return <Calendar className="h-4 w-4" />;
+        return <Calendar className="h-4 w-4 text-gray-300" />;
       case "Follow-Up":
-        return <RefreshCw className="h-4 w-4" />;
+        return <RefreshCw className="h-4 w-4 text-gray-300" />;
       case "Urgent":
-        return <AlertTriangle className="h-4 w-4" />;
+        return <AlertTriangle className="h-4 w-4 text-gray-300" />;
       case "Complete":
-        return <CheckCircle2 className="h-4 w-4" />;
+        return <CheckCircle2 className="h-4 w-4 text-gray-300" />;
       default:
-        return <FileText className="h-4 w-4" />;
+        return <FileText className="h-4 w-4 text-gray-300" />;
     }
   };
 
@@ -74,12 +74,12 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
   };
 
   return (
-    <Card className="bg-white w-full mb-6">
+    <Card className="bg-[#141e38] border-gray-700 w-full mb-6">
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-medium text-gray-900 flex items-center gap-2">
+        <CardTitle className="text-lg font-medium text-gray-100 flex items-center gap-2">
           {getCategoryIcon(title)}
           {title}
-          <span className="text-sm text-gray-500">({tasks.length})</span>
+          <span className="text-gray-400">({tasks.length})</span>
         </CardTitle>
         {categorySettings[title]?.showProgress && (
           <TaskProgress completed={completedTasks} total={tasks.length} />
@@ -87,24 +87,24 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
       </CardHeader>
       <CardContent className="space-y-2">
         {tasks.length === 0 ? (
-          <div className="text-sm text-gray-500 italic">No tasks in this category</div>
+          <div className="text-sm text-gray-400 italic">No tasks in this category</div>
         ) : (
           tasks.map((task) => (
             <div
               key={task.id}
-              className="group flex items-center justify-between p-3 rounded-md bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-all"
+              className="group flex items-center justify-between p-3 rounded-md bg-[#1a2747] hover:bg-[#1f2f52] border border-gray-700 transition-all"
             >
               <div className="flex items-center gap-3">
                 <button className="opacity-60 hover:opacity-100">
-                  <FileText className="h-4 w-4" />
+                  <FileText className="h-4 w-4 text-gray-300" />
                 </button>
-                <span className="text-sm text-gray-900">{task.content}</span>
+                <span className="text-sm text-gray-100">{task.content}</span>
               </div>
               <div className="flex items-center gap-1 opacity-100 group-hover:opacity-100 transition-opacity">
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="h-8 w-8"
+                  className="h-8 w-8 text-gray-300 hover:text-gray-100 hover:bg-[#243156]"
                   onClick={() => handleDelete(task.id)}
                 >
                   <Trash2 className="h-4 w-4" />
@@ -112,7 +112,7 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="h-8 w-8"
+                  className="h-8 w-8 text-gray-300 hover:text-gray-100 hover:bg-[#243156]"
                   onClick={() => onTaskMove?.(task.id, "Discuss")}
                 >
                   <ArrowRight className="h-4 w-4" />
@@ -120,7 +120,7 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="h-8 w-8"
+                  className="h-8 w-8 text-gray-300 hover:text-gray-100 hover:bg-[#243156]"
                   onClick={() => onTaskMove?.(task.id, "Delegate")}
                 >
                   <User className="h-4 w-4" />
@@ -128,7 +128,7 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="h-8 w-8"
+                  className="h-8 w-8 text-gray-300 hover:text-gray-100 hover:bg-[#243156]"
                   onClick={() => onTaskMove?.(task.id, "Complete")}
                 >
                   <Check className="h-4 w-4" />
