@@ -2,7 +2,9 @@ import { createContext, useContext, useState, ReactNode } from "react";
 
 interface SettingsContextType {
   visibleCategories: string[];
+  showProgress: boolean;
   toggleCategory: (category: string) => void;
+  toggleProgress: () => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -16,11 +18,13 @@ const defaultCategories = [
   "Ideas",
   "App Ideas",
   "Project Ideas",
-  "Monkey Thoughts"
+  "Monkey Thoughts",
+  "Complete"
 ];
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const [visibleCategories, setVisibleCategories] = useState<string[]>(defaultCategories);
+  const [showProgress, setShowProgress] = useState(true);
 
   const toggleCategory = (category: string) => {
     setVisibleCategories(prev => 
@@ -30,8 +34,17 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  const toggleProgress = () => {
+    setShowProgress(prev => !prev);
+  };
+
   return (
-    <SettingsContext.Provider value={{ visibleCategories, toggleCategory }}>
+    <SettingsContext.Provider value={{ 
+      visibleCategories, 
+      showProgress,
+      toggleCategory,
+      toggleProgress
+    }}>
       {children}
     </SettingsContext.Provider>
   );

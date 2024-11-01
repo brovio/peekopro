@@ -1,6 +1,7 @@
-import { Search, Bell, Settings } from "lucide-react";
+import { Search, Bell } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import SettingsDialog from "@/components/settings/SettingsDialog";
 
 const Navbar = () => {
   return (
@@ -21,9 +22,7 @@ const Navbar = () => {
           <Bell className="w-5 h-5 text-gray-700" />
           <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
         </Button>
-        <Button variant="ghost" size="icon">
-          <Settings className="w-5 h-5 text-gray-700" />
-        </Button>
+        <SettingsDialog />
       </div>
     </div>
   );

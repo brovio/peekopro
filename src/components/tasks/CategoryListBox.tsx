@@ -4,6 +4,7 @@ import { Task } from "@/types/task";
 import { FileText, Timer, Trash2, ArrowRight, User, Check, Calendar, RefreshCw, AlertTriangle, Users, MessageCircle, Home, User2, Lightbulb, AppWindow, Briefcase, CheckCircle2 } from "lucide-react";
 import TaskProgress from "./TaskProgress";
 import { useToast } from "@/components/ui/use-toast";
+import { useSettings } from "@/contexts/SettingsContext";
 
 interface CategoryListBoxProps {
   title: string;
@@ -16,6 +17,7 @@ interface CategoryListBoxProps {
 const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove }: CategoryListBoxProps) => {
   const completedTasks = tasks.filter(task => task.completed).length;
   const { toast } = useToast();
+  const { showProgress } = useSettings();
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -80,7 +82,7 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
           {title}
           <span className="text-sm text-gray-500">({tasks.length})</span>
         </CardTitle>
-        <TaskProgress completed={completedTasks} total={tasks.length} />
+        {showProgress && <TaskProgress completed={completedTasks} total={tasks.length} />}
       </CardHeader>
       <CardContent className="space-y-2">
         {tasks.length === 0 ? (
