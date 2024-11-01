@@ -8,17 +8,20 @@ import { useToast } from "@/components/ui/use-toast";
 import ThemeSettings from "./ThemeSettings";
 import CategorySettings from "./CategorySettings";
 import DisplaySettings from "./DisplaySettings";
+import { useState } from "react";
 
 const SettingsDialog = () => {
-  const { setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const { pendingTheme, saveSettings } = useSettings();
   const { toast } = useToast();
+  const [open, setOpen] = useState(false);
 
   const handleSave = () => {
     if (pendingTheme) {
       setTheme(pendingTheme);
     }
     saveSettings();
+    setOpen(false);
     toast({
       title: "Settings saved",
       description: "Your preferences have been updated successfully.",
@@ -26,10 +29,10 @@ const SettingsDialog = () => {
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon">
-          <Settings className="h-5 w-5 text-gray-700" />
+          <Settings className="h-5 w-5 text-gray-700 dark:text-gray-300" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px]">

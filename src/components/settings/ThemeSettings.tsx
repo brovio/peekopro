@@ -7,12 +7,16 @@ const ThemeSettings = () => {
   const { theme } = useTheme();
   const { setPendingTheme } = useSettings();
 
+  const handleThemeChange = (value: string) => {
+    setPendingTheme(value);
+  };
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Theme Preferences</h3>
       <RadioGroup 
-        value={theme} 
-        onValueChange={(value) => setPendingTheme(value)}
+        defaultValue={theme} 
+        onValueChange={handleThemeChange}
       >
         <div className="flex items-center space-x-2">
           <RadioGroupItem value="light" id="light" />
