@@ -15,13 +15,14 @@ interface Task {
 
 const MindDump = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [inputValue, setInputValue] = useState("");
   const { toast } = useToast();
   const { classifyTask, isClassifying } = useClassifyTask();
 
   const handleSubmit = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      const content = e.currentTarget.value.trim();
+      const content = inputValue.trim();
       if (!content) return;
 
       const newTask: Task = {
@@ -39,7 +40,7 @@ const MindDump = () => {
         }
         
         setTasks(prev => [newTask, ...prev]);
-        e.currentTarget.value = "";
+        setInputValue("");
         
         toast({
           title: "Task added",
@@ -54,7 +55,7 @@ const MindDump = () => {
           variant: "destructive",
         });
         setTasks(prev => [newTask, ...prev]);
-        e.currentTarget.value = "";
+        setInputValue("");
       }
     }
   };
@@ -79,6 +80,8 @@ const MindDump = () => {
           placeholder="Empty your monkey mind..."
           className="min-h-[100px] bg-navy-900 text-white border-gray-700 resize-none pr-10"
           onKeyDown={handleSubmit}
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
         />
         <ArrowDown className="absolute right-3 bottom-3 h-5 w-5 text-gray-400" />
       </div>
