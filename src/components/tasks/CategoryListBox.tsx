@@ -89,7 +89,7 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
           tasks.map((task) => (
             <div
               key={task.id}
-              className="group flex items-center justify-between p-3 rounded-md hover:bg-gray-100 border border-transparent hover:border-gray-200 transition-all"
+              className="group flex items-center justify-between p-3 rounded-md bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-all"
             >
               <div className="flex items-center gap-3">
                 <button className="opacity-60 hover:opacity-100">
