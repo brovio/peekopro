@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowDown, File, QuestionMark, Trash2, Edit, User, Check, Clock } from "lucide-react";
+import { ArrowDown, File, HelpCircle, Trash2, Edit, User, Check, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useClassifyTask } from "@/hooks/useClassifyTask";
@@ -99,7 +99,7 @@ const MindDump = () => {
               )}
             >
               <div className="flex items-center gap-2">
-                {!task.category && <QuestionMark className="h-4 w-4 text-yellow-500" />}
+                {!task.category && <HelpCircle className="h-4 w-4 text-yellow-500" />}
                 <span className="text-white">{task.content}</span>
               </div>
 
