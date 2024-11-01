@@ -25,9 +25,9 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         sidebar: {
-          background: "#f8fafc",
-          hover: "#f1f5f9",
-          active: "#e2e8f0",
+          background: "hsl(var(--sidebar-background))",
+          hover: "hsl(var(--sidebar-hover))",
+          active: "hsl(var(--sidebar-active))",
         },
         navy: {
           800: "#1a1f2c",
