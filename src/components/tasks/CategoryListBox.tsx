@@ -22,7 +22,7 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate }: CategoryListBoxProps) =
         {tasks.map((task) => (
           <div
             key={task.id}
-            className="p-3 rounded-md bg-navy-900 border border-gray-700 text-white"
+            className="p-3 rounded-md bg-navy-900 border border-gray-700 text-white hover:border-gray-600 transition-colors"
           >
             {task.content}
           </div>

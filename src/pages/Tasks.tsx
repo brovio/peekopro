@@ -4,13 +4,7 @@ import Sidebar from "@/components/layout/Sidebar";
 import Navbar from "@/components/layout/Navbar";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useState } from "react";
-
-interface Task {
-  id: string;
-  content: string;
-  category: string | null;
-  confidence: number;
-}
+import { Task } from "@/types/task";
 
 const Tasks = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -31,7 +25,7 @@ const Tasks = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-navy-900">
       <Sidebar />
       
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -40,7 +34,7 @@ const Tasks = () => {
         <main className="flex-1 overflow-auto p-6">
           <div className="max-w-7xl mx-auto">
             <div className="mb-6">
-              <h1 className="text-2xl font-semibold text-gray-900">Tasks</h1>
+              <h1 className="text-2xl font-semibold text-white">Tasks</h1>
             </div>
             
             <div className="space-y-6">
