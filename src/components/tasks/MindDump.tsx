@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowDown, File, HelpCircle, Trash2, Edit, User, Check, Clock } from "lucide-react";
+import { ArrowDown, File, HelpCircle, Timer, Users, MessageCircle, Home, User2, Lightbulb, AppWindow, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useClassifyTask } from "@/hooks/useClassifyTask";
 import { Task } from "@/types/task";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface MindDumpProps {
   tasks: Task[];
@@ -61,7 +62,7 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
   const handleManualClassification = (taskId: string, category: string) => {
     onTasksChange(tasks.map(task => 
       task.id === taskId 
-        ? { ...task, category, confidence: 1 }
+        ? { ...task, category: category.toLowerCase(), confidence: 1 }
         : task
     ));
     
@@ -100,52 +101,141 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
               )}
             >
               <div className="flex items-center gap-2">
-                {!task.category && <HelpCircle className="h-4 w-4 text-yellow-500" />}
+                <HelpCircle className="h-4 w-4 text-yellow-500" />
                 <span className="text-gray-900">{task.content}</span>
               </div>
 
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-gray-400 hover:text-gray-900"
-                  onClick={() => handleManualClassification(task.id, "delete")}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-gray-400 hover:text-gray-900"
-                  onClick={() => handleManualClassification(task.id, "work")}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-gray-400 hover:text-gray-900"
-                  onClick={() => handleManualClassification(task.id, "personal")}
-                >
-                  <User className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-gray-400 hover:text-gray-900"
-                  onClick={() => handleManualClassification(task.id, "done")}
-                >
-                  <Check className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-gray-400 hover:text-gray-900"
-                  onClick={() => handleManualClassification(task.id, "later")}
-                >
-                  <Clock className="h-4 w-4" />
-                </Button>
-              </div>
+              <TooltipProvider>
+                <div className="flex items-center gap-1">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => handleManualClassification(task.id, "Work Day")}
+                      >
+                        <Timer className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Work Day</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => handleManualClassification(task.id, "Delegate")}
+                      >
+                        <Users className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Delegate</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => handleManualClassification(task.id, "Discuss")}
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Discuss</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => handleManualClassification(task.id, "Family")}
+                      >
+                        <Home className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Family</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => handleManualClassification(task.id, "Personal")}
+                      >
+                        <User2 className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Personal</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => handleManualClassification(task.id, "Ideas")}
+                      >
+                        <Lightbulb className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Ideas</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => handleManualClassification(task.id, "App Ideas")}
+                      >
+                        <AppWindow className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>App Ideas</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => handleManualClassification(task.id, "Project Ideas")}
+                      >
+                        <Briefcase className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Project Ideas</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </TooltipProvider>
             </div>
           ))}
         </div>
