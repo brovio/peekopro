@@ -11,17 +11,17 @@ const data = [
 
 const DataVisuals = () => {
   return (
-    <Card>
+    <Card className="bg-[#141e38] border-gray-700">
       <CardHeader>
-        <CardTitle>Weekly Progress</CardTitle>
+        <CardTitle className="text-gray-100">Weekly Progress</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-[200px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
+              <XAxis dataKey="name" stroke="#94a3b8" />
+              <YAxis stroke="#94a3b8" />
               <Bar dataKey="tasks" fill="#3b82f6" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>

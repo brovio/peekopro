@@ -8,6 +8,10 @@ import { useState } from "react";
 
 const Dashboard = () => {
   const [focusModeEnabled, setFocusModeEnabled] = useState(false);
+  
+  const getDayName = () => {
+    return new Date().toLocaleDateString('en-US', { weekday: 'long' });
+  };
 
   return (
     <div className="flex h-screen bg-background">
@@ -19,7 +23,9 @@ const Dashboard = () => {
         <main className="flex-1 overflow-auto p-6">
           <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-semibold text-foreground">Dashboard</h1>
+              <h1 className="text-2xl font-semibold text-foreground">
+                Happy {getDayName()} Ross - Welcome to your Dashboard
+              </h1>
               <FocusModeToggle onToggle={setFocusModeEnabled} />
             </div>
             
