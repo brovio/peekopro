@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, FileText, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useClassifyTask } from "@/hooks/useClassifyTask";
 import { Task } from "@/types/task";
@@ -86,7 +86,7 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
 
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-gray-100">
-          <File className="h-5 w-5" />
+          <FileText className="h-5 w-5" />
           <h2 className="text-lg font-semibold">Monkey Thoughts</h2>
         </div>
 
