@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowRight } from "lucide-react";
+import { ArrowDown, File, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useClassifyTask } from "@/hooks/useClassifyTask";
 import { Task } from "@/types/task";
 import TaskClassificationButtons from "./TaskClassificationButtons";
-import MonkeyThoughtsBox from "./MonkeyThoughtsBox";
 
 interface MindDumpProps {
   tasks: Task[];
@@ -18,8 +17,8 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
   const { toast } = useToast();
   const { classifyTask, isClassifying } = useClassifyTask();
 
-  const handleSubmit = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
+  const handleSubmit = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       const content = inputValue.trim();
       if (!content) return;
@@ -72,30 +71,46 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
     });
   };
 
-  const unclassifiedTasks = tasks.filter(task => !task.category);
-
   return (
     <div className="space-y-6">
       <div className="relative">
-        <Input
+        <Textarea
           placeholder="Empty your monkey mind..."
-          className="bg-[#653535] text-white border-none placeholder:text-white"
+          className="min-h-[100px] bg-[#141e38] text-gray-100 border-gray-700 resize-none pr-10 placeholder:text-gray-400"
           onKeyDown={handleSubmit}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
         />
-        <ArrowRight className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white" />
+        <ArrowDown className="absolute right-3 bottom-3 h-5 w-5 text-gray-400" />
       </div>
 
-      <MonkeyThoughtsBox 
-        tasks={unclassifiedTasks}
-        onTaskDelete={(taskId) => {
-          onTasksChange(tasks.filter(t => t.id !== taskId));
-        }}
-        onTaskMove={(taskId, category) => {
-          handleManualClassification(taskId, category);
-        }}
-      />
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 text-gray-100">
+          <File className="h-5 w-5" />
+          <h2 className="text-lg font-semibold">Monkey Thoughts</h2>
+        </div>
+
+        <div className="space-y-2">
+          {tasks.filter(task => !task.category).map(task => (
+            <div
+              key={task.id}
+              className={cn(
+                "flex items-center justify-between py-3 px-4 rounded-md",
+                "bg-[#141e38] hover:bg-[#1a2747] border border-gray-700"
+              )}
+            >
+              <div className="flex items-center gap-2">
+                <HelpCircle className="h-4 w-4 text-yellow-500" />
+                <span className="text-gray-100">{task.content}</span>
+              </div>
+              <TaskClassificationButtons 
+                taskId={task.id}
+                onClassify={handleManualClassification}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

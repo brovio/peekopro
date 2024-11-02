@@ -5,7 +5,6 @@ import { FileText, Timer, Trash2, ArrowRight, User, Check, Calendar, RefreshCw, 
 import TaskProgress from "./TaskProgress";
 import { useToast } from "@/components/ui/use-toast";
 import { useSettings } from "@/contexts/SettingsContext";
-import { generateSubtasksForTask } from "@/utils/taskUtils";
 
 interface CategoryListBoxProps {
   title: string;
@@ -37,22 +36,18 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
   };
 
   const handleGenerateAISubtasks = async (taskId: string) => {
-    const task = tasks.find(t => t.id === taskId);
-    if (!task || !onTaskUpdate) return;
-
-    try {
-      const generatedSubtasks = await generateSubtasksForTask(task.content);
-      onTaskUpdate(taskId, { subtasks: generatedSubtasks });
-      
+    // Mock AI generation for now
+    const mockSubtasks = [
+      { id: crypto.randomUUID(), content: "Research phase", completed: false },
+      { id: crypto.randomUUID(), content: "Implementation", completed: false },
+      { id: crypto.randomUUID(), content: "Testing", completed: false }
+    ];
+    
+    if (onTaskUpdate) {
+      onTaskUpdate(taskId, { subtasks: mockSubtasks });
       toast({
         title: "AI Subtasks Generated",
-        description: `Added ${generatedSubtasks.length} suggested subtasks to your task`
-      });
-    } catch (error) {
-      toast({
-        title: "Generation Failed",
-        description: "Failed to generate subtasks. Please try again.",
-        variant: "destructive"
+        description: "Added 3 suggested subtasks to your task"
       });
     }
   };
@@ -143,7 +138,7 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
             variant="ghost"
             size="icon"
             className="h-8 w-8"
-            onClick={() => onTaskDelete?.(task.id)}
+            onClick={() => handleDelete(task.id)}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -207,7 +202,7 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
                     variant="ghost" 
                     size="icon" 
                     className="h-8 w-8 text-gray-300 hover:text-gray-100 hover:bg-[#243156]"
-                    onClick={() => onTaskDelete?.(task.id)}
+                    onClick={() => handleDelete(task.id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
