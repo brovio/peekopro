@@ -1,11 +1,18 @@
-import { Search, Bell, LogOut } from "lucide-react";
+import { Search, Bell, LogOut, Undo2, Redo2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import SettingsDialog from "@/components/settings/SettingsDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 
-const Navbar = () => {
+interface NavbarProps {
+  onUndo?: () => void;
+  onRedo?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
+}
+
+const Navbar = ({ onUndo, onRedo, canUndo, canRedo }: NavbarProps) => {
   const { logout } = useAuth();
   const { toast } = useToast();
 
@@ -31,6 +38,28 @@ const Navbar = () => {
       </div>
       
       <div className="flex items-center gap-4">
+        {onUndo && (
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={onUndo}
+            disabled={!canUndo}
+            className="relative"
+          >
+            <Undo2 className="w-5 h-5 text-foreground" />
+          </Button>
+        )}
+        {onRedo && (
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={onRedo}
+            disabled={!canRedo}
+            className="relative"
+          >
+            <Redo2 className="w-5 h-5 text-foreground" />
+          </Button>
+        )}
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="w-5 h-5 text-foreground" />
           <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />

@@ -10,12 +10,23 @@ export const useClassifyTask = () => {
     // This is a mock implementation - replace with actual GPT-4-mini API call
     return new Promise((resolve) => {
       setTimeout(() => {
-        // Mock classification logic
-        const randomConfidence = Math.random();
-        const categories = ["work", "personal", "later", "done"];
+        const categories = [
+          "work day",
+          "delegate",
+          "discuss",
+          "family",
+          "personal",
+          "ideas",
+          "app ideas",
+          "project ideas",
+          "meetings",
+          "follow-up",
+          "urgent"
+        ];
+        const randomCategory = categories[Math.floor(Math.random() * categories.length)];
         resolve({
-          category: categories[Math.floor(Math.random() * categories.length)],
-          confidence: randomConfidence,
+          category: randomCategory,
+          confidence: Math.random(),
         });
       }, 500);
     });

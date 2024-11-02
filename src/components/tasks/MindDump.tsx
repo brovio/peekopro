@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useClassifyTask } from "@/hooks/useClassifyTask";
 import { Task } from "@/types/task";
 import TaskClassificationButtons from "./TaskClassificationButtons";
+import { Button } from "@/components/ui/button";
 
 interface MindDumpProps {
   tasks: Task[];
@@ -30,35 +31,54 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
         confidence: 0
       };
 
+      const previousTasks = [...tasks];
+      onTasksChange([newTask, ...tasks]);
+
       try {
         const classification = await classifyTask(content);
         if (classification.confidence > 0.8) {
           newTask.category = classification.category;
           newTask.confidence = classification.confidence;
+          onTasksChange([newTask, ...previousTasks]);
+          
+          toast({
+            title: "Task added",
+            description: `Automatically classified as ${classification.category}`,
+            action: (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  onTasksChange(previousTasks);
+                  toast({
+                    title: "Task classification undone",
+                  });
+                }}
+              >
+                Undo
+              </Button>
+            ),
+          });
+        } else {
+          toast({
+            title: "Task added",
+            description: "Added to Monkey Thoughts",
+          });
         }
-        
-        onTasksChange([newTask, ...tasks]);
-        setInputValue("");
-        
-        toast({
-          title: "Task added",
-          description: classification.confidence > 0.8 
-            ? `Automatically classified as ${classification.category}`
-            : "Added to Monkey Thoughts",
-        });
       } catch (error) {
         toast({
           title: "Classification failed",
           description: "Task added to Monkey Thoughts",
           variant: "destructive",
         });
-        onTasksChange([newTask, ...tasks]);
-        setInputValue("");
       }
+      
+      setInputValue("");
     }
   };
 
   const handleManualClassification = (taskId: string, category: string) => {
+    const previousTasks = [...tasks];
     onTasksChange(tasks.map(task => 
       task.id === taskId 
         ? { ...task, category: category.toLowerCase(), confidence: 1 }
@@ -68,6 +88,20 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
     toast({
       title: "Task classified",
       description: `Manually classified as ${category}`,
+      action: (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            onTasksChange(previousTasks);
+            toast({
+              title: "Classification undone",
+            });
+          }}
+        >
+          Undo
+        </Button>
+      ),
     });
   };
 
