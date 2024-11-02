@@ -61,7 +61,7 @@ const Tasks = () => {
             </div>
             
             <div className="space-y-6">
-              <MindDump tasks={tasks} onTasksChange={setTasks} />
+              <MindDump />
               
               <div className="space-y-6">
                 {sortedCategories.map(category => (
