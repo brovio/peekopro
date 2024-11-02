@@ -5,13 +5,15 @@ import TaskManager from "@/components/tasks/TaskManager";
 import DataVisuals from "@/components/insights/DataVisuals";
 import SummarySection from "@/components/summary/SummarySection";
 import FocusModeToggle from "@/components/ui/FocusModeToggle";
+import ApiKeyManager from "@/components/ui/ApiKeyManager";
 
 const Index = () => {
   const [focusModeEnabled, setFocusModeEnabled] = useState(false);
+  const [showApiManager, setShowApiManager] = useState(false);
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar />
+      <Sidebar onShowApiManager={() => setShowApiManager(true)} />
       
       <div className="flex-1 flex flex-col overflow-hidden">
         <Navbar />
@@ -42,6 +44,11 @@ const Index = () => {
           </div>
         </main>
       </div>
+
+      <ApiKeyManager 
+        open={showApiManager} 
+        onOpenChange={setShowApiManager}
+      />
     </div>
   );
 };
