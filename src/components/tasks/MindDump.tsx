@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowDown, File, HelpCircle } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useClassifyTask } from "@/hooks/useClassifyTask";
 import { Task } from "@/types/task";
@@ -17,8 +17,8 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
   const { toast } = useToast();
   const { classifyTask, isClassifying } = useClassifyTask();
 
-  const handleSubmit = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+  const handleSubmit = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
       e.preventDefault();
       const content = inputValue.trim();
       if (!content) return;
@@ -74,14 +74,14 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
   return (
     <div className="space-y-6">
       <div className="relative">
-        <Textarea
+        <Input
           placeholder="Empty your monkey mind..."
-          className="min-h-[100px] bg-[#141e38] text-gray-100 border-gray-700 resize-none pr-10 placeholder:text-gray-400"
+          className="h-12 bg-[#6a94ff] text-white border-none placeholder:text-white/70 pr-10"
           onKeyDown={handleSubmit}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
         />
-        <ArrowDown className="absolute right-3 bottom-3 h-5 w-5 text-gray-400" />
+        <ArrowRight className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/70" />
       </div>
 
       <div className="space-y-4">
