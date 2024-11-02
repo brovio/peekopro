@@ -36,14 +36,14 @@ const defaultCategories = [
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const [visibleCategories, setVisibleCategories] = useState<string[]>(defaultCategories);
-  const [showProgress, setShowProgress] = useState(true);
+  const [showProgress, setShowProgress] = useState(false); // Changed to false by default
   const [pendingTheme, setPendingTheme] = useState<string | null>(null);
   const [categorySettings, setCategorySettings] = useState<Record<string, CategorySettings>>(() => {
     const initial: Record<string, CategorySettings> = {};
     defaultCategories.forEach((category, index) => {
       initial[category] = {
         visible: true,
-        showProgress: true,
+        showProgress: false, // Changed to false by default
         order: index
       };
     });
