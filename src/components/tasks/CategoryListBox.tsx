@@ -1,14 +1,10 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Task } from "@/types/task";
-import { FileText, Timer, ArrowRight, User, Check, Clock } from "lucide-react";
+import { FileText, Timer, Trash2, ArrowRight, User, Check, Calendar, RefreshCw, AlertTriangle, Users, MessageCircle, Home, User2, Lightbulb, AppWindow, Briefcase, CheckCircle2, Plus, Zap, Clock } from "lucide-react";
 import TaskProgress from "./TaskProgress";
 import { useToast } from "@/components/ui/use-toast";
 import { useSettings } from "@/contexts/SettingsContext";
-import { generateAISubtasks } from "@/utils/generateAISubtasks";
-import { getCategoryIcon } from "@/utils/categoryIcons";
-import SubtasksList from "./SubtasksList";
-import TaskActions from "./TaskActions";
-import { Button } from "@/components/ui/button";
 
 interface CategoryListBoxProps {
   title: string;
@@ -40,16 +36,51 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
   };
 
   const handleGenerateAISubtasks = async (taskId: string) => {
-    const task = tasks.find(t => t.id === taskId);
-    if (!task || !onTaskUpdate) return;
-
-    const generatedSubtasks = generateAISubtasks(task.content);
-    onTaskUpdate(taskId, { subtasks: generatedSubtasks });
+    // Mock AI generation for now
+    const mockSubtasks = [
+      { id: crypto.randomUUID(), content: "Research phase", completed: false },
+      { id: crypto.randomUUID(), content: "Implementation", completed: false },
+      { id: crypto.randomUUID(), content: "Testing", completed: false }
+    ];
     
-    toast({
-      title: "AI Subtasks Generated",
-      description: `Added ${generatedSubtasks.length} suggested subtasks to your task`
-    });
+    if (onTaskUpdate) {
+      onTaskUpdate(taskId, { subtasks: mockSubtasks });
+      toast({
+        title: "AI Subtasks Generated",
+        description: "Added 3 suggested subtasks to your task"
+      });
+    }
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case "Work Day":
+        return <Timer className="h-4 w-4 text-gray-300" />;
+      case "Delegate":
+        return <Users className="h-4 w-4 text-gray-300" />;
+      case "Discuss":
+        return <MessageCircle className="h-4 w-4 text-gray-300" />;
+      case "Family":
+        return <Home className="h-4 w-4 text-gray-300" />;
+      case "Personal":
+        return <User2 className="h-4 w-4 text-gray-300" />;
+      case "Ideas":
+        return <Lightbulb className="h-4 w-4 text-gray-300" />;
+      case "App Ideas":
+        return <AppWindow className="h-4 w-4 text-gray-300" />;
+      case "Project Ideas":
+        return <Briefcase className="h-4 w-4 text-gray-300" />;
+      case "Meetings":
+        return <Calendar className="h-4 w-4 text-gray-300" />;
+      case "Follow-Up":
+        return <RefreshCw className="h-4 w-4 text-gray-300" />;
+      case "Urgent":
+        return <AlertTriangle className="h-4 w-4 text-gray-300" />;
+      case "Complete":
+        return <CheckCircle2 className="h-4 w-4 text-gray-300" />;
+      default:
+        return <FileText className="h-4 w-4 text-gray-300" />;
+    }
   };
 
   const handleDelete = (taskId: string) => {
@@ -84,21 +115,55 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
           </button>
           <span className="text-sm text-gray-100">{task.content}</span>
         </div>
-        <TaskActions
-          onAddSubtask={() => handleAddSubtask(task.id)}
-          onGenerateAI={() => handleGenerateAISubtasks(task.id)}
-          onDelete={() => handleDelete(task.id)}
-        />
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => handleAddSubtask(task.id)}
+            title="Add Subtask"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => handleGenerateAISubtasks(task.id)}
+            title="Generate AI Subtasks"
+          >
+            <Zap className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => handleDelete(task.id)}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
-      <SubtasksList
-        subtasks={task.subtasks || []}
-        onComplete={(subtaskId) => {
-          const updatedSubtasks = task.subtasks?.map(st =>
-            st.id === subtaskId ? { ...st, completed: true } : st
-          );
-          onTaskUpdate?.(task.id, { subtasks: updatedSubtasks });
-        }}
-      />
+      {task.subtasks && task.subtasks.length > 0 && (
+        <div className="ml-6 space-y-2">
+          {task.subtasks.map(subtask => (
+            <div
+              key={subtask.id}
+              className="flex items-center justify-between p-2 rounded-md bg-[#1a2747]/50 border border-gray-700"
+            >
+              <span className="text-sm text-gray-300">{subtask.content}</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={() => {/* Handle subtask completion */}}
+              >
+                <Check className="h-3 w-3" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 
