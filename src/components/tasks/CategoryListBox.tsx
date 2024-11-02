@@ -1,10 +1,12 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Task } from "@/types/task";
-import { FileText, Timer, Trash2, ArrowRight, User, Check, Calendar, RefreshCw, AlertTriangle, Users, MessageCircle, Home, User2, Lightbulb, AppWindow, Briefcase, CheckCircle2, Plus, Zap, Clock } from "lucide-react";
+import { FileText, Timer, Trash2, ArrowRight, User, Check, Calendar, RefreshCw, AlertTriangle, Users, MessageCircle, Home, User2, Lightbulb, AppWindow, Briefcase, CheckCircle2, Plus, Zap } from "lucide-react";
 import TaskProgress from "./TaskProgress";
 import { useToast } from "@/components/ui/use-toast";
 import { useSettings } from "@/contexts/SettingsContext";
+import { generateSubtasks } from "@/utils/generateSubtasks";
+import SubtasksList from "./SubtasksList";
 
 interface CategoryListBoxProps {
   title: string;
@@ -36,20 +38,16 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
   };
 
   const handleGenerateAISubtasks = async (taskId: string) => {
-    // Mock AI generation for now
-    const mockSubtasks = [
-      { id: crypto.randomUUID(), content: "Research phase", completed: false },
-      { id: crypto.randomUUID(), content: "Implementation", completed: false },
-      { id: crypto.randomUUID(), content: "Testing", completed: false }
-    ];
+    const task = tasks.find(t => t.id === taskId);
+    if (!task || !onTaskUpdate) return;
     
-    if (onTaskUpdate) {
-      onTaskUpdate(taskId, { subtasks: mockSubtasks });
-      toast({
-        title: "AI Subtasks Generated",
-        description: "Added 3 suggested subtasks to your task"
-      });
-    }
+    const generatedSubtasks = generateSubtasks(task.content);
+    
+    onTaskUpdate(taskId, { subtasks: generatedSubtasks });
+    toast({
+      title: "AI Subtasks Generated",
+      description: `Added ${generatedSubtasks.length} suggested subtasks based on the task content`,
+    });
   };
 
   const getCategoryIcon = (category: string) => {
@@ -111,7 +109,7 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
       <div className="flex items-center justify-between p-3 rounded-md bg-[#1a2747] hover:bg-[#1f2f52] border border-gray-700">
         <div className="flex items-center gap-3">
           <button className="opacity-60 hover:opacity-100">
-            <Clock className="h-4 w-4 text-gray-300" />
+            <Zap className="h-4 w-4 text-gray-300" />
           </button>
           <span className="text-sm text-gray-100">{task.content}</span>
         </div>
@@ -145,24 +143,12 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
         </div>
       </div>
       {task.subtasks && task.subtasks.length > 0 && (
-        <div className="ml-6 space-y-2">
-          {task.subtasks.map(subtask => (
-            <div
-              key={subtask.id}
-              className="flex items-center justify-between p-2 rounded-md bg-[#1a2747]/50 border border-gray-700"
-            >
-              <span className="text-sm text-gray-300">{subtask.content}</span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                onClick={() => {/* Handle subtask completion */}}
-              >
-                <Check className="h-3 w-3" />
-              </Button>
-            </div>
-          ))}
-        </div>
+        <SubtasksList 
+          subtasks={task.subtasks}
+          onSubtaskComplete={(subtaskId) => {
+            // Handle subtask completion
+          }}
+        />
       )}
     </div>
   );
