@@ -5,110 +5,72 @@ import { ArrowRight, FileText, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useClassifyTask } from "@/hooks/useClassifyTask";
 import { Task } from "@/types/task";
-import TaskClassificationButtons from "./TaskClassificationButtons";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-interface MindDumpProps {
-  tasks: Task[];
-  onTasksChange: (tasks: Task[]) => void;
-}
-
-const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
-  const [inputValue, setInputValue] = useState("");
+const MindDump = () => {
+  const [input, setInput] = useState("");
   const { toast } = useToast();
-  const { classifyTask, isClassifying } = useClassifyTask();
+  const { classifyTask } = useClassifyTask();
 
-  const handleSubmit = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleSubmit = () => {
+    if (!input.trim()) return;
+    classifyTask(input)
+      .then(() => {
+        toast({ description: "Task classified successfully!" });
+        setInput("");
+      })
+      .catch(() => {
+        toast({ description: "Error classifying task." });
+      });
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      e.preventDefault();
-      const content = inputValue.trim();
-      if (!content) return;
-
-      const newTask: Task = {
-        id: crypto.randomUUID(),
-        content,
-        category: null,
-        confidence: 0
-      };
-
-      try {
-        const classification = await classifyTask(content);
-        if (classification.confidence > 0.8) {
-          newTask.category = classification.category;
-          newTask.confidence = classification.confidence;
-        }
-        
-        onTasksChange([newTask, ...tasks]);
-        setInputValue("");
-        
-        toast({
-          title: "Task added",
-          description: classification.confidence > 0.8 
-            ? `Automatically classified as ${classification.category}`
-            : "Added to Monkey Thoughts",
-        });
-      } catch (error) {
-        toast({
-          title: "Classification failed",
-          description: "Task added to Monkey Thoughts",
-          variant: "destructive",
-        });
-        onTasksChange([newTask, ...tasks]);
-        setInputValue("");
-      }
+      handleSubmit();
     }
   };
 
-  const handleManualClassification = (taskId: string, category: string) => {
-    onTasksChange(tasks.map(task => 
-      task.id === taskId 
-        ? { ...task, category: category.toLowerCase(), confidence: 1 }
-        : task
-    ));
-    
-    toast({
-      title: "Task classified",
-      description: `Manually classified as ${category}`,
-    });
-  };
-
   return (
-    <div className="space-y-6">
-      <div className="relative">
-        <Input
-          placeholder="Empty your monkey mind..."
-          className="h-12 bg-[#6a94ff] text-white border-none placeholder:text-white/70 pr-10"
-          onKeyDown={handleSubmit}
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-        />
-        <ArrowRight className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/70" />
-      </div>
-
+    <div className="rounded-lg border bg-[#6a94ff] p-4 shadow-sm">
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-gray-100">
           <FileText className="h-5 w-5" />
           <h2 className="text-lg font-semibold">Monkey Thoughts</h2>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-4 w-4 cursor-help opacity-70 hover:opacity-100" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Empty your monkey mind here. All tasks will be automatically classified.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
 
-        <div className="space-y-2">
-          {tasks.filter(task => !task.category).map(task => (
-            <div
-              key={task.id}
-              className={cn(
-                "flex items-center justify-between py-3 px-4 rounded-md",
-                "bg-[#141e38] hover:bg-[#1a2747] border border-gray-700"
-              )}
-            >
-              <div className="flex items-center gap-2">
-                <HelpCircle className="h-4 w-4 text-yellow-500" />
-                <span className="text-gray-100">{task.content}</span>
-              </div>
-              <TaskClassificationButtons 
-                taskId={task.id}
-                onClassify={handleManualClassification}
-              />
-            </div>
-          ))}
+        <div className="flex gap-2">
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="What's on your mind?"
+            className="bg-white/10 text-white placeholder:text-white/50"
+          />
+          <button
+            onClick={handleSubmit}
+            className={cn(
+              "flex h-10 w-10 items-center justify-center rounded-md bg-white/10 text-white transition-colors hover:bg-white/20",
+              !input.trim() && "cursor-not-allowed opacity-50"
+            )}
+            disabled={!input.trim()}
+          >
+            <ArrowRight className="h-4 w-4" />
+          </button>
         </div>
       </div>
     </div>
