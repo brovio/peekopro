@@ -4,7 +4,7 @@ import Navbar from "@/components/layout/Navbar";
 import MindDump from "@/components/tasks/MindDump";
 import CategoryListBox from "@/components/tasks/CategoryListBox";
 import { useSettings } from "@/contexts/SettingsContext";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Task } from "@/types/task";
 import ApiKeyManager from "@/components/ui/ApiKeyManager";
 
@@ -52,7 +52,7 @@ const Tasks = () => {
 
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar />
+      <Sidebar onShowApiKeys={setShowApiKeys} />
       
       <div className="flex-1 flex flex-col overflow-hidden">
         <Navbar />

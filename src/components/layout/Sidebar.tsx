@@ -11,12 +11,15 @@ const navItems = [
   { icon: AppWindow, label: "App Ideas", path: "/apps" },
 ];
 
-const Sidebar = () => {
+interface SidebarProps {
+  onShowApiKeys?: (show: boolean) => void;
+}
+
+const Sidebar = ({ onShowApiKeys }: SidebarProps) => {
   const location = useLocation();
   const [clickCount, setClickCount] = useState(0);
   const [secretSequence, setSecretSequence] = useState("");
   const [showP, setShowP] = useState(false);
-  const [modalTrigger, setModalTrigger] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -54,7 +57,7 @@ const Sidebar = () => {
 
   const handleVersionClick = () => {
     if (showP) {
-      setModalTrigger(prev => !prev);
+      onShowApiKeys?.(true);
     }
   };
 
