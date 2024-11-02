@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { Enter } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useClassifyTask } from "@/hooks/useClassifyTask";
 import { Task } from "@/types/task";
@@ -84,7 +84,7 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
         />
-        <Enter className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white" />
+        <ArrowRight className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white" />
       </div>
 
       <MonkeyThoughtsBox 
