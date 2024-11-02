@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { LayoutDashboard, ListTodo, Users, Lightbulb, AppWindow } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useState, useEffect, useCallback } from "react";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
@@ -10,11 +11,61 @@ const navItems = [
   { icon: AppWindow, label: "App Ideas", path: "/apps" },
 ];
 
-const Sidebar = () => {
+const Sidebar = ({ onShowApiManager }: { onShowApiManager: () => void }) => {
   const location = useLocation();
+  const [clicks, setClicks] = useState(0);
+  const [lastClickTime, setLastClickTime] = useState(0);
+  const [buffer, setBuffer] = useState("");
+  const [bufferTimeout, setBufferTimeout] = useState<NodeJS.Timeout | null>(null);
+
+  const handleSidebarClick = useCallback(() => {
+    const now = Date.now();
+    if (now - lastClickTime < 500) {
+      setClicks(prev => prev + 1);
+      if (clicks === 1) {
+        // Reset buffer and start listening for "peeko"
+        setBuffer("");
+        if (bufferTimeout) clearTimeout(bufferTimeout);
+        const timeout = setTimeout(() => {
+          setClicks(0);
+          setBuffer("");
+        }, 5000);
+        setBufferTimeout(timeout);
+      }
+    } else {
+      setClicks(1);
+    }
+    setLastClickTime(now);
+  }, [clicks, lastClickTime, bufferTimeout]);
+
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (clicks === 2) {
+        setBuffer(prev => {
+          const newBuffer = prev + e.key;
+          if (newBuffer === "peeko") {
+            onShowApiManager();
+            setClicks(0);
+            setBuffer("");
+            if (bufferTimeout) clearTimeout(bufferTimeout);
+          }
+          return newBuffer;
+        });
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => {
+      window.removeEventListener("keydown", handleKeyPress);
+      if (bufferTimeout) clearTimeout(bufferTimeout);
+    };
+  }, [clicks, onShowApiManager, bufferTimeout]);
 
   return (
-    <div className="w-64 h-screen bg-sidebar-background border-r border-border flex flex-col py-6 px-3">
+    <div 
+      className="w-64 h-screen bg-sidebar-background border-r border-border flex flex-col py-6 px-3"
+      onClick={handleSidebarClick}
+    >
       <div className="mb-8 px-3">
         <h1 className="text-xl font-semibold text-foreground">Productivity Hub</h1>
       </div>

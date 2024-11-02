@@ -2,12 +2,14 @@ import Sidebar from "@/components/layout/Sidebar";
 import Navbar from "@/components/layout/Navbar";
 import MindDump from "@/components/tasks/MindDump";
 import CategoryListBox from "@/components/tasks/CategoryListBox";
+import ApiKeyManager from "@/components/ui/ApiKeyManager";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useState } from "react";
 import { Task } from "@/types/task";
 
 const Tasks = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [showApiManager, setShowApiManager] = useState(false);
   const { visibleCategories, categorySettings } = useSettings();
 
   const getTasksByCategory = (category: string) => {
@@ -49,7 +51,7 @@ const Tasks = () => {
 
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar />
+      <Sidebar onShowApiManager={() => setShowApiManager(true)} />
       
       <div className="flex-1 flex flex-col overflow-hidden">
         <Navbar />
@@ -81,6 +83,11 @@ const Tasks = () => {
           </div>
         </main>
       </div>
+
+      <ApiKeyManager 
+        open={showApiManager} 
+        onOpenChange={setShowApiManager}
+      />
     </div>
   );
 };
