@@ -1,9 +1,22 @@
-import { Search, Bell } from "lucide-react";
+import { Search, Bell, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import SettingsDialog from "@/components/settings/SettingsDialog";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
 
 const Navbar = () => {
+  const { logout } = useAuth();
+  const { toast } = useToast();
+
+  const handleLogout = () => {
+    logout();
+    toast({
+      title: "Logged out",
+      description: "You have been successfully logged out",
+    });
+  };
+
   return (
     <div className="h-16 border-b border-border bg-background px-6 flex items-center justify-between">
       <div className="flex-1 max-w-xl">
@@ -23,6 +36,9 @@ const Navbar = () => {
           <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
         </Button>
         <SettingsDialog />
+        <Button variant="ghost" size="icon" onClick={handleLogout}>
+          <LogOut className="w-5 h-5 text-foreground" />
+        </Button>
       </div>
     </div>
   );
