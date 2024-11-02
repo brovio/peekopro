@@ -4,11 +4,10 @@ import MindDump from "@/components/tasks/MindDump";
 import CategoryListBox from "@/components/tasks/CategoryListBox";
 import ApiKeyManager from "@/components/ui/ApiKeyManager";
 import { useSettings } from "@/contexts/SettingsContext";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Task } from "@/types/task";
 import { useTaskHistory } from "@/hooks/useTaskHistory";
 import { useToast } from "@/components/ui/use-toast";
-import { Button } from "@/components/ui/button";
 
 const Tasks = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -17,20 +16,7 @@ const Tasks = () => {
   const { pushState, undo, redo, canUndo, canRedo } = useTaskHistory();
   const { toast } = useToast();
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === 'z') {
-        handleUndo();
-      } else if (e.ctrlKey && e.key === 'y') {
-        handleRedo();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  const handleUndo = () => {
+  const handleUndo = useCallback(() => {
     const previousState = undo();
     if (previousState) {
       setTasks(previousState);
@@ -39,9 +25,9 @@ const Tasks = () => {
         description: "Previous action has been reversed",
       });
     }
-  };
+  }, [undo, toast]);
 
-  const handleRedo = () => {
+  const handleRedo = useCallback(() => {
     const nextState = redo();
     if (nextState) {
       setTasks(nextState);
@@ -50,7 +36,24 @@ const Tasks = () => {
         description: "Action has been reapplied",
       });
     }
-  };
+  }, [redo, toast]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey) {
+        if (e.key?.toLowerCase() === 'z') {
+          e.preventDefault();
+          handleUndo();
+        } else if (e.key?.toLowerCase() === 'y') {
+          e.preventDefault();
+          handleRedo();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleUndo, handleRedo]);
 
   const updateTasks = (newTasks: Task[]) => {
     setTasks(newTasks);
