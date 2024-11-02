@@ -34,12 +34,12 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="w-full max-w-md space-y-8 p-8">
+      <div className="w-full max-w-md space-y-8 p-8 bg-card rounded-lg shadow-sm border border-border">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
           <p className="text-muted-foreground mt-2">Please sign in to continue</p>
         </div>
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6" noValidate>
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-foreground">
@@ -53,6 +53,7 @@ const Login = () => {
                 required
                 className="mt-1"
                 placeholder="Enter your email"
+                autoComplete="email"
               />
             </div>
             <div>
@@ -67,6 +68,7 @@ const Login = () => {
                 required
                 className="mt-1"
                 placeholder="Enter your password"
+                autoComplete="current-password"
               />
             </div>
           </div>
