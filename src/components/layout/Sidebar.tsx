@@ -37,7 +37,7 @@ const Sidebar = () => {
       
       <div className="px-3 py-4 mt-auto">
         <div className="text-sm text-muted-foreground">
-          Version 1.1.0
+          Version 1.1.09
         </div>
       </div>
     </div>
