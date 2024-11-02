@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { LayoutDashboard, ListTodo, Users, Lightbulb, AppWindow } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useState, useEffect } from "react";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
@@ -12,9 +13,56 @@ const navItems = [
 
 const Sidebar = () => {
   const location = useLocation();
+  const [clickCount, setClickCount] = useState(0);
+  const [secretSequence, setSecretSequence] = useState("");
+  const [showP, setShowP] = useState(false);
+  const [modalTrigger, setModalTrigger] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setClickCount(0);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [clickCount]);
+
+  useEffect(() => {
+    if (clickCount === 3) {
+      const handleKeyPress = (e: KeyboardEvent) => {
+        setSecretSequence(prev => {
+          const newSequence = prev + e.key.toLowerCase();
+          if (newSequence === "peeko") {
+            setShowP(true);
+          }
+          return newSequence;
+        });
+      };
+
+      window.addEventListener("keydown", handleKeyPress);
+      return () => window.removeEventListener("keydown", handleKeyPress);
+    } else {
+      setSecretSequence("");
+      setShowP(false);
+    }
+  }, [clickCount]);
+
+  const handleSidebarClick = (e: React.MouseEvent) => {
+    if (e.button === 0) { // Left click only
+      setClickCount(prev => prev + 1);
+    }
+  };
+
+  const handleVersionClick = () => {
+    if (showP) {
+      setModalTrigger(prev => !prev);
+    }
+  };
 
   return (
-    <div className="w-64 h-screen bg-sidebar-background border-r border-border flex flex-col py-6 px-3">
+    <div 
+      className="w-64 h-screen bg-sidebar-background border-r border-border flex flex-col py-6 px-3"
+      onMouseDown={handleSidebarClick}
+    >
       <div className="mb-8 px-3">
         <h1 className="text-xl font-semibold text-foreground">Productivity Hub</h1>
       </div>
@@ -36,8 +84,11 @@ const Sidebar = () => {
       </nav>
       
       <div className="px-3 py-4 mt-auto">
-        <div className="text-sm text-muted-foreground">
-          Version 1.1.0
+        <div 
+          className="text-sm text-muted-foreground cursor-pointer"
+          onClick={handleVersionClick}
+        >
+          {showP ? "Persion 1.1.0" : "Version 1.1.0"}
         </div>
       </div>
     </div>
