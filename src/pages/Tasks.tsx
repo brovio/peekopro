@@ -1,4 +1,3 @@
-import { ThemeProvider } from "next-themes";
 import Sidebar from "@/components/layout/Sidebar";
 import Navbar from "@/components/layout/Navbar";
 import MindDump from "@/components/tasks/MindDump";
@@ -6,12 +5,10 @@ import CategoryListBox from "@/components/tasks/CategoryListBox";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useState } from "react";
 import { Task } from "@/types/task";
-import ApiKeyManager from "@/components/ui/ApiKeyManager";
 
 const Tasks = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const { visibleCategories, categorySettings } = useSettings();
-  const [showApiKeys, setShowApiKeys] = useState(false);
 
   const getTasksByCategory = (category: string) => {
     return tasks.filter(task => task.category === category.toLowerCase());
@@ -52,7 +49,7 @@ const Tasks = () => {
 
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar onShowApiKeys={setShowApiKeys} />
+      <Sidebar />
       
       <div className="flex-1 flex flex-col overflow-hidden">
         <Navbar />
@@ -64,7 +61,7 @@ const Tasks = () => {
             </div>
             
             <div className="space-y-6">
-              <MindDump />
+              <MindDump tasks={tasks} onTasksChange={setTasks} />
               
               <div className="space-y-6">
                 {sortedCategories.map(category => (
@@ -84,11 +81,6 @@ const Tasks = () => {
           </div>
         </main>
       </div>
-
-      <ApiKeyManager 
-        open={showApiKeys} 
-        onOpenChange={setShowApiKeys}
-      />
     </div>
   );
 };

@@ -4,12 +4,10 @@ import TaskManager from "@/components/tasks/TaskManager";
 import DataVisuals from "@/components/insights/DataVisuals";
 import SummarySection from "@/components/summary/SummarySection";
 import FocusModeToggle from "@/components/ui/FocusModeToggle";
-import ApiKeyManager from "@/components/ui/ApiKeyManager";
 import { useState } from "react";
 
 const Dashboard = () => {
   const [focusModeEnabled, setFocusModeEnabled] = useState(false);
-  const [showApiKeys, setShowApiKeys] = useState(false);
   
   const getDayName = () => {
     return new Date().toLocaleDateString('en-US', { weekday: 'long' });
@@ -17,7 +15,7 @@ const Dashboard = () => {
 
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar onShowApiKeys={setShowApiKeys} />
+      <Sidebar />
       
       <div className="flex-1 flex flex-col overflow-hidden">
         <Navbar />
@@ -50,11 +48,6 @@ const Dashboard = () => {
           </div>
         </main>
       </div>
-
-      <ApiKeyManager 
-        open={showApiKeys} 
-        onOpenChange={setShowApiKeys}
-      />
     </div>
   );
 };
