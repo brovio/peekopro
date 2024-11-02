@@ -5,10 +5,21 @@ import CategoryListBox from "@/components/tasks/CategoryListBox";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useState } from "react";
 import { Task } from "@/types/task";
+import ApiKeyManager from "@/components/ui/ApiKeyManager";
+import { useToast } from "@/components/ui/use-toast";
+import { useHotkeys } from "react-hotkeys-hook";
 
 const Tasks = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const { visibleCategories, categorySettings } = useSettings();
+  const [showApiKeys, setShowApiKeys] = useState(false);
+  const { toast } = useToast();
+
+  // Add hotkey for API key manager
+  useHotkeys('meta+k', (event) => {
+    event.preventDefault();
+    setShowApiKeys(true);
+  });
 
   const getTasksByCategory = (category: string) => {
     return tasks.filter(task => task.category === category.toLowerCase());
@@ -81,6 +92,11 @@ const Tasks = () => {
           </div>
         </main>
       </div>
+
+      <ApiKeyManager 
+        open={showApiKeys} 
+        onOpenChange={setShowApiKeys}
+      />
     </div>
   );
 };
