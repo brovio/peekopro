@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Task } from "@/types/task";
-import { Clock, Plus, Trash2, Zap } from "lucide-react";
+import { Clock, Plus, Trash2, Zap, Check } from "lucide-react";
 
 interface WorkDayTaskItemProps {
   task: Task;

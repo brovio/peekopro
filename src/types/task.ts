@@ -19,6 +19,8 @@ export interface Task {
   category: string | null;
   confidence: number;
   completed?: boolean;
+  created_at?: string;
+  user_id?: string;
   subtasks?: SubTask[];
   workDayAttributes?: WorkDayTaskAttributes;
 }
