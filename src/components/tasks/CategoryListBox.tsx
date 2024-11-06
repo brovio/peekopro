@@ -5,6 +5,11 @@ import { FileText, Timer, Trash2, ArrowRight, User, Check, Calendar, RefreshCw, 
 import TaskProgress from "./TaskProgress";
 import { useToast } from "@/components/ui/use-toast";
 import { useSettings } from "@/contexts/SettingsContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
+import TaskItem from "./TaskItem";
+import WorkDayTaskItem from "./WorkDayTaskItem";
 
 interface CategoryListBoxProps {
   title: string;
@@ -18,25 +23,46 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
   const completedTasks = tasks.filter(task => task.completed).length;
   const { toast } = useToast();
   const { categorySettings } = useSettings();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
 
-  const handleAddSubtask = (taskId: string) => {
-    if (onTaskUpdate) {
-      const task = tasks.find(t => t.id === taskId);
-      if (task) {
-        const newSubtask = {
-          id: crypto.randomUUID(),
-          content: "New subtask",
-          completed: false
-        };
+  const handleAddSubtask = async (taskId: string) => {
+    if (!user || !onTaskUpdate) return;
+
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      const newSubtask = {
+        id: crypto.randomUUID(),
+        content: "New subtask",
+        completed: false
+      };
+
+      try {
+        const { error } = await supabase
+          .from('tasks')
+          .update({
+            subtasks: [...(task.subtasks || []), newSubtask]
+          })
+          .eq('id', taskId);
+
+        if (error) throw error;
+
         onTaskUpdate(taskId, {
           subtasks: [...(task.subtasks || []), newSubtask]
+        });
+
+        queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      } catch (error: any) {
+        toast({
+          title: "Failed to add subtask",
+          description: error.message,
+          variant: "destructive",
         });
       }
     }
   };
 
   const handleGenerateAISubtasks = async (taskId: string) => {
-    // Mock AI generation for now
     const mockSubtasks = [
       { id: crypto.randomUUID(), content: "Research phase", completed: false },
       { id: crypto.randomUUID(), content: "Implementation", completed: false },
@@ -44,128 +70,57 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
     ];
     
     if (onTaskUpdate) {
-      onTaskUpdate(taskId, { subtasks: mockSubtasks });
-      toast({
-        title: "AI Subtasks Generated",
-        description: "Added 3 suggested subtasks to your task"
-      });
+      try {
+        const { error } = await supabase
+          .from('tasks')
+          .update({ subtasks: mockSubtasks })
+          .eq('id', taskId);
+
+        if (error) throw error;
+
+        onTaskUpdate(taskId, { subtasks: mockSubtasks });
+        queryClient.invalidateQueries({ queryKey: ['tasks'] });
+
+        toast({
+          title: "AI Subtasks Generated",
+          description: "Added 3 suggested subtasks to your task"
+        });
+      } catch (error: any) {
+        toast({
+          title: "Failed to generate subtasks",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
     }
   };
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case "Work Day":
-        return <Timer className="h-4 w-4 text-gray-300" />;
-      case "Delegate":
-        return <Users className="h-4 w-4 text-gray-300" />;
-      case "Discuss":
-        return <MessageCircle className="h-4 w-4 text-gray-300" />;
-      case "Family":
-        return <Home className="h-4 w-4 text-gray-300" />;
-      case "Personal":
-        return <User2 className="h-4 w-4 text-gray-300" />;
-      case "Ideas":
-        return <Lightbulb className="h-4 w-4 text-gray-300" />;
-      case "App Ideas":
-        return <AppWindow className="h-4 w-4 text-gray-300" />;
-      case "Project Ideas":
-        return <Briefcase className="h-4 w-4 text-gray-300" />;
-      case "Meetings":
-        return <Calendar className="h-4 w-4 text-gray-300" />;
-      case "Follow-Up":
-        return <RefreshCw className="h-4 w-4 text-gray-300" />;
-      case "Urgent":
-        return <AlertTriangle className="h-4 w-4 text-gray-300" />;
-      case "Complete":
-        return <CheckCircle2 className="h-4 w-4 text-gray-300" />;
-      default:
-        return <FileText className="h-4 w-4 text-gray-300" />;
-    }
-  };
+  const handleDelete = async (taskId: string) => {
+    if (!user || !onTaskDelete) return;
 
-  const handleDelete = (taskId: string) => {
-    if (onTaskDelete) {
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', taskId);
+
+      if (error) throw error;
+
       onTaskDelete(taskId);
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+
       toast({
         title: "Task deleted",
-        description: "Click undo to restore the task",
-        action: (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              toast({
-                title: "Task restored",
-              });
-            }}
-          >
-            Undo
-          </Button>
-        ),
+        description: "Task has been permanently removed",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Failed to delete task",
+        description: error.message,
+        variant: "destructive",
       });
     }
   };
-
-  const renderWorkDayTask = (task: Task) => (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between p-3 rounded-md bg-[#1a2747] hover:bg-[#1f2f52] border border-gray-700">
-        <div className="flex items-center gap-3">
-          <button className="opacity-60 hover:opacity-100">
-            <Clock className="h-4 w-4 text-gray-300" />
-          </button>
-          <span className="text-sm text-gray-100">{task.content}</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => handleAddSubtask(task.id)}
-            title="Add Subtask"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => handleGenerateAISubtasks(task.id)}
-            title="Generate AI Subtasks"
-          >
-            <Zap className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => handleDelete(task.id)}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-      {task.subtasks && task.subtasks.length > 0 && (
-        <div className="ml-6 space-y-2">
-          {task.subtasks.map(subtask => (
-            <div
-              key={subtask.id}
-              className="flex items-center justify-between p-2 rounded-md bg-[#1a2747]/50 border border-gray-700"
-            >
-              <span className="text-sm text-gray-300">{subtask.content}</span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                onClick={() => {/* Handle subtask completion */}}
-              >
-                <Check className="h-3 w-3" />
-              </Button>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
 
   return (
     <Card className="bg-[#141e38] border-gray-700 w-full mb-6">
@@ -185,59 +140,57 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
         ) : (
           tasks.map((task) => (
             title === "Work Day" ? (
-              renderWorkDayTask(task)
-            ) : (
-              <div
+              <WorkDayTaskItem
                 key={task.id}
-                className="group flex items-center justify-between p-3 rounded-md bg-[#1a2747] hover:bg-[#1f2f52] border border-gray-700 transition-all"
-              >
-                <div className="flex items-center gap-3">
-                  <button className="opacity-60 hover:opacity-100">
-                    <FileText className="h-4 w-4 text-gray-300" />
-                  </button>
-                  <span className="text-sm text-gray-100">{task.content}</span>
-                </div>
-                <div className="flex items-center gap-1 opacity-100 group-hover:opacity-100 transition-opacity">
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 text-gray-300 hover:text-gray-100 hover:bg-[#243156]"
-                    onClick={() => handleDelete(task.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 text-gray-300 hover:text-gray-100 hover:bg-[#243156]"
-                    onClick={() => onTaskMove?.(task.id, "Discuss")}
-                  >
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 text-gray-300 hover:text-gray-100 hover:bg-[#243156]"
-                    onClick={() => onTaskMove?.(task.id, "Delegate")}
-                  >
-                    <User className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 text-gray-300 hover:text-gray-100 hover:bg-[#243156]"
-                    onClick={() => onTaskMove?.(task.id, "Complete")}
-                  >
-                    <Check className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+                task={task}
+                onAddSubtask={handleAddSubtask}
+                onGenerateAISubtasks={handleGenerateAISubtasks}
+                onDelete={handleDelete}
+              />
+            ) : (
+              <TaskItem
+                key={task.id}
+                task={task}
+                onDelete={handleDelete}
+                onMove={onTaskMove}
+              />
             )
           ))
         )}
       </CardContent>
     </Card>
   );
+};
+
+const getCategoryIcon = (category: string) => {
+  switch (category) {
+    case "Work Day":
+      return <Timer className="h-4 w-4 text-gray-300" />;
+    case "Delegate":
+      return <Users className="h-4 w-4 text-gray-300" />;
+    case "Discuss":
+      return <MessageCircle className="h-4 w-4 text-gray-300" />;
+    case "Family":
+      return <Home className="h-4 w-4 text-gray-300" />;
+    case "Personal":
+      return <User2 className="h-4 w-4 text-gray-300" />;
+    case "Ideas":
+      return <Lightbulb className="h-4 w-4 text-gray-300" />;
+    case "App Ideas":
+      return <AppWindow className="h-4 w-4 text-gray-300" />;
+    case "Project Ideas":
+      return <Briefcase className="h-4 w-4 text-gray-300" />;
+    case "Meetings":
+      return <Calendar className="h-4 w-4 text-gray-300" />;
+    case "Follow-Up":
+      return <RefreshCw className="h-4 w-4 text-gray-300" />;
+    case "Urgent":
+      return <AlertTriangle className="h-4 w-4 text-gray-300" />;
+    case "Complete":
+      return <CheckCircle2 className="h-4 w-4 text-gray-300" />;
+    default:
+      return <FileText className="h-4 w-4 text-gray-300" />;
+  }
 };
 
 export default CategoryListBox;

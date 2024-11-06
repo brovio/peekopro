@@ -4,59 +4,38 @@ import MindDump from "@/components/tasks/MindDump";
 import CategoryListBox from "@/components/tasks/CategoryListBox";
 import ApiKeyManager from "@/components/ui/ApiKeyManager";
 import { useSettings } from "@/contexts/SettingsContext";
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { Task } from "@/types/task";
 import { useTaskHistory } from "@/hooks/useTaskHistory";
 import { useToast } from "@/components/ui/use-toast";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Tasks = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
   const [showApiManager, setShowApiManager] = useState(false);
   const { visibleCategories, categorySettings } = useSettings();
   const { pushState, undo, redo, canUndo, canRedo } = useTaskHistory();
   const { toast } = useToast();
+  const { user } = useAuth();
 
-  const handleUndo = useCallback(() => {
-    const previousState = undo();
-    if (previousState) {
-      setTasks(previousState);
-      toast({
-        title: "Action undone",
-        description: "Previous action has been reversed",
-      });
-    }
-  }, [undo, toast]);
-
-  const handleRedo = useCallback(() => {
-    const nextState = redo();
-    if (nextState) {
-      setTasks(nextState);
-      toast({
-        title: "Action redone",
-        description: "Action has been reapplied",
-      });
-    }
-  }, [redo, toast]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey) {
-        if (e.key?.toLowerCase() === 'z') {
-          e.preventDefault();
-          handleUndo();
-        } else if (e.key?.toLowerCase() === 'y') {
-          e.preventDefault();
-          handleRedo();
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleUndo, handleRedo]);
+  const { data: tasks = [], isLoading, error } = useQuery({
+    queryKey: ['tasks', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id
+  });
 
   const updateTasks = (newTasks: Task[]) => {
-    setTasks(newTasks);
     pushState(newTasks);
   };
 
@@ -64,23 +43,61 @@ const Tasks = () => {
     return tasks.filter(task => task.category === category.toLowerCase());
   };
 
-  const updateTask = (taskId: string, updates: Partial<Task>) => {
-    const newTasks = tasks.map(task => 
-      task.id === taskId ? { ...task, ...updates } : task
-    );
-    updateTasks(newTasks);
+  const updateTask = async (taskId: string, updates: Partial<Task>) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update(updates)
+        .eq('id', taskId);
+
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: "Failed to update task",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
-  const deleteTask = (taskId: string) => {
-    const newTasks = tasks.filter(task => task.id !== taskId);
-    updateTasks(newTasks);
+  const deleteTask = async (taskId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', taskId);
+
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: "Failed to delete task",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
-  const moveTask = (taskId: string, category: string) => {
-    const newTasks = tasks.map(task =>
-      task.id === taskId ? { ...task, category: category.toLowerCase() } : task
-    );
-    updateTasks(newTasks);
+  const moveTask = async (taskId: string, category: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ category: category.toLowerCase() })
+        .eq('id', taskId);
+
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: "Failed to move task",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const sortedCategories = [
@@ -100,14 +117,22 @@ const Tasks = () => {
     (categorySettings[a]?.order || 0) - (categorySettings[b]?.order || 0)
   );
 
+  if (isLoading) {
+    return <div>Loading tasks...</div>;
+  }
+
+  if (error) {
+    return <div>Error loading tasks: {error.message}</div>;
+  }
+
   return (
     <div className="flex h-screen bg-background">
       <Sidebar onShowApiManager={() => setShowApiManager(true)} />
       
       <div className="flex-1 flex flex-col overflow-hidden">
         <Navbar 
-          onUndo={handleUndo}
-          onRedo={handleRedo}
+          onUndo={undo}
+          onRedo={redo}
           canUndo={canUndo}
           canRedo={canRedo}
         />

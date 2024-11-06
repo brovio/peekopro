@@ -7,6 +7,9 @@ import { useClassifyTask } from "@/hooks/useClassifyTask";
 import { Task } from "@/types/task";
 import TaskClassificationButtons from "./TaskClassificationButtons";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface MindDumpProps {
   tasks: Task[];
@@ -17,9 +20,11 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
   const [inputValue, setInputValue] = useState("");
   const { toast } = useToast();
   const { classifyTask, isClassifying } = useClassifyTask();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const handleSubmit = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && user) {
       e.preventDefault();
       const content = inputValue.trim();
       if (!content) return;
@@ -31,78 +36,107 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
         confidence: 0
       };
 
-      const previousTasks = [...tasks];
-      onTasksChange([newTask, ...tasks]);
-
       try {
-        const classification = await classifyTask(content);
-        if (classification.confidence > 0.8) {
-          newTask.category = classification.category;
-          newTask.confidence = classification.confidence;
-          onTasksChange([newTask, ...previousTasks]);
-          
+        // Insert task into Supabase
+        const { data: savedTask, error } = await supabase
+          .from('tasks')
+          .insert([{
+            content: newTask.content,
+            category: newTask.category,
+            confidence: newTask.confidence,
+            user_id: user.id
+          }])
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // Update local state
+        const updatedTask = { ...newTask, ...savedTask };
+        onTasksChange([updatedTask, ...tasks]);
+
+        try {
+          const classification = await classifyTask(content);
+          if (classification.confidence > 0.8) {
+            // Update task category in Supabase
+            const { error: updateError } = await supabase
+              .from('tasks')
+              .update({
+                category: classification.category.toLowerCase(),
+                confidence: classification.confidence
+              })
+              .eq('id', savedTask.id);
+
+            if (updateError) throw updateError;
+
+            updatedTask.category = classification.category;
+            updatedTask.confidence = classification.confidence;
+            onTasksChange([updatedTask, ...tasks]);
+            
+            toast({
+              title: "Task added",
+              description: `Automatically classified as ${classification.category}`,
+            });
+          }
+        } catch (error) {
           toast({
-            title: "Task added",
-            description: `Automatically classified as ${classification.category}`,
-            action: (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  onTasksChange(previousTasks);
-                  toast({
-                    title: "Task classification undone",
-                  });
-                }}
-              >
-                Undo
-              </Button>
-            ),
-          });
-        } else {
-          toast({
-            title: "Task added",
-            description: "Added to Monkey Thoughts",
+            title: "Classification failed",
+            description: "Task added to Monkey Thoughts",
+            variant: "destructive",
           });
         }
-      } catch (error) {
+
+        // Invalidate tasks query to refresh the list
+        queryClient.invalidateQueries({ queryKey: ['tasks'] });
+        
+        setInputValue("");
+      } catch (error: any) {
         toast({
-          title: "Classification failed",
-          description: "Task added to Monkey Thoughts",
+          title: "Failed to save task",
+          description: error.message,
           variant: "destructive",
         });
       }
-      
-      setInputValue("");
     }
   };
 
-  const handleManualClassification = (taskId: string, category: string) => {
-    const previousTasks = [...tasks];
-    onTasksChange(tasks.map(task => 
-      task.id === taskId 
-        ? { ...task, category: category.toLowerCase(), confidence: 1 }
-        : task
-    ));
-    
-    toast({
-      title: "Task classified",
-      description: `Manually classified as ${category}`,
-      action: (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            onTasksChange(previousTasks);
-            toast({
-              title: "Classification undone",
-            });
-          }}
-        >
-          Undo
-        </Button>
-      ),
-    });
+  const handleManualClassification = async (taskId: string, category: string) => {
+    if (!user) return;
+
+    try {
+      // Update task in Supabase
+      const { error } = await supabase
+        .from('tasks')
+        .update({
+          category: category.toLowerCase(),
+          confidence: 1
+        })
+        .eq('id', taskId);
+
+      if (error) throw error;
+
+      // Update local state
+      const updatedTasks = tasks.map(task => 
+        task.id === taskId 
+          ? { ...task, category: category.toLowerCase(), confidence: 1 }
+          : task
+      );
+      onTasksChange(updatedTasks);
+      
+      toast({
+        title: "Task classified",
+        description: `Manually classified as ${category}`,
+      });
+
+      // Invalidate tasks query
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    } catch (error: any) {
+      toast({
+        title: "Failed to update task",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
