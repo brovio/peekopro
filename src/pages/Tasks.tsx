@@ -5,7 +5,7 @@ import CategoryListBox from "@/components/tasks/CategoryListBox";
 import ApiKeyManager from "@/components/ui/ApiKeyManager";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useState } from "react";
-import { Task } from "@/types/task";
+import { Task, SubTask } from "@/types/task";
 import { useTaskHistory } from "@/hooks/useTaskHistory";
 import { useToast } from "@/components/ui/use-toast";
 import { useQuery } from "@tanstack/react-query";
@@ -30,7 +30,12 @@ const Tasks = () => {
         .eq('user_id', user.id);
       
       if (error) throw error;
-      return data || [];
+      
+      // Convert the JSON subtasks to proper SubTask[] type
+      return (data || []).map(task => ({
+        ...task,
+        subtasks: task.subtasks ? (task.subtasks as SubTask[]) : null
+      })) as Task[];
     },
     enabled: !!user?.id
   });

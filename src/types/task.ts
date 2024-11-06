@@ -5,7 +5,7 @@ export interface SubTask {
 }
 
 export interface WorkDayTaskAttributes {
-  estimatedTime?: number; // in minutes
+  estimatedTime?: number;
   priority?: 'low' | 'medium' | 'high';
   difficulty?: 'easy' | 'medium' | 'hard';
   collaborators?: string[];
@@ -21,6 +21,6 @@ export interface Task {
   completed?: boolean;
   created_at?: string;
   user_id?: string;
-  subtasks?: SubTask[];
+  subtasks?: SubTask[] | null;
   workDayAttributes?: WorkDayTaskAttributes;
 }

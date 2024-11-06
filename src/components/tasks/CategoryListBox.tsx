@@ -1,6 +1,6 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Task } from "@/types/task";
+import { Task, SubTask } from "@/types/task";
 import { FileText, Timer, Trash2, ArrowRight, User, Check, Calendar, RefreshCw, AlertTriangle, Users, MessageCircle, Home, User2, Lightbulb, AppWindow, Briefcase, CheckCircle2, Plus, Zap, Clock } from "lucide-react";
 import TaskProgress from "./TaskProgress";
 import { useToast } from "@/components/ui/use-toast";
@@ -31,7 +31,7 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
 
     const task = tasks.find(t => t.id === taskId);
     if (task) {
-      const newSubtask = {
+      const newSubtask: SubTask = {
         id: crypto.randomUUID(),
         content: "New subtask",
         completed: false
@@ -63,7 +63,7 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
   };
 
   const handleGenerateAISubtasks = async (taskId: string) => {
-    const mockSubtasks = [
+    const mockSubtasks: SubTask[] = [
       { id: crypto.randomUUID(), content: "Research phase", completed: false },
       { id: crypto.randomUUID(), content: "Implementation", completed: false },
       { id: crypto.randomUUID(), content: "Testing", completed: false }
