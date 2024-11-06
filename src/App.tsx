@@ -10,10 +10,10 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <AuthProvider>
-        <SettingsProvider>
-          <BrowserRouter>
+    <BrowserRouter>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <AuthProvider>
+          <SettingsProvider>
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route
@@ -35,10 +35,10 @@ function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
             <Toaster />
-          </BrowserRouter>
-        </SettingsProvider>
-      </AuthProvider>
-    </ThemeProvider>
+          </SettingsProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </BrowserRouter>
   );
 }
 
