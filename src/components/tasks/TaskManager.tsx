@@ -4,24 +4,50 @@ import { useSettings } from "@/contexts/SettingsContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/components/ui/use-toast";
 
 const TaskManager = () => {
   const { visibleCategories } = useSettings();
   const { user } = useAuth();
+  const { toast } = useToast();
   
-  const { data: tasks = [] } = useQuery({
+  const { data: tasks = [], error } = useQuery({
     queryKey: ['tasks', user?.id],
     queryFn: async () => {
+      if (!user?.id) throw new Error('User not authenticated');
+      
       const { data, error } = await supabase
         .from('tasks')
         .select('*')
-        .eq('user_id', user?.id);
+        .eq('user_id', user.id);
       
-      if (error) throw error;
-      return data;
+      if (error) {
+        toast({
+          title: "Error fetching tasks",
+          description: error.message,
+          variant: "destructive",
+        });
+        throw error;
+      }
+      
+      return data || [];
     },
-    enabled: !!user,
+    enabled: !!user?.id,
+    retry: 3,
   });
+
+  if (error) {
+    return (
+      <Card className="bg-[#141e38] border-gray-700">
+        <CardHeader>
+          <CardTitle className="text-gray-100">Task Manager</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-red-400">Failed to load tasks. Please try again later.</div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   // Filter tasks to only show from visible categories
   const filteredTasks = tasks.filter(task => visibleCategories.includes(task.category));
