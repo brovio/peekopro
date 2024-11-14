@@ -1,3 +1,5 @@
+import { Json } from "@/integrations/supabase/types";
+
 export interface SubTask {
   id: string;
   content: string;
@@ -25,7 +27,7 @@ export interface Task {
   workDayAttributes?: WorkDayTaskAttributes;
 }
 
-export type TaskInput = {
+export interface TaskInput {
   id?: string;
   content?: string;
   category?: string | null;
@@ -33,5 +35,5 @@ export type TaskInput = {
   completed?: boolean;
   created_at?: string;
   user_id?: string;
-  subtasks?: SubTask[];
-};
+  subtasks?: Json;
+}
