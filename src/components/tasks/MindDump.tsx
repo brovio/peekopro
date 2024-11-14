@@ -40,7 +40,7 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
       try {
         const { data: savedTask, error } = await supabase
           .from('tasks')
-          .insert([newTask])
+          .insert(newTask)
           .select()
           .single();
 

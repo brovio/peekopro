@@ -28,12 +28,11 @@ export interface Task {
 }
 
 export interface TaskInput {
-  id?: string;
-  content?: string;
+  content: string;  // Made required
   category?: string | null;
   confidence?: number;
   completed?: boolean;
   created_at?: string;
-  user_id?: string;
+  user_id: string;  // Made required
   subtasks?: Json;
 }
