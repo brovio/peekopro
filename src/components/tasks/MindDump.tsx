@@ -5,7 +5,6 @@ import { ArrowRight, FileText, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useClassifyTask } from "@/hooks/useClassifyTask";
 import { Task, TaskInput, SubTask } from "@/types/task";
-import { Json } from "@/integrations/supabase/types";
 import TaskClassificationButtons from "./TaskClassificationButtons";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,7 +29,8 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
       if (!content) return;
 
       try {
-        const { data, error } = await supabase
+        // First, insert the task without selecting
+        const { error: insertError } = await supabase
           .from('tasks')
           .insert({
             content,
@@ -38,16 +38,26 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
             confidence: 0,
             subtasks: [],
             user_id: user.id
-          })
+          });
+
+        if (insertError) throw insertError;
+
+        // Then fetch the newly created task
+        const { data: newTaskData, error: fetchError } = await supabase
+          .from('tasks')
           .select('*')
+          .eq('content', content)
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
           .single();
 
-        if (error) throw error;
-        if (!data) throw new Error('Failed to create task');
+        if (fetchError) throw fetchError;
+        if (!newTaskData) throw new Error('Failed to create task');
 
         const newTask: Task = {
-          ...data,
-          subtasks: data.subtasks ? (data.subtasks as unknown as SubTask[]) : []
+          ...newTaskData,
+          subtasks: newTaskData.subtasks ? (newTaskData.subtasks as unknown as SubTask[]) : []
         };
 
         onTasksChange([newTask, ...tasks]);
