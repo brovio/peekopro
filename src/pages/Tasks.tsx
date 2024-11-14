@@ -8,7 +8,7 @@ import { useState } from "react";
 import { Task, SubTask, TaskInput } from "@/types/task";
 import { useTaskHistory } from "@/hooks/useTaskHistory";
 import { useToast } from "@/components/ui/use-toast";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -18,6 +18,7 @@ const Tasks = () => {
   const { pushState, undo, redo, canUndo, canRedo } = useTaskHistory();
   const { toast } = useToast();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const { data: tasks = [], isLoading, error } = useQuery({
     queryKey: ['tasks', user?.id],
@@ -29,15 +30,23 @@ const Tasks = () => {
         .select('*')
         .eq('user_id', user.id);
       
-      if (error) throw error;
+      if (error) {
+        toast({
+          title: "Error fetching tasks",
+          description: error.message,
+          variant: "destructive",
+        });
+        throw error;
+      }
       
       return (data || []).map(task => ({
         ...task,
-        subtasks: task.subtasks ? (task.subtasks as unknown as SubTask[]) : null
+        subtasks: task.subtasks as SubTask[] || []
       })) as Task[];
     },
     enabled: !!user?.id,
-    retry: 3
+    retry: 3,
+    refetchOnWindowFocus: true
   });
 
   const updateTask = async (taskId: string, updates: Partial<Task>) => {
@@ -47,9 +56,12 @@ const Tasks = () => {
       const { error } = await supabase
         .from('tasks')
         .update(updates as TaskInput)
-        .eq('id', taskId);
+        .eq('id', taskId)
+        .eq('user_id', user.id);
 
       if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['tasks', user.id] });
     } catch (error: any) {
       toast({
         title: "Failed to update task",
@@ -66,9 +78,12 @@ const Tasks = () => {
       const { error } = await supabase
         .from('tasks')
         .delete()
-        .eq('id', taskId);
+        .eq('id', taskId)
+        .eq('user_id', user.id);
 
       if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['tasks', user.id] });
     } catch (error: any) {
       toast({
         title: "Failed to delete task",
@@ -85,9 +100,12 @@ const Tasks = () => {
       const { error } = await supabase
         .from('tasks')
         .update({ category: category.toLowerCase() })
-        .eq('id', taskId);
+        .eq('id', taskId)
+        .eq('user_id', user.id);
 
       if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['tasks', user.id] });
     } catch (error: any) {
       toast({
         title: "Failed to move task",
@@ -95,6 +113,10 @@ const Tasks = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const getTasksByCategory = (category: string) => {
+    return tasks.filter(task => task.category?.toLowerCase() === category.toLowerCase());
   };
 
   const sortedCategories = [
@@ -113,10 +135,6 @@ const Tasks = () => {
   ].sort((a, b) => 
     (categorySettings[a]?.order || 0) - (categorySettings[b]?.order || 0)
   );
-
-  const getTasksByCategory = (category: string) => {
-    return tasks.filter(task => task.category?.toLowerCase() === category.toLowerCase());
-  };
 
   if (isLoading) {
     return <div>Loading tasks...</div>;
