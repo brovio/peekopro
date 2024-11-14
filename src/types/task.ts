@@ -24,3 +24,7 @@ export interface Task {
   subtasks?: SubTask[] | null;
   workDayAttributes?: WorkDayTaskAttributes;
 }
+
+export type TaskInput = Omit<Task, 'subtasks'> & {
+  subtasks?: Record<string, any>[] | null;
+}

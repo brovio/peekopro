@@ -4,7 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { ArrowRight, FileText, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useClassifyTask } from "@/hooks/useClassifyTask";
-import { Task } from "@/types/task";
+import { Task, TaskInput } from "@/types/task";
 import TaskClassificationButtons from "./TaskClassificationButtons";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,7 +29,7 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
       const content = inputValue.trim();
       if (!content) return;
 
-      const newTask: Task = {
+      const newTask: TaskInput = {
         id: crypto.randomUUID(),
         content,
         category: null,
@@ -37,7 +37,6 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
       };
 
       try {
-        // Insert task into Supabase
         const { data: savedTask, error } = await supabase
           .from('tasks')
           .insert([{
@@ -51,14 +50,12 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
 
         if (error) throw error;
 
-        // Update local state
-        const updatedTask = { ...newTask, ...savedTask };
+        const updatedTask = { ...newTask, ...savedTask } as Task;
         onTasksChange([updatedTask, ...tasks]);
 
         try {
           const classification = await classifyTask(content);
           if (classification.confidence > 0.8) {
-            // Update task category in Supabase
             const { error: updateError } = await supabase
               .from('tasks')
               .update({
@@ -86,7 +83,6 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
           });
         }
 
-        // Invalidate tasks query to refresh the list
         queryClient.invalidateQueries({ queryKey: ['tasks'] });
         
         setInputValue("");
@@ -104,7 +100,6 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
     if (!user) return;
 
     try {
-      // Update task in Supabase
       const { error } = await supabase
         .from('tasks')
         .update({
@@ -115,7 +110,6 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
 
       if (error) throw error;
 
-      // Update local state
       const updatedTasks = tasks.map(task => 
         task.id === taskId 
           ? { ...task, category: category.toLowerCase(), confidence: 1 }
@@ -128,7 +122,6 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
         description: `Manually classified as ${category}`,
       });
 
-      // Invalidate tasks query
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
     } catch (error: any) {
       toast({

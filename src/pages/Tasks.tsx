@@ -5,7 +5,7 @@ import CategoryListBox from "@/components/tasks/CategoryListBox";
 import ApiKeyManager from "@/components/ui/ApiKeyManager";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useState } from "react";
-import { Task, SubTask } from "@/types/task";
+import { Task, SubTask, TaskInput } from "@/types/task";
 import { useTaskHistory } from "@/hooks/useTaskHistory";
 import { useToast } from "@/components/ui/use-toast";
 import { useQuery } from "@tanstack/react-query";
@@ -31,22 +31,14 @@ const Tasks = () => {
       
       if (error) throw error;
       
-      // Convert the JSON subtasks to proper SubTask[] type
       return (data || []).map(task => ({
         ...task,
-        subtasks: task.subtasks ? (task.subtasks as SubTask[]) : null
+        subtasks: task.subtasks ? (task.subtasks as unknown as SubTask[]) : null
       })) as Task[];
     },
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    retry: 3
   });
-
-  const updateTasks = (newTasks: Task[]) => {
-    pushState(newTasks);
-  };
-
-  const getTasksByCategory = (category: string) => {
-    return tasks.filter(task => task.category === category.toLowerCase());
-  };
 
   const updateTask = async (taskId: string, updates: Partial<Task>) => {
     if (!user) return;
@@ -54,7 +46,7 @@ const Tasks = () => {
     try {
       const { error } = await supabase
         .from('tasks')
-        .update(updates)
+        .update(updates as TaskInput)
         .eq('id', taskId);
 
       if (error) throw error;

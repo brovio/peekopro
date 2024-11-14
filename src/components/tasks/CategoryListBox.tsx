@@ -1,6 +1,6 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Task, SubTask } from "@/types/task";
+import { Task, SubTask, TaskInput } from "@/types/task";
 import { FileText, Timer, Trash2, ArrowRight, User, Check, Calendar, RefreshCw, AlertTriangle, Users, MessageCircle, Home, User2, Lightbulb, AppWindow, Briefcase, CheckCircle2, Plus, Zap, Clock } from "lucide-react";
 import TaskProgress from "./TaskProgress";
 import { useToast } from "@/components/ui/use-toast";
@@ -42,7 +42,7 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
           .from('tasks')
           .update({
             subtasks: [...(task.subtasks || []), newSubtask]
-          })
+          } as TaskInput)
           .eq('id', taskId);
 
         if (error) throw error;
@@ -73,7 +73,9 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
       try {
         const { error } = await supabase
           .from('tasks')
-          .update({ subtasks: mockSubtasks })
+          .update({ 
+            subtasks: mockSubtasks 
+          } as TaskInput)
           .eq('id', taskId);
 
         if (error) throw error;
