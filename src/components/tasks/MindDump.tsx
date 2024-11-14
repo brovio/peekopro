@@ -38,17 +38,25 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
       };
 
       try {
-        const { data: savedTask, error } = await supabase
+        // First, insert the task
+        const { error: insertError } = await supabase
           .from('tasks')
-          .insert(newTask)
-          .select()
+          .insert(newTask);
+
+        if (insertError) throw insertError;
+
+        // Then, fetch the newly created task
+        const { data: savedTask, error: fetchError } = await supabase
+          .from('tasks')
+          .select('*')
+          .eq('content', content)
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
           .single();
 
-        if (error) throw error;
-
-        if (!savedTask) {
-          throw new Error('No task was returned after insertion');
-        }
+        if (fetchError) throw fetchError;
+        if (!savedTask) throw new Error('No task was returned after insertion');
 
         const updatedTask = {
           ...savedTask,
