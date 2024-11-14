@@ -49,7 +49,7 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
 
         onTaskUpdate(taskId, {
           subtasks: [...(task.subtasks || []), newSubtask]
-        });
+        } as Partial<Task>);
 
         queryClient.invalidateQueries({ queryKey: ['tasks'] });
       } catch (error: any) {
@@ -80,7 +80,7 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
 
         if (error) throw error;
 
-        onTaskUpdate(taskId, { subtasks: mockSubtasks });
+        onTaskUpdate(taskId, { subtasks: mockSubtasks } as Partial<Task>);
         queryClient.invalidateQueries({ queryKey: ['tasks'] });
 
         toast({

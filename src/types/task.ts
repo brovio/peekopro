@@ -25,6 +25,13 @@ export interface Task {
   workDayAttributes?: WorkDayTaskAttributes;
 }
 
-export type TaskInput = Omit<Task, 'subtasks'> & {
-  subtasks?: Record<string, any>[] | null;
-}
+export type TaskInput = {
+  id?: string;
+  content?: string;
+  category?: string | null;
+  confidence?: number;
+  completed?: boolean;
+  created_at?: string;
+  user_id?: string;
+  subtasks?: SubTask[];
+};

@@ -114,6 +114,10 @@ const Tasks = () => {
     (categorySettings[a]?.order || 0) - (categorySettings[b]?.order || 0)
   );
 
+  const getTasksByCategory = (category: string) => {
+    return tasks.filter(task => task.category?.toLowerCase() === category.toLowerCase());
+  };
+
   if (isLoading) {
     return <div>Loading tasks...</div>;
   }
@@ -141,7 +145,9 @@ const Tasks = () => {
             </div>
             
             <div className="space-y-6">
-              <MindDump tasks={tasks} onTasksChange={updateTasks} />
+              <MindDump tasks={tasks} onTasksChange={(newTasks) => {
+                console.log('Tasks updated:', newTasks);
+              }} />
               
               <div className="space-y-6">
                 {sortedCategories.map(category => (
