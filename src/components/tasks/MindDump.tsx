@@ -30,36 +30,29 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
       if (!content) return;
 
       try {
-        // Create the task object
-        const newTask: TaskInput = {
-          content,
-          category: null,
-          confidence: 0,
-          subtasks: [] as unknown as Json,
-          user_id: user.id
-        };
-
-        // Insert the task
-        const { data: insertedTask, error: insertError } = await supabase
+        const { data, error } = await supabase
           .from('tasks')
-          .insert(newTask)
-          .select()
+          .insert({
+            content,
+            category: null,
+            confidence: 0,
+            subtasks: [],
+            user_id: user.id
+          })
+          .select('*')
           .single();
 
-        if (insertError) throw insertError;
-        if (!insertedTask) throw new Error('Failed to create task');
+        if (error) throw error;
+        if (!data) throw new Error('Failed to create task');
 
-        // Create the complete task object
-        const completedTask: Task = {
-          ...insertedTask,
-          subtasks: insertedTask.subtasks ? (insertedTask.subtasks as unknown as SubTask[]) : []
+        const newTask: Task = {
+          ...data,
+          subtasks: data.subtasks ? (data.subtasks as unknown as SubTask[]) : []
         };
-        
-        // Update local state
-        onTasksChange([completedTask, ...tasks]);
+
+        onTasksChange([newTask, ...tasks]);
         setInputValue("");
 
-        // Try to classify the task
         try {
           const classification = await classifyTask(content);
           if (classification.confidence > 0.8) {
@@ -69,13 +62,13 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
                 category: classification.category.toLowerCase(),
                 confidence: classification.confidence
               })
-              .eq('id', completedTask.id);
+              .eq('id', newTask.id);
 
             if (updateError) throw updateError;
 
-            completedTask.category = classification.category;
-            completedTask.confidence = classification.confidence;
-            onTasksChange([completedTask, ...tasks.filter(t => t.id !== completedTask.id)]);
+            newTask.category = classification.category;
+            newTask.confidence = classification.confidence;
+            onTasksChange([newTask, ...tasks.filter(t => t.id !== newTask.id)]);
             
             toast({
               title: "Task added",
