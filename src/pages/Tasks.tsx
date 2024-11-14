@@ -6,6 +6,7 @@ import ApiKeyManager from "@/components/ui/ApiKeyManager";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useState } from "react";
 import { Task, SubTask, TaskInput } from "@/types/task";
+import { Json } from "@/integrations/supabase/types";
 import { useTaskHistory } from "@/hooks/useTaskHistory";
 import { useToast } from "@/components/ui/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";

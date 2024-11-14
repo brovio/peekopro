@@ -1,6 +1,7 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Task, SubTask, TaskInput } from "@/types/task";
+import { Json } from "@/integrations/supabase/types";
 import { FileText, Timer, Trash2, ArrowRight, User, Check, Calendar, RefreshCw, AlertTriangle, Users, MessageCircle, Home, User2, Lightbulb, AppWindow, Briefcase, CheckCircle2, Plus, Zap, Clock } from "lucide-react";
 import TaskProgress from "./TaskProgress";
 import { useToast } from "@/components/ui/use-toast";
