@@ -20,9 +20,22 @@ const DataVisuals = () => {
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" stroke="#94a3b8" />
-              <YAxis stroke="#94a3b8" />
-              <Bar dataKey="tasks" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              <XAxis 
+                dataKey="name" 
+                stroke="#94a3b8"
+                tick={{ fill: "#94a3b8" }}
+                axisLine={{ stroke: "#94a3b8" }}
+              />
+              <YAxis 
+                stroke="#94a3b8"
+                tick={{ fill: "#94a3b8" }}
+                axisLine={{ stroke: "#94a3b8" }}
+              />
+              <Bar 
+                dataKey="tasks" 
+                fill="#3b82f6" 
+                radius={[4, 4, 0, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
