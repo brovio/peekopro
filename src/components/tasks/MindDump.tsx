@@ -139,6 +139,9 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
     }
   };
 
+  // Filter tasks to show only uncategorized ones (Monkey Thoughts)
+  const monkeyThoughts = tasks.filter(task => !task.category || task.category === null);
+
   return (
     <div className="space-y-6">
       <div className="relative">
@@ -156,10 +159,11 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
         <div className="flex items-center gap-2 text-gray-100">
           <FileText className="h-5 w-5" />
           <h2 className="text-lg font-semibold">Monkey Thoughts</h2>
+          <span className="text-sm text-gray-400">({monkeyThoughts.length})</span>
         </div>
 
         <div className="space-y-2">
-          {tasks.filter(task => !task.category).map(task => (
+          {monkeyThoughts.map(task => (
             <div
               key={task.id}
               className={cn(
