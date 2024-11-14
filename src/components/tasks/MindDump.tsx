@@ -29,43 +29,47 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
       const content = inputValue.trim();
       if (!content) return;
 
-      const newTask: TaskInput = {
-        content,
-        category: null,
-        confidence: 0,
-        subtasks: [] as unknown as Json,
-        user_id: user.id
-      };
-
       try {
-        // First, insert the task
-        const { error: insertError } = await supabase
+        // Create the task object
+        const newTask: TaskInput = {
+          content,
+          category: null,
+          confidence: 0,
+          subtasks: [] as unknown as Json,
+          user_id: user.id
+        };
+
+        // Insert the task and get the ID back
+        const { data, error } = await supabase
           .from('tasks')
-          .insert(newTask);
+          .insert(newTask)
+          .select('id')
+          .single();
 
-        if (insertError) throw insertError;
+        if (error) throw error;
+        if (!data) throw new Error('No task ID returned after insertion');
 
-        // Then, fetch the newly created task
-        const { data: savedTask, error: fetchError } = await supabase
+        // Fetch the complete task data
+        const { data: taskData, error: fetchError } = await supabase
           .from('tasks')
           .select('*')
-          .eq('content', content)
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(1)
+          .eq('id', data.id)
           .single();
 
         if (fetchError) throw fetchError;
-        if (!savedTask) throw new Error('No task was returned after insertion');
+        if (!taskData) throw new Error('Could not fetch the created task');
 
-        const updatedTask = {
-          ...savedTask,
-          subtasks: savedTask.subtasks ? (savedTask.subtasks as unknown as SubTask[]) : []
+        // Create the complete task object
+        const completedTask = {
+          ...taskData,
+          subtasks: taskData.subtasks ? (taskData.subtasks as unknown as SubTask[]) : []
         } as Task;
         
-        onTasksChange([updatedTask, ...tasks]);
+        // Update local state
+        onTasksChange([completedTask, ...tasks]);
         setInputValue("");
 
+        // Try to classify the task
         try {
           const classification = await classifyTask(content);
           if (classification.confidence > 0.8) {
@@ -75,13 +79,13 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
                 category: classification.category.toLowerCase(),
                 confidence: classification.confidence
               })
-              .eq('id', savedTask.id);
+              .eq('id', completedTask.id);
 
             if (updateError) throw updateError;
 
-            updatedTask.category = classification.category;
-            updatedTask.confidence = classification.confidence;
-            onTasksChange([updatedTask, ...tasks.filter(t => t.id !== updatedTask.id)]);
+            completedTask.category = classification.category;
+            completedTask.confidence = classification.confidence;
+            onTasksChange([completedTask, ...tasks.filter(t => t.id !== completedTask.id)]);
             
             toast({
               title: "Task added",
