@@ -7,7 +7,6 @@ import { useClassifyTask } from "@/hooks/useClassifyTask";
 import { Task, TaskInput, SubTask } from "@/types/task";
 import { Json } from "@/integrations/supabase/types";
 import TaskClassificationButtons from "./TaskClassificationButtons";
-import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
@@ -31,27 +30,25 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
       if (!content) return;
 
       const newTask: TaskInput = {
-        id: crypto.randomUUID(),
         content,
         category: null,
         confidence: 0,
-        subtasks: [] as unknown as Json
+        subtasks: [] as unknown as Json,
+        user_id: user.id
       };
 
       try {
         const { data: savedTask, error } = await supabase
           .from('tasks')
-          .insert([{
-            content: newTask.content,
-            category: newTask.category,
-            confidence: newTask.confidence,
-            user_id: user.id,
-            subtasks: newTask.subtasks
-          }])
+          .insert([newTask])
           .select()
           .single();
 
         if (error) throw error;
+
+        if (!savedTask) {
+          throw new Error('No task was returned after insertion');
+        }
 
         const updatedTask = {
           ...savedTask,
@@ -59,6 +56,7 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
         } as Task;
         
         onTasksChange([updatedTask, ...tasks]);
+        setInputValue("");
 
         try {
           const classification = await classifyTask(content);
@@ -75,7 +73,7 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
 
             updatedTask.category = classification.category;
             updatedTask.confidence = classification.confidence;
-            onTasksChange([updatedTask, ...tasks]);
+            onTasksChange([updatedTask, ...tasks.filter(t => t.id !== updatedTask.id)]);
             
             toast({
               title: "Task added",
@@ -83,6 +81,7 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
             });
           }
         } catch (error) {
+          console.error('Classification error:', error);
           toast({
             title: "Classification failed",
             description: "Task added to Monkey Thoughts",
@@ -91,9 +90,8 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
         }
 
         queryClient.invalidateQueries({ queryKey: ['tasks'] });
-        
-        setInputValue("");
       } catch (error: any) {
+        console.error('Task creation error:', error);
         toast({
           title: "Failed to save task",
           description: error.message,
