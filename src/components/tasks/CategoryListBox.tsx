@@ -38,18 +38,19 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
       };
 
       try {
+        const updatedSubtasks = [...(task.subtasks || []), newSubtask];
         const { error } = await supabase
           .from('tasks')
           .update({
-            subtasks: [...(task.subtasks || []), newSubtask]
-          } as TaskInput)
+            subtasks: updatedSubtasks as unknown as Json
+          })
           .eq('id', taskId);
 
         if (error) throw error;
 
         onTaskUpdate(taskId, {
-          subtasks: [...(task.subtasks || []), newSubtask]
-        } as Partial<Task>);
+          subtasks: updatedSubtasks
+        });
 
         queryClient.invalidateQueries({ queryKey: ['tasks'] });
       } catch (error: any) {
@@ -74,13 +75,13 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
         const { error } = await supabase
           .from('tasks')
           .update({ 
-            subtasks: mockSubtasks 
-          } as TaskInput)
+            subtasks: mockSubtasks as unknown as Json
+          })
           .eq('id', taskId);
 
         if (error) throw error;
 
-        onTaskUpdate(taskId, { subtasks: mockSubtasks } as Partial<Task>);
+        onTaskUpdate(taskId, { subtasks: mockSubtasks });
         queryClient.invalidateQueries({ queryKey: ['tasks'] });
 
         toast({

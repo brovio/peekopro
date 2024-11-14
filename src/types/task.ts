@@ -23,7 +23,7 @@ export interface Task {
   completed?: boolean;
   created_at?: string;
   user_id?: string;
-  subtasks?: SubTask[] | null;
+  subtasks?: SubTask[];
   workDayAttributes?: WorkDayTaskAttributes;
 }
 

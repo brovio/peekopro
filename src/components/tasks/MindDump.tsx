@@ -33,7 +33,8 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
         id: crypto.randomUUID(),
         content,
         category: null,
-        confidence: 0
+        confidence: 0,
+        subtasks: [] as unknown as Json
       };
 
       try {
@@ -43,14 +44,19 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
             content: newTask.content,
             category: newTask.category,
             confidence: newTask.confidence,
-            user_id: user.id
+            user_id: user.id,
+            subtasks: newTask.subtasks
           }])
           .select()
           .single();
 
         if (error) throw error;
 
-        const updatedTask = { ...newTask, ...savedTask } as Task;
+        const updatedTask = {
+          ...savedTask,
+          subtasks: savedTask.subtasks ? (savedTask.subtasks as unknown as SubTask[]) : []
+        } as Task;
+        
         onTasksChange([updatedTask, ...tasks]);
 
         try {

@@ -41,7 +41,7 @@ const Tasks = () => {
       
       return data.map(task => ({
         ...task,
-        subtasks: task.subtasks ? (task.subtasks as SubTask[]) : []
+        subtasks: task.subtasks ? (task.subtasks as unknown as SubTask[]) : []
       })) as Task[];
     },
     enabled: !!user?.id,
@@ -53,12 +53,14 @@ const Tasks = () => {
     if (!user) return;
 
     try {
+      const updateData = {
+        ...updates,
+        subtasks: updates.subtasks ? (updates.subtasks as unknown as Json) : null
+      } as TaskInput;
+
       const { error } = await supabase
         .from('tasks')
-        .update({
-          ...updates,
-          subtasks: updates.subtasks || null
-        } as TaskInput)
+        .update(updateData)
         .eq('id', taskId)
         .eq('user_id', user.id);
 
