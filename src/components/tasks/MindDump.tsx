@@ -39,31 +39,21 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
           user_id: user.id
         };
 
-        // Insert the task and get the ID back
-        const { data, error } = await supabase
+        // Insert the task
+        const { data: insertedTask, error: insertError } = await supabase
           .from('tasks')
           .insert(newTask)
-          .select('id')
+          .select()
           .single();
 
-        if (error) throw error;
-        if (!data) throw new Error('No task ID returned after insertion');
-
-        // Fetch the complete task data
-        const { data: taskData, error: fetchError } = await supabase
-          .from('tasks')
-          .select('*')
-          .eq('id', data.id)
-          .single();
-
-        if (fetchError) throw fetchError;
-        if (!taskData) throw new Error('Could not fetch the created task');
+        if (insertError) throw insertError;
+        if (!insertedTask) throw new Error('Failed to create task');
 
         // Create the complete task object
-        const completedTask = {
-          ...taskData,
-          subtasks: taskData.subtasks ? (taskData.subtasks as unknown as SubTask[]) : []
-        } as Task;
+        const completedTask: Task = {
+          ...insertedTask,
+          subtasks: insertedTask.subtasks ? (insertedTask.subtasks as unknown as SubTask[]) : []
+        };
         
         // Update local state
         onTasksChange([completedTask, ...tasks]);
