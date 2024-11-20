@@ -14,10 +14,82 @@ serve(async (req) => {
   }
 
   try {
-    const { content } = await req.json();
+    const { content, skipQuestions = false, answers = {} } = await req.json();
     console.log('Processing task content:', content);
+    console.log('Skip questions:', skipQuestions);
+    console.log('User answers:', answers);
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // First, get the questions if needed
+    if (!skipQuestions) {
+      const questionsResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: `You are a task breakdown assistant. For the given task, generate 3-5 questions that will help gather information needed for breaking it down into subtasks.
+              Each question should be one of these types:
+              1. Multiple choice (when there are clear options to choose from)
+              2. Text input (when detailed explanation is needed)
+              3. File upload (when documents, images, or other files are needed)
+              
+              For multiple choice questions, include "Options:" followed by the choices.
+              For file upload questions, specify what type of file is expected.`
+            },
+            {
+              role: 'user',
+              content
+            }
+          ],
+          temperature: 0.7,
+        }),
+      });
+
+      if (!questionsResponse.ok) {
+        throw new Error(`OpenAI API error: ${questionsResponse.statusText}`);
+      }
+
+      const questionsData = await questionsResponse.json();
+      const questions = questionsData.choices[0].message.content
+        .split('\n')
+        .filter(q => q.trim())
+        .map(q => {
+          const text = q.replace(/^\d+\.\s*/, '').trim();
+          let type = 'text';
+          let options;
+
+          if (text.toLowerCase().includes('upload') || 
+              text.toLowerCase().includes('attach') ||
+              text.toLowerCase().includes('file') ||
+              text.toLowerCase().includes('image')) {
+            type = 'file';
+          } else if (text.toLowerCase().includes('options:')) {
+            type = 'radio';
+            const optionsMatch = text.match(/options:(.*?)(?:\]|$)/i);
+            if (optionsMatch) {
+              options = optionsMatch[1]
+                .split(',')
+                .map(opt => opt.trim())
+                .filter(opt => opt.length > 0);
+            }
+          }
+
+          return { text, type, options };
+        });
+
+      return new Response(
+        JSON.stringify({ data: questions }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // If skipping questions or we have answers, generate steps
+    const stepsResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openAIApiKey}`,
@@ -28,71 +100,37 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a task breakdown assistant. For the given task, generate 3-5 questions that will help gather information needed for breaking it down into subtasks.
-            Each question should be one of these types:
-            1. Multiple choice (when there are clear options to choose from)
-            2. Text input (when detailed explanation is needed)
-            3. File upload (when documents, images, or other files are needed)
-            
-            For multiple choice questions, include "Options:" followed by the choices.
-            For file upload questions, specify what type of file is expected.
-            
-            Example format:
-            [What is the preferred technology stack? Options: MERN, LAMP, JAMstack, Other]
-            [Please upload any existing design mockups or wireframes (PDF or image files)]
-            [Describe the main features you want to include]`
+            content: 'You are a task breakdown assistant. Break down the given task into clear, actionable steps. Return 5-8 specific steps. Each step should be concise but detailed enough to be actionable.'
           },
           {
             role: 'user',
-            content
+            content: `Task: ${content}${
+              Object.keys(answers).length > 0 
+                ? `\n\nAdditional information:\n${Object.entries(answers)
+                    .map(([_, value]) => `- ${value}`)
+                    .join('\n')}`
+                : '\nProvide steps using common default settings and assumptions.'
+            }`
           }
         ],
         temperature: 0.7,
       }),
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('OpenAI API error:', {
-        status: response.status,
-        statusText: response.statusText,
-        error: errorData
-      });
-      throw new Error(`OpenAI API error: ${response.statusText}`);
+    if (!stepsResponse.ok) {
+      throw new Error(`OpenAI API error: ${stepsResponse.statusText}`);
     }
 
-    const data = await response.json();
-    const questions = data.choices[0].message.content
+    const stepsData = await stepsResponse.json();
+    const steps = stepsData.choices[0].message.content
       .split('\n')
-      .filter(q => q.trim())
-      .map(q => {
-        const text = q.replace(/^\d+\.\s*/, '').trim();
-        let type = 'text';
-        let options;
-
-        if (text.toLowerCase().includes('upload') || 
-            text.toLowerCase().includes('attach') ||
-            text.toLowerCase().includes('file') ||
-            text.toLowerCase().includes('image')) {
-          type = 'file';
-        } else if (text.toLowerCase().includes('options:')) {
-          type = 'radio';
-          const optionsMatch = text.match(/options:(.*?)(?:\]|$)/i);
-          if (optionsMatch) {
-            options = optionsMatch[1]
-              .split(',')
-              .map(opt => opt.trim())
-              .filter(opt => opt.length > 0);
-          }
-        }
-
-        return { text, type, options };
-      });
-
-    console.log('Generated questions:', questions);
+      .filter(step => step.trim())
+      .map(step => ({
+        text: step.replace(/^\d+\.\s*/, '').trim()
+      }));
 
     return new Response(
-      JSON.stringify({ data: questions }),
+      JSON.stringify({ data: steps }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
