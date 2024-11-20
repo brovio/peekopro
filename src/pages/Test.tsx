@@ -3,10 +3,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
+import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import TaskQuestionsDialog from "@/components/tasks/questions/TaskQuestionsDialog";
 import TaskBreakdown from "@/components/tasks/breakdown/TaskBreakdown";
 import FrogTaskItem from "@/components/tasks/frog/FrogTaskItem";
+import FrogTaskGrid from "@/components/tasks/frog/FrogTaskGrid";
+
+interface CategorizedTask {
+  id: string;
+  content: string;
+  category: string;
+}
 
 const Test = () => {
   const [task, setTask] = useState("");
@@ -19,6 +27,7 @@ const Test = () => {
   const { toast } = useToast();
   const frogInputRef = useRef<HTMLInputElement>(null);
   const [placeholder, setPlaceholder] = useState("Monkey Minding Much?");
+  const [categorizedTasks, setCategorizedTasks] = useState<CategorizedTask[]>([]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -146,11 +155,25 @@ const Test = () => {
     e.preventDefault();
     if (!frogTask.trim()) return;
     
-    setFrogTasks(prev => [frogTask, ...prev]);
+    const newTask = {
+      id: crypto.randomUUID(),
+      content: frogTask,
+      category: "Uncategorized"
+    };
+    
+    setCategorizedTasks(prev => [newTask, ...prev]);
     setFrogTask("");
     if (frogInputRef.current) {
       frogInputRef.current.focus();
     }
+  };
+
+  const handleCategorySelect = (taskId: string, category: string) => {
+    setCategorizedTasks(prev => 
+      prev.map(task => 
+        task.id === taskId ? { ...task, category } : task
+      )
+    );
   };
 
   return (
@@ -184,11 +207,22 @@ const Test = () => {
             </Button>
           </div>
 
-          {frogTasks.length > 0 && (
-            <div className="mt-6 space-y-2">
-              {frogTasks.map((task, index) => (
-                <FrogTaskItem key={index} task={task} index={index} />
-              ))}
+          {categorizedTasks.length > 0 && (
+            <div className="space-y-8">
+              <div className="space-y-2">
+                {categorizedTasks
+                  .filter(task => task.category === "Uncategorized")
+                  .map((task, index) => (
+                    <FrogTaskItem
+                      key={task.id}
+                      task={task.content}
+                      index={index}
+                      onCategorySelect={(category) => handleCategorySelect(task.id, category)}
+                    />
+                  ))}
+              </div>
+
+              <FrogTaskGrid tasks={categorizedTasks.filter(task => task.category !== "Uncategorized")} />
             </div>
           )}
         </form>
