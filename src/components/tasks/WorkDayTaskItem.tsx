@@ -5,6 +5,10 @@ import TaskClassificationButtons from "./TaskClassificationButtons";
 import TaskActions from "./actions/TaskActions";
 import SubtasksList from "./subtasks/SubtasksList";
 import TaskBreakdownButtons from "./ai-breakdown/TaskBreakdownButtons";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/components/ui/use-toast";
+import { Json } from "@/integrations/supabase/types";
 
 interface WorkDayTaskItemProps {
   task: Task;
@@ -15,6 +19,19 @@ interface WorkDayTaskItemProps {
 
 const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskItemProps) => {
   const [showReclassify, setShowReclassify] = useState(false);
+  const [isBreakingDown, setIsBreakingDown] = useState(false);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const handleAIBreakdown = async () => {
+    setIsBreakingDown(true);
+    try {
+      // AI breakdown logic here
+      setIsBreakingDown(false);
+    } catch (error) {
+      setIsBreakingDown(false);
+    }
+  };
 
   return (
     <>
@@ -45,6 +62,8 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
                 onAddSubtask={onAddSubtask}
               />
               <TaskActions
+                isLoading={isBreakingDown}
+                onAIBreakdown={handleAIBreakdown}
                 onReclassify={() => setShowReclassify(true)}
                 onDelete={() => onDelete(task.id)}
               />
@@ -65,7 +84,7 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
               const { error } = await supabase
                 .from('tasks')
                 .update({
-                  subtasks: JSON.parse(JSON.stringify(updatedSubtasks)) as Json
+                  subtasks: updatedSubtasks as Json
                 })
                 .eq('id', task.id);
 

@@ -5,6 +5,10 @@ import { FileText, Trash2, ArrowRight, User, Check, RefreshCw } from "lucide-rea
 import TaskClassificationButtons from "./TaskClassificationButtons";
 import TaskBreakdownButtons from "./ai-breakdown/TaskBreakdownButtons";
 import SubtasksList from "./subtasks/SubtasksList";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/components/ui/use-toast";
+import { Json } from "@/integrations/supabase/types";
 
 interface TaskItemProps {
   task: Task;
@@ -15,6 +19,8 @@ interface TaskItemProps {
 
 const TaskItem = ({ task, onDelete, onMove, onAddSubtask }: TaskItemProps) => {
   const [showReclassify, setShowReclassify] = useState(false);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   return (
     <div className="flex flex-col gap-2">
@@ -99,7 +105,6 @@ const TaskItem = ({ task, onDelete, onMove, onAddSubtask }: TaskItemProps) => {
         <SubtasksList
           subtasks={task.subtasks}
           onComplete={async (subtaskId, completed) => {
-            // Handle subtask completion
             try {
               const updatedSubtasks = task.subtasks.map(subtask =>
                 subtask.id === subtaskId ? { ...subtask, completed } : subtask
@@ -107,7 +112,7 @@ const TaskItem = ({ task, onDelete, onMove, onAddSubtask }: TaskItemProps) => {
 
               const { error } = await supabase
                 .from('tasks')
-                .update({ subtasks: updatedSubtasks })
+                .update({ subtasks: updatedSubtasks as Json })
                 .eq('id', task.id);
 
               if (error) throw error;
