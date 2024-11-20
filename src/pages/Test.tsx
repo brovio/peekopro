@@ -9,9 +9,8 @@ import TaskQuestionsDialog from "@/components/tasks/questions/TaskQuestionsDialo
 import MindDump from "@/components/tasks/MindDump";
 import TaskTestList from "@/components/tasks/test/TaskTestList";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Task, SubTask } from "@/types/task";
-import { Json } from "@/integrations/supabase/types";
+import { useTasksQuery } from "@/hooks/useTasksQuery";
+import { useTaskMutations } from "@/hooks/useTaskMutations";
 
 const Test = () => {
   const [task, setTask] = useState("");
@@ -21,106 +20,9 @@ const Test = () => {
   const [questions, setQuestions] = useState<any[]>([]);
   const { toast } = useToast();
   const { user } = useAuth();
-  const queryClient = useQueryClient();
-
-  const { data: tasks = [] } = useQuery({
-    queryKey: ['tasks', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('*')
-        .eq('user_id', user.id);
-      
-      if (error) {
-        toast({
-          title: "Error fetching tasks",
-          description: error.message,
-          variant: "destructive",
-        });
-        throw error;
-      }
-      
-      return (data || []).map(task => ({
-        ...task,
-        subtasks: Array.isArray(task.subtasks) ? task.subtasks as SubTask[] : []
-      })) as Task[];
-    },
-    enabled: !!user?.id,
-  });
-
-  const updateTask = async (taskId: string, updates: Partial<Task>) => {
-    if (!user) return;
-
-    try {
-      const updateData = {
-        ...updates,
-        subtasks: updates.subtasks ? JSON.parse(JSON.stringify(updates.subtasks)) as Json : undefined,
-        attachments: updates.attachments ? JSON.parse(JSON.stringify(updates.attachments)) as Json : undefined
-      };
-
-      const { error } = await supabase
-        .from('tasks')
-        .update(updateData)
-        .eq('id', taskId)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      queryClient.invalidateQueries({ queryKey: ['tasks', user.id] });
-    } catch (error: any) {
-      toast({
-        title: "Failed to update task",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const deleteTask = async (taskId: string) => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('tasks')
-        .delete()
-        .eq('id', taskId)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      queryClient.invalidateQueries({ queryKey: ['tasks', user.id] });
-    } catch (error: any) {
-      toast({
-        title: "Failed to delete task",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const moveTask = async (taskId: string, category: string) => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('tasks')
-        .update({ category: category.toLowerCase() })
-        .eq('id', taskId)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      queryClient.invalidateQueries({ queryKey: ['tasks', user.id] });
-    } catch (error: any) {
-      toast({
-        title: "Failed to move task",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
+  
+  const { data: tasks = [] } = useTasksQuery(user?.id);
+  const { updateTask, deleteTask, moveTask } = useTaskMutations(user?.id);
 
   const handleDirectTest = async () => {
     if (!task.trim()) {
