@@ -1,41 +1,32 @@
-import React, { useState } from 'react';
-import { Button } from './button';
-import { Upload, X } from 'lucide-react';
-import { useToast } from './use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { useState } from "react";
+import { Button } from "./button";
+import { supabase } from "@/integrations/supabase/client";
+import { Loader2, Upload } from "lucide-react";
+import { useToast } from "./use-toast";
 
 interface FileUploadInputProps {
   onFileUpload: (url: string) => void;
-  accept?: string;
 }
 
-export const FileUploadInput = ({ onFileUpload, accept = "image/*" }: FileUploadInputProps) => {
+export const FileUploadInput = ({ onFileUpload }: FileUploadInputProps) => {
   const [isUploading, setIsUploading] = useState(false);
-  const [preview, setPreview] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (!file) return;
 
+    setIsUploading(true);
     try {
-      setIsUploading(true);
-
-      // Create a preview
-      const objectUrl = URL.createObjectURL(file);
-      setPreview(objectUrl);
-
-      // Upload to Supabase Storage
       const fileExt = file.name.split('.').pop();
       const filePath = `${crypto.randomUUID()}.${fileExt}`;
 
-      const { data, error } = await supabase.storage
+      const { data, error: uploadError } = await supabase.storage
         .from('task_attachments')
         .upload(filePath, file);
 
-      if (error) throw error;
+      if (uploadError) throw uploadError;
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('task_attachments')
         .getPublicUrl(filePath);
@@ -57,48 +48,31 @@ export const FileUploadInput = ({ onFileUpload, accept = "image/*" }: FileUpload
     }
   };
 
-  const removeFile = () => {
-    setPreview(null);
-    onFileUpload('');
-  };
-
   return (
-    <div className="space-y-2">
-      {!preview ? (
-        <div className="flex items-center justify-center w-full">
-          <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
-            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-              <Upload className="w-8 h-8 mb-2 text-gray-500 dark:text-gray-400" />
-              <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                <span className="font-semibold">Click to upload</span> or drag and drop
-              </p>
-            </div>
-            <input
-              type="file"
-              className="hidden"
-              onChange={handleFileChange}
-              accept={accept}
-              disabled={isUploading}
-            />
-          </label>
-        </div>
-      ) : (
-        <div className="relative">
-          <img
-            src={preview}
-            alt="Preview"
-            className="max-w-full h-auto rounded-lg"
-          />
-          <Button
-            variant="destructive"
-            size="icon"
-            className="absolute top-2 right-2"
-            onClick={removeFile}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-      )}
+    <div className="flex items-center gap-2">
+      <input
+        type="file"
+        id="file-upload"
+        className="hidden"
+        onChange={handleFileChange}
+        accept="image/*"
+      />
+      <label
+        htmlFor="file-upload"
+        className="cursor-pointer inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+      >
+        {isUploading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Uploading...
+          </>
+        ) : (
+          <>
+            <Upload className="mr-2 h-4 w-4" />
+            Upload Image
+          </>
+        )}
+      </label>
     </div>
   );
 };

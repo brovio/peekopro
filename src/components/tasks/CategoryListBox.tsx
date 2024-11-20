@@ -111,7 +111,6 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
                 key={task.id}
                 task={task}
                 onAddSubtask={handleAddSubtask}
-                onGenerateAISubtasks={(taskId) => onTaskUpdate?.(taskId, { subtasks: task.subtasks })}
                 onDelete={handleDelete}
               />
             ) : (

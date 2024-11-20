@@ -66,12 +66,14 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete }: WorkDayTaskItemProps)
           completed: false
         }));
         
+        const fileUrls = Object.values(answers).filter(url => url.startsWith('http'));
+        
         try {
           const { error: updateError } = await supabase
             .from('tasks')
             .update({ 
-              subtasks: subtasks,
-              attachments: Object.values(answers).filter(url => url.startsWith('http'))
+              subtasks,
+              attachments: fileUrls
             })
             .eq('id', task.id);
 

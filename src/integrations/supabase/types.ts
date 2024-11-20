@@ -35,6 +35,7 @@ export type Database = {
       }
       tasks: {
         Row: {
+          attachments: Json | null
           category: string | null
           completed: boolean | null
           confidence: number | null
@@ -45,6 +46,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          attachments?: Json | null
           category?: string | null
           completed?: boolean | null
           confidence?: number | null
@@ -55,6 +57,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          attachments?: Json | null
           category?: string | null
           completed?: boolean | null
           confidence?: number | null
