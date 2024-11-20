@@ -1,5 +1,5 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Task } from "@/types/task";
+import { Task, SubTask } from "@/types/task";
 import { FileText, Timer, Users, MessageCircle, Home, User2, Lightbulb, AppWindow, Briefcase, Calendar, RefreshCw, AlertTriangle, CheckCircle2 } from "lucide-react";
 import TaskProgress from "./TaskProgress";
 import { useToast } from "@/components/ui/use-toast";
@@ -9,6 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import TaskItem from "./TaskItem";
 import WorkDayTaskItem from "./WorkDayTaskItem";
+import { Json } from "@/integrations/supabase/types";
 
 export interface CategoryListBoxProps {
   title: string;
@@ -30,7 +31,7 @@ export const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTa
 
     const task = tasks.find(t => t.id === taskId);
     if (task) {
-      const newSubtask = {
+      const newSubtask: SubTask = {
         id: crypto.randomUUID(),
         content: "New subtask",
         completed: false
@@ -41,7 +42,7 @@ export const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTa
         const { error } = await supabase
           .from('tasks')
           .update({
-            subtasks: updatedSubtasks
+            subtasks: updatedSubtasks as unknown as Json
           })
           .eq('id', taskId);
 
@@ -62,30 +63,34 @@ export const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTa
     }
   };
 
-  const handleDelete = async (taskId: string) => {
-    if (!user || !onTaskDelete) return;
-
-    try {
-      const { error } = await supabase
-        .from('tasks')
-        .delete()
-        .eq('id', taskId);
-
-      if (error) throw error;
-
-      onTaskDelete(taskId);
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-
-      toast({
-        title: "Task deleted",
-        description: "Task has been permanently removed",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Failed to delete task",
-        description: error.message,
-        variant: "destructive",
-      });
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case "Work Day":
+        return <Timer className="h-4 w-4 text-gray-300" />;
+      case "Delegate":
+        return <Users className="h-4 w-4 text-gray-300" />;
+      case "Discuss":
+        return <MessageCircle className="h-4 w-4 text-gray-300" />;
+      case "Family":
+        return <Home className="h-4 w-4 text-gray-300" />;
+      case "Personal":
+        return <User2 className="h-4 w-4 text-gray-300" />;
+      case "Ideas":
+        return <Lightbulb className="h-4 w-4 text-gray-300" />;
+      case "App Ideas":
+        return <AppWindow className="h-4 w-4 text-gray-300" />;
+      case "Project Ideas":
+        return <Briefcase className="h-4 w-4 text-gray-300" />;
+      case "Meetings":
+        return <Calendar className="h-4 w-4 text-gray-300" />;
+      case "Follow-Up":
+        return <RefreshCw className="h-4 w-4 text-gray-300" />;
+      case "Urgent":
+        return <AlertTriangle className="h-4 w-4 text-gray-300" />;
+      case "Complete":
+        return <CheckCircle2 className="h-4 w-4 text-gray-300" />;
+      default:
+        return <FileText className="h-4 w-4 text-gray-300" />;
     }
   };
 
@@ -111,13 +116,13 @@ export const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTa
                 key={task.id}
                 task={task}
                 onAddSubtask={handleAddSubtask}
-                onDelete={handleDelete}
+                onDelete={onTaskDelete}
               />
             ) : (
               <TaskItem
                 key={task.id}
                 task={task}
-                onDelete={handleDelete}
+                onDelete={onTaskDelete}
                 onMove={onTaskMove}
               />
             )
@@ -126,35 +131,4 @@ export const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTa
       </CardContent>
     </Card>
   );
-};
-
-const getCategoryIcon = (category: string) => {
-  switch (category) {
-    case "Work Day":
-      return <Timer className="h-4 w-4 text-gray-300" />;
-    case "Delegate":
-      return <Users className="h-4 w-4 text-gray-300" />;
-    case "Discuss":
-      return <MessageCircle className="h-4 w-4 text-gray-300" />;
-    case "Family":
-      return <Home className="h-4 w-4 text-gray-300" />;
-    case "Personal":
-      return <User2 className="h-4 w-4 text-gray-300" />;
-    case "Ideas":
-      return <Lightbulb className="h-4 w-4 text-gray-300" />;
-    case "App Ideas":
-      return <AppWindow className="h-4 w-4 text-gray-300" />;
-    case "Project Ideas":
-      return <Briefcase className="h-4 w-4 text-gray-300" />;
-    case "Meetings":
-      return <Calendar className="h-4 w-4 text-gray-300" />;
-    case "Follow-Up":
-      return <RefreshCw className="h-4 w-4 text-gray-300" />;
-    case "Urgent":
-      return <AlertTriangle className="h-4 w-4 text-gray-300" />;
-    case "Complete":
-      return <CheckCircle2 className="h-4 w-4 text-gray-300" />;
-    default:
-      return <FileText className="h-4 w-4 text-gray-300" />;
-  }
 };
