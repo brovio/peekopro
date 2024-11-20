@@ -4,6 +4,7 @@ import { Clock, Plus, Trash2, Zap, Check, Brain } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import TaskQuestionsDialog from "./TaskQuestionsDialog";
 
 interface WorkDayTaskItemProps {
   task: Task;
@@ -14,6 +15,8 @@ interface WorkDayTaskItemProps {
 
 const WorkDayTaskItem = ({ task, onAddSubtask, onGenerateAISubtasks, onDelete }: WorkDayTaskItemProps) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [showQuestions, setShowQuestions] = useState(false);
+  const [questions, setQuestions] = useState<any[]>([]);
   const { toast } = useToast();
 
   const handleAIBreakdown = async () => {
@@ -25,28 +28,16 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onGenerateAISubtasks, onDelete }:
 
       if (error) throw error;
 
-      if (data.steps && data.steps.length > 0) {
-        const subtasks = data.steps.map(step => ({
-          id: crypto.randomUUID(),
-          content: step,
-          completed: false
+      if (data.questions && data.questions.length > 0) {
+        const formattedQuestions = data.questions.map((q: string) => ({
+          text: q,
+          type: q.toLowerCase().includes('prefer') ? 'radio' : 'text',
+          options: q.toLowerCase().includes('prefer') ? ['Manual', 'Automated'] : undefined
         }));
-
+        setQuestions(formattedQuestions);
+        setShowQuestions(true);
+      } else if (data.steps && data.steps.length > 0) {
         await onGenerateAISubtasks(task.id);
-
-        if (data.questions && data.questions.length > 0) {
-          toast({
-            title: "Additional Questions",
-            description: (
-              <div className="mt-2 space-y-2">
-                {data.questions.map((q: string, i: number) => (
-                  <p key={i} className="text-sm">• {q}</p>
-                ))}
-              </div>
-            ),
-            duration: 10000,
-          });
-        }
       }
     } catch (error: any) {
       toast({
@@ -56,6 +47,29 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onGenerateAISubtasks, onDelete }:
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleQuestionSubmit = async (answers: Record<string, string>) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('break-down-task', {
+        body: { 
+          taskContent: task.content,
+          answers: Object.values(answers)
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.steps && data.steps.length > 0) {
+        await onGenerateAISubtasks(task.id);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error processing answers",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -107,6 +121,7 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onGenerateAISubtasks, onDelete }:
           </Button>
         </div>
       </div>
+
       {task.subtasks && task.subtasks.length > 0 && (
         <div className="ml-6 space-y-2">
           {task.subtasks.map(subtask => (
@@ -127,6 +142,13 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onGenerateAISubtasks, onDelete }:
           ))}
         </div>
       )}
+
+      <TaskQuestionsDialog
+        questions={questions}
+        open={showQuestions}
+        onOpenChange={setShowQuestions}
+        onSubmit={handleQuestionSubmit}
+      />
     </div>
   );
 };
