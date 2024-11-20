@@ -42,14 +42,7 @@ serve(async (req) => {
               
               For multiple choice or checkbox questions, include "Options:" followed by the choices.
               For yes/no questions, phrase them as questions ending with "(Yes/No)".
-              For file upload questions, specify what type of file is expected.
-              
-              Example formats:
-              - "Do you want to include custom settings? (Yes/No)"
-              - "Which features do you need? (select all that apply) Options: Feature A, Feature B, Feature C"
-              - "Select your operating system: Options: Windows, macOS, Linux"
-              - "Upload your existing configuration file (if any)"
-              - "What specific requirements do you have? (open text)"`
+              For file upload questions, specify what type of file is expected.`
             },
             {
               role: 'user',
@@ -81,8 +74,7 @@ serve(async (req) => {
           } else if (text.toLowerCase().includes('(yes/no)')) {
             type = 'radio';
             options = ['Yes', 'No'];
-          } else if (text.toLowerCase().includes('select all that apply') ||
-                    text.toLowerCase().includes('multiple selections')) {
+          } else if (text.toLowerCase().includes('select all that apply')) {
             type = 'checkbox';
             const optionsMatch = text.match(/options:(.*?)(?:\]|$)/i);
             if (optionsMatch) {
@@ -121,7 +113,7 @@ serve(async (req) => {
       })
       .filter(answer => answer && answer.length > 0);
 
-    // If skipping questions or we have answers, generate steps
+    // Generate steps
     const stepsResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -140,7 +132,7 @@ serve(async (req) => {
             content: `Task: ${content}${
               formattedAnswers.length > 0 
                 ? `\n\nAdditional information:\n${formattedAnswers.map(answer => `- ${answer}`).join('\n')}`
-                : '\nProvide steps using common default settings and assumptions.'
+                : ''
             }`
           }
         ],
@@ -159,6 +151,8 @@ serve(async (req) => {
       .map(step => ({
         text: step.replace(/^\d+\.\s*/, '').trim()
       }));
+
+    console.log('Generated steps:', steps);
 
     return new Response(
       JSON.stringify({ data: steps }),

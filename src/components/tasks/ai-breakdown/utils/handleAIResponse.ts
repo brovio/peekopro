@@ -13,6 +13,7 @@ export const handleAIResponse = async (
   queryClient: QueryClient
 ) => {
   if (!Array.isArray(steps)) {
+    console.error('Invalid steps format:', steps);
     throw new Error('Invalid response format from AI service');
   }
 
@@ -20,7 +21,7 @@ export const handleAIResponse = async (
 
   const newSubtasks = steps.map(step => ({
     id: crypto.randomUUID(),
-    content: step.text || step,  // Handle both {text: string} and string formats
+    content: typeof step === 'string' ? step : step.text,
     completed: false
   }));
 
