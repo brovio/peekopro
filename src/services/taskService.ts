@@ -23,47 +23,48 @@ export async function createUserProfile(userId: string) {
     if (userError) throw userError;
     if (!user) throw new Error('No authenticated user');
 
-    // Insert the profile manually if it doesn't exist
-    const { data: insertedProfile, error: insertError } = await supabase
+    // Insert the profile
+    const { data: profile, error: insertError } = await supabase
       .from('profiles')
       .insert({
-        id: userId,
+        id: user.id,
         email: user.email,
         full_name: user.user_metadata.full_name || null
       })
       .select('id')
       .single();
 
-    if (insertError) throw insertError;
-    if (!insertedProfile) throw new Error('Failed to create profile');
+    if (insertError) {
+      console.error('Profile insert error:', insertError);
+      throw insertError;
+    }
 
-    return insertedProfile.id;
+    return profile.id;
   } catch (error: any) {
     console.error('Profile creation error:', error);
-    throw new Error('Failed to create or fetch user profile');
+    throw error;
   }
 }
 
 export async function createTask(content: string, userId: string) {
   try {
-    // Ensure profile exists and get the profile ID
-    const profileId = await createUserProfile(userId);
-
     // Create the task
-    const { data: newTask, error: insertError } = await supabase
+    const { data: newTask, error: taskError } = await supabase
       .from('tasks')
       .insert({
         content,
+        user_id: userId,
         category: null,
         confidence: 0,
-        subtasks: [],
-        user_id: profileId
+        subtasks: []
       })
       .select()
       .single();
 
-    if (insertError) throw insertError;
-    if (!newTask) throw new Error('Failed to create task');
+    if (taskError) {
+      console.error('Task creation error:', taskError);
+      throw taskError;
+    }
 
     return {
       ...newTask,
