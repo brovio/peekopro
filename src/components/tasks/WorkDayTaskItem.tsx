@@ -60,13 +60,29 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
   };
 
   const handleQuestionResponse = async (responses: Record<string, string>) => {
+    if (!responses || Object.keys(responses).length === 0) {
+      setShowQuestions(false);
+      return;
+    }
+
     try {
-      const currentSubtasks = Array.isArray(task.subtasks) ? task.subtasks : [];
-      const subtasksToAdd = Object.values(responses).map(response => ({
-        id: crypto.randomUUID(),
-        content: response,
-        completed: false
-      }));
+      // Ensure we have the latest task data
+      const { data: latestTask } = await supabase
+        .from('tasks')
+        .select('subtasks')
+        .eq('id', task.id)
+        .single();
+
+      const currentSubtasks = latestTask?.subtasks || [];
+      
+      // Create new subtasks from responses
+      const subtasksToAdd = Object.values(responses)
+        .filter(response => response.trim() !== '')
+        .map(response => ({
+          id: crypto.randomUUID(),
+          content: response,
+          completed: false
+        }));
 
       const updatedSubtasks = [...currentSubtasks, ...subtasksToAdd];
 
@@ -79,6 +95,7 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
 
       if (updateError) throw updateError;
 
+      // Invalidate and refetch to ensure UI is up to date
       await queryClient.invalidateQueries({ queryKey: ['tasks'] });
 
       setShowQuestions(false);
