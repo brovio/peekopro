@@ -112,7 +112,9 @@ const TaskItem = ({ task, onDelete, onMove, onAddSubtask }: TaskItemProps) => {
 
               const { error } = await supabase
                 .from('tasks')
-                .update({ subtasks: updatedSubtasks as Json })
+                .update({ 
+                  subtasks: JSON.parse(JSON.stringify(updatedSubtasks)) as Json 
+                })
                 .eq('id', task.id);
 
               if (error) throw error;
