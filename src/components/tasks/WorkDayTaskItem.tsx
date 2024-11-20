@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Task } from "@/types/task";
-import { Clock, Plus, Trash2, Zap, Check, Brain } from "lucide-react";
+import { Clock, Plus, Trash2, Brain, Check } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,7 +37,34 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onGenerateAISubtasks, onDelete }:
         setQuestions(formattedQuestions);
         setShowQuestions(true);
       } else if (data.steps && data.steps.length > 0) {
-        await onGenerateAISubtasks(task.id);
+        const subtasks = data.steps.map((step: string) => ({
+          id: crypto.randomUUID(),
+          content: step,
+          completed: false
+        }));
+        
+        try {
+          const { error: updateError } = await supabase
+            .from('tasks')
+            .update({ 
+              subtasks: subtasks
+            })
+            .eq('id', task.id);
+
+          if (updateError) throw updateError;
+
+          onGenerateAISubtasks(task.id);
+          toast({
+            title: "AI Subtasks Generated",
+            description: "Added suggested subtasks to your task"
+          });
+        } catch (error: any) {
+          toast({
+            title: "Failed to save subtasks",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
       }
     } catch (error: any) {
       toast({
@@ -62,7 +89,34 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onGenerateAISubtasks, onDelete }:
       if (error) throw error;
 
       if (data.steps && data.steps.length > 0) {
-        await onGenerateAISubtasks(task.id);
+        const subtasks = data.steps.map((step: string) => ({
+          id: crypto.randomUUID(),
+          content: step,
+          completed: false
+        }));
+        
+        try {
+          const { error: updateError } = await supabase
+            .from('tasks')
+            .update({ 
+              subtasks: subtasks
+            })
+            .eq('id', task.id);
+
+          if (updateError) throw updateError;
+
+          onGenerateAISubtasks(task.id);
+          toast({
+            title: "AI Subtasks Generated",
+            description: "Added suggested subtasks based on your answers"
+          });
+        } catch (error: any) {
+          toast({
+            title: "Failed to save subtasks",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
       }
     } catch (error: any) {
       toast({
@@ -101,15 +155,6 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onGenerateAISubtasks, onDelete }:
             title="AI Breakdown"
           >
             <Brain className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => onGenerateAISubtasks(task.id)}
-            title="Generate AI Subtasks"
-          >
-            <Zap className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"

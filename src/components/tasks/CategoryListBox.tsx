@@ -1,8 +1,6 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Task, SubTask, TaskInput } from "@/types/task";
-import { Json } from "@/integrations/supabase/types";
-import { FileText, Timer, Trash2, ArrowRight, User, Check, Calendar, RefreshCw, AlertTriangle, Users, MessageCircle, Home, User2, Lightbulb, AppWindow, Briefcase, CheckCircle2, Plus, Zap, Clock } from "lucide-react";
+import { Task } from "@/types/task";
+import { FileText, Timer, Users, MessageCircle, Home, User2, Lightbulb, AppWindow, Briefcase, Calendar, RefreshCw, AlertTriangle, CheckCircle2 } from "lucide-react";
 import TaskProgress from "./TaskProgress";
 import { useToast } from "@/components/ui/use-toast";
 import { useSettings } from "@/contexts/SettingsContext";
@@ -32,7 +30,7 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
 
     const task = tasks.find(t => t.id === taskId);
     if (task) {
-      const newSubtask: SubTask = {
+      const newSubtask = {
         id: crypto.randomUUID(),
         content: "New subtask",
         completed: false
@@ -43,7 +41,7 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
         const { error } = await supabase
           .from('tasks')
           .update({
-            subtasks: updatedSubtasks as unknown as Json
+            subtasks: updatedSubtasks
           })
           .eq('id', taskId);
 
@@ -57,41 +55,6 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
       } catch (error: any) {
         toast({
           title: "Failed to add subtask",
-          description: error.message,
-          variant: "destructive",
-        });
-      }
-    }
-  };
-
-  const handleGenerateAISubtasks = async (taskId: string) => {
-    const mockSubtasks: SubTask[] = [
-      { id: crypto.randomUUID(), content: "Research phase", completed: false },
-      { id: crypto.randomUUID(), content: "Implementation", completed: false },
-      { id: crypto.randomUUID(), content: "Testing", completed: false }
-    ];
-    
-    if (onTaskUpdate) {
-      try {
-        const { error } = await supabase
-          .from('tasks')
-          .update({ 
-            subtasks: mockSubtasks as unknown as Json
-          })
-          .eq('id', taskId);
-
-        if (error) throw error;
-
-        onTaskUpdate(taskId, { subtasks: mockSubtasks });
-        queryClient.invalidateQueries({ queryKey: ['tasks'] });
-
-        toast({
-          title: "AI Subtasks Generated",
-          description: "Added 3 suggested subtasks to your task"
-        });
-      } catch (error: any) {
-        toast({
-          title: "Failed to generate subtasks",
           description: error.message,
           variant: "destructive",
         });
@@ -148,7 +111,7 @@ const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove 
                 key={task.id}
                 task={task}
                 onAddSubtask={handleAddSubtask}
-                onGenerateAISubtasks={handleGenerateAISubtasks}
+                onGenerateAISubtasks={(taskId) => onTaskUpdate?.(taskId, { subtasks: task.subtasks })}
                 onDelete={handleDelete}
               />
             ) : (
