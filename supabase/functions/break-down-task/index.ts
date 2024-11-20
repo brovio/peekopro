@@ -14,99 +14,73 @@ serve(async (req) => {
   }
 
   try {
-    const { taskContent, answers } = await req.json();
-    console.log('Processing task:', taskContent);
-    console.log('User answers:', answers);
+    const { content } = await req.json();
+    console.log('Processing task content:', content);
 
-    if (answers) {
-      // Process answers and generate steps
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            {
-              role: 'system',
-              content: `You are a task breakdown assistant. Based on the task and user's answers, break down the task into clear, actionable steps. Include specific technical details from their answers.`
-            },
-            {
-              role: 'user',
-              content: `Task: ${taskContent}\nUser answers: ${JSON.stringify(answers)}`
-            }
-          ],
-          temperature: 0.7,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get response from OpenAI');
-      }
-
-      const data = await response.json();
-      const steps = data.choices[0].message.content.split('\n').filter(step => step.trim());
-
-      return new Response(
-        JSON.stringify({ steps }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    } else {
-      // Generate initial questions based on task type
-      const analysisResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            {
-              role: 'system',
-              content: `You are a task analysis assistant. Based on the task description, determine if it's a design/visual task that would benefit from reference images or mockups.
-              If it is, include a question about uploading reference materials.
-              Generate 2-4 relevant questions that will help break down the task effectively.
-              For technical tasks, ask about technology preferences and constraints.
-              For design tasks, ask about style guidelines and requirements.
-              For documentation tasks, ask about target audience and format preferences.`
-            },
-            {
-              role: 'user',
-              content: taskContent
-            }
-          ],
-          temperature: 0.7,
-        }),
-      });
-
-      if (!analysisResponse.ok) {
-        throw new Error('Failed to get response from OpenAI');
-      }
-
-      const analysisData = await analysisResponse.json();
-      const questions = analysisData.choices[0].message.content
-        .split('\n')
-        .filter(q => q.trim())
-        .map(q => ({
-          text: q.replace(/^\d+\.\s*/, '').trim(),
-          type: q.toLowerCase().includes('upload') || 
-                q.toLowerCase().includes('reference') || 
-                q.toLowerCase().includes('mockup') || 
-                q.toLowerCase().includes('design') ? 'file' : 
-                q.toLowerCase().includes('prefer') ? 'radio' : 'text',
-          options: q.toLowerCase().includes('prefer') ? ['Manual', 'Automated'] : undefined
-        }));
-
-      console.log('Generated questions:', questions);
-
-      return new Response(
-        JSON.stringify({ questions }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (!content) {
+      throw new Error('Task content is required');
     }
+
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key is not configured');
+    }
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4',
+        messages: [
+          {
+            role: 'system',
+            content: `You are a task analysis assistant. Based on the task description, generate 2-4 relevant questions that will help break down the task effectively.
+            For technical tasks, ask about technology preferences and constraints.
+            For design tasks, ask about style guidelines and requirements.
+            For documentation tasks, ask about target audience and format preferences.
+            Return ONLY an array of questions, nothing else.`
+          },
+          {
+            role: 'user',
+            content: content
+          }
+        ],
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('OpenAI API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData
+      });
+      throw new Error(`OpenAI API error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const questions = data.choices[0].message.content
+      .split('\n')
+      .filter(q => q.trim())
+      .map(q => ({
+        text: q.replace(/^\d+\.\s*/, '').trim(),
+        type: q.toLowerCase().includes('upload') || 
+              q.toLowerCase().includes('reference') || 
+              q.toLowerCase().includes('mockup') || 
+              q.toLowerCase().includes('design') ? 'file' : 
+              q.toLowerCase().includes('prefer') ? 'radio' : 'text',
+        options: q.toLowerCase().includes('prefer') ? ['Manual', 'Automated'] : undefined
+      }));
+
+    console.log('Generated questions:', questions);
+
+    return new Response(
+      JSON.stringify({ data: questions }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   } catch (error) {
     console.error('Error in break-down-task function:', error);
     return new Response(
