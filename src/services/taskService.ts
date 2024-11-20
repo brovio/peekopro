@@ -17,17 +17,14 @@ export async function createUserProfile(userId: string) {
       return existingProfile.id;
     }
 
-    // If no profile exists, insert it
-    const { data: newProfile, error: insertError } = await supabase
-      .from('profiles')
-      .insert({ id: userId })
-      .select()
-      .single();
-    
-    if (insertError) throw insertError;
-    if (!newProfile) throw new Error('Failed to create profile');
-    
-    return newProfile.id;
+    // Get the current user's session to ensure we have the right permissions
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) throw sessionError;
+    if (!session) throw new Error('No active session');
+
+    // If no profile exists, let the database trigger handle the profile creation
+    // Just return the user ID since the trigger will create the profile
+    return userId;
   } catch (error: any) {
     console.error('Profile creation error:', error);
     throw new Error('Failed to create or fetch user profile');
