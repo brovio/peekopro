@@ -16,11 +16,15 @@ export const handleAIResponse = async (
     throw new Error('Invalid response format from AI service');
   }
 
+  console.log('Raw AI steps:', steps);
+
   const newSubtasks = steps.map(step => ({
     id: crypto.randomUUID(),
-    content: step.text,
+    content: step.text || step,  // Handle both {text: string} and string formats
     completed: false
   }));
+
+  console.log('Mapped subtasks:', newSubtasks);
 
   const { error: updateError } = await supabase
     .from('tasks')
