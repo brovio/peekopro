@@ -8,24 +8,30 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const systemPrompt = `You are a task breakdown assistant. When given a task:
-1. Break it down into logical, sequential steps
-2. If you need any clarification to make better suggestions, include questions at the end
-3. Format your response as JSON with this structure:
-{
-  "steps": ["step1", "step2", ...],
-  "questions": ["question1", "question2", ...] // Optional, only if clarification needed
-}`;
-
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { taskContent } = await req.json();
+    const { taskContent, answers } = await req.json();
+    console.log('Processing task:', taskContent);
+    console.log('User answers:', answers);
 
-    console.log('Received task for breakdown:', taskContent);
+    let systemPrompt = `You are a task breakdown assistant. Analyze the task and either:
+1. If you need more information, return 2-3 specific questions in a JSON array.
+2. If you have enough information, break down the task into 3-5 logical steps.
+
+Your response must be in this format:
+{
+  "questions": ["question1", "question2"] // if you need more info
+  "steps": ["step1", "step2", "step3"] // if you have enough info
+}`;
+
+    if (answers) {
+      systemPrompt += "\nUser has provided these answers: " + JSON.stringify(answers);
+    }
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -37,23 +43,23 @@ serve(async (req) => {
         model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Please break down this task: ${taskContent}` }
+          { role: 'user', content: taskContent }
         ],
+        temperature: 0.7,
       }),
     });
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error('OpenAI API error:', error);
+      throw new Error('Failed to get response from OpenAI');
+    }
 
     const data = await response.json();
     console.log('OpenAI response:', data);
 
-    let parsedResponse;
-    try {
-      parsedResponse = JSON.parse(data.choices[0].message.content);
-    } catch (e) {
-      console.error('Failed to parse OpenAI response:', e);
-      throw new Error('Invalid response format from AI');
-    }
-
-    return new Response(JSON.stringify(parsedResponse), {
+    const aiResponse = JSON.parse(data.choices[0].message.content);
+    return new Response(JSON.stringify(aiResponse), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
