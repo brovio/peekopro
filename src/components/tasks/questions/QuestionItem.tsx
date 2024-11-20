@@ -2,16 +2,17 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { FileUploadInput } from "@/components/ui/file-upload";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface QuestionItemProps {
   question: {
     text: string;
-    type: 'text' | 'radio' | 'file';
+    type: 'text' | 'radio' | 'checkbox' | 'file';
     options?: string[];
   };
   index: number;
-  value: string;
-  onChange: (value: string) => void;
+  value: string | string[];
+  onChange: (value: string | string[]) => void;
 }
 
 const QuestionItem = ({ question, index, value, onChange }: QuestionItemProps) => {
@@ -27,7 +28,7 @@ const QuestionItem = ({ question, index, value, onChange }: QuestionItemProps) =
       {question.type === 'radio' && question.options && (
         <RadioGroup
           onValueChange={onChange}
-          value={value}
+          value={value as string}
           className="space-y-2"
         >
           {question.options.map((option) => (
@@ -39,9 +40,31 @@ const QuestionItem = ({ question, index, value, onChange }: QuestionItemProps) =
         </RadioGroup>
       )}
       
+      {question.type === 'checkbox' && question.options && (
+        <div className="space-y-2">
+          {question.options.map((option) => (
+            <div key={option} className="flex items-center space-x-2">
+              <Checkbox
+                id={`${index}-${option}`}
+                checked={(value as string[])?.includes(option)}
+                onCheckedChange={(checked) => {
+                  const currentValues = Array.isArray(value) ? value : [];
+                  const newValues = checked
+                    ? [...currentValues, option]
+                    : currentValues.filter(v => v !== option);
+                  onChange(newValues);
+                }}
+                className="border-gray-600"
+              />
+              <Label htmlFor={`${index}-${option}`} className="text-gray-300">{option}</Label>
+            </div>
+          ))}
+        </div>
+      )}
+      
       {question.type === 'text' && (
         <Input
-          value={value}
+          value={value as string}
           onChange={(e) => onChange(e.target.value)}
           className="bg-navy-800 border-gray-700 text-gray-100"
           placeholder="Your answer (optional)"
@@ -50,7 +73,7 @@ const QuestionItem = ({ question, index, value, onChange }: QuestionItemProps) =
       
       {question.type === 'file' && (
         <FileUploadInput
-          onFileUpload={onChange}
+          onFileUpload={(url) => onChange(url)}
         />
       )}
     </div>

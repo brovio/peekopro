@@ -6,7 +6,7 @@ import QuestionItem from "./QuestionItem";
 
 interface Question {
   text: string;
-  type: 'text' | 'radio' | 'file';
+  type: 'text' | 'radio' | 'checkbox' | 'file';
   options?: string[];
 }
 
@@ -14,11 +14,11 @@ interface TaskQuestionsDialogProps {
   questions: Question[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (answers: Record<string, string>) => void;
+  onSubmit: (answers: Record<string, string | string[]>) => void;
 }
 
 const TaskQuestionsDialog = ({ questions, open, onOpenChange, onSubmit }: TaskQuestionsDialogProps) => {
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [isSkipping, setIsSkipping] = useState(false);
 
   const handleSubmit = () => {
@@ -50,21 +50,24 @@ const TaskQuestionsDialog = ({ questions, open, onOpenChange, onSubmit }: TaskQu
           cleanText.toLowerCase().includes('file') ||
           cleanText.toLowerCase().includes('image')) {
         type = 'file';
-      } else if (cleanText.toLowerCase().includes('choose') || 
-                 cleanText.toLowerCase().includes('select') ||
-                 cleanText.toLowerCase().includes('prefer') ||
-                 cleanText.toLowerCase().includes('options:')) {
+      } else if (cleanText.toLowerCase().includes('yes/no') ||
+                 cleanText.toLowerCase().includes('choose one:') ||
+                 cleanText.toLowerCase().includes('select one:')) {
         type = 'radio';
         if (!options) {
-          // Extract options from the question text if they're in a list format
-          const optionsMatch = cleanText.match(/(?:options:|:)([\s\S]+)/i);
+          options = ['Yes', 'No'];
+        }
+      } else if (cleanText.toLowerCase().includes('select all that apply') ||
+                 cleanText.toLowerCase().includes('choose multiple') ||
+                 cleanText.toLowerCase().includes('multiple options')) {
+        type = 'checkbox';
+        if (!options) {
+          const optionsMatch = cleanText.match(/options:(.*?)(?:\]|$)/i);
           if (optionsMatch) {
             options = optionsMatch[1]
-              .split(/[,\n]/)
+              .split(',')
               .map(opt => opt.trim())
               .filter(opt => opt.length > 0);
-          } else {
-            options = ['Option A', 'Option B'];
           }
         }
       }
@@ -93,7 +96,7 @@ const TaskQuestionsDialog = ({ questions, open, onOpenChange, onSubmit }: TaskQu
               key={index}
               question={question}
               index={index}
-              value={answers[index] || ''}
+              value={answers[index] || (question.type === 'checkbox' ? [] : '')}
               onChange={(value) => setAnswers(prev => ({ ...prev, [index]: value }))}
             />
           ))}

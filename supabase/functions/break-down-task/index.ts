@@ -34,12 +34,22 @@ serve(async (req) => {
               role: 'system',
               content: `You are a task breakdown assistant. For the given task, generate 3-5 questions that will help gather information needed for breaking it down into subtasks.
               Each question should be one of these types:
-              1. Multiple choice (when there are clear options to choose from)
-              2. Text input (when detailed explanation is needed)
-              3. File upload (when documents, images, or other files are needed)
+              1. Text input for open-ended questions
+              2. Yes/No for simple binary choices
+              3. Multiple choice with radio buttons for single selection from options
+              4. Checkboxes for multiple selections
+              5. File upload when documents or images are needed
               
-              For multiple choice questions, include "Options:" followed by the choices.
-              For file upload questions, specify what type of file is expected.`
+              For multiple choice or checkbox questions, include "Options:" followed by the choices.
+              For yes/no questions, phrase them as questions ending with "(Yes/No)".
+              For file upload questions, specify what type of file is expected.
+              
+              Example formats:
+              - "Do you want to include custom settings? (Yes/No)"
+              - "Which features do you need? (select all that apply) Options: Feature A, Feature B, Feature C"
+              - "Select your operating system: Options: Windows, macOS, Linux"
+              - "Upload your existing configuration file (if any)"
+              - "What specific requirements do you have? (open text)"`
             },
             {
               role: 'user',
@@ -68,6 +78,19 @@ serve(async (req) => {
               text.toLowerCase().includes('file') ||
               text.toLowerCase().includes('image')) {
             type = 'file';
+          } else if (text.toLowerCase().includes('(yes/no)')) {
+            type = 'radio';
+            options = ['Yes', 'No'];
+          } else if (text.toLowerCase().includes('select all that apply') ||
+                    text.toLowerCase().includes('multiple selections')) {
+            type = 'checkbox';
+            const optionsMatch = text.match(/options:(.*?)(?:\]|$)/i);
+            if (optionsMatch) {
+              options = optionsMatch[1]
+                .split(',')
+                .map(opt => opt.trim())
+                .filter(opt => opt.length > 0);
+            }
           } else if (text.toLowerCase().includes('options:')) {
             type = 'radio';
             const optionsMatch = text.match(/options:(.*?)(?:\]|$)/i);
@@ -88,6 +111,16 @@ serve(async (req) => {
       );
     }
 
+    // Format answers for OpenAI
+    const formattedAnswers = Object.entries(answers)
+      .map(([_, value]) => {
+        if (Array.isArray(value)) {
+          return value.join(', ');
+        }
+        return value;
+      })
+      .filter(answer => answer && answer.length > 0);
+
     // If skipping questions or we have answers, generate steps
     const stepsResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -105,10 +138,8 @@ serve(async (req) => {
           {
             role: 'user',
             content: `Task: ${content}${
-              Object.keys(answers).length > 0 
-                ? `\n\nAdditional information:\n${Object.entries(answers)
-                    .map(([_, value]) => `- ${value}`)
-                    .join('\n')}`
+              formattedAnswers.length > 0 
+                ? `\n\nAdditional information:\n${formattedAnswers.map(answer => `- ${answer}`).join('\n')}`
                 : '\nProvide steps using common default settings and assumptions.'
             }`
           }
