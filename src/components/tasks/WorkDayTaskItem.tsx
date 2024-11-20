@@ -9,7 +9,7 @@ import { useNotifications } from "@/contexts/NotificationContext";
 import { useQueryClient } from "@tanstack/react-query";
 import TaskActions from "./actions/TaskActions";
 import SubtasksList from "./subtasks/SubtasksList";
-import { Json } from "@/integrations/supabase/types";
+import { useQuestionResponseHandler } from "./handlers/useQuestionResponseHandler";
 
 interface WorkDayTaskItemProps {
   task: Task;
@@ -26,6 +26,7 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
   const { toast } = useToast();
   const { addNotification } = useNotifications();
   const queryClient = useQueryClient();
+  const handleQuestionResponse = useQuestionResponseHandler(task.id);
 
   const handleAIBreakdown = async () => {
     setIsLoading(true);
@@ -59,64 +60,11 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
     }
   };
 
-  const handleQuestionResponse = async (responses: Record<string, string>) => {
-    if (!responses || Object.keys(responses).length === 0) {
+  const onQuestionResponse = async (responses: Record<string, string>) => {
+    const success = await handleQuestionResponse(responses);
+    if (success) {
       setShowQuestions(false);
-      return;
-    }
-
-    try {
-      // Ensure we have the latest task data
-      const { data: latestTask } = await supabase
-        .from('tasks')
-        .select('subtasks')
-        .eq('id', task.id)
-        .single();
-
-      const currentSubtasks = latestTask?.subtasks || [];
-      
-      // Create new subtasks from responses
-      const subtasksToAdd = Object.values(responses)
-        .filter(response => response.trim() !== '')
-        .map(response => ({
-          id: crypto.randomUUID(),
-          content: response,
-          completed: false
-        }));
-
-      const updatedSubtasks = [...currentSubtasks, ...subtasksToAdd];
-
-      const { error: updateError } = await supabase
-        .from('tasks')
-        .update({
-          subtasks: updatedSubtasks as unknown as Json
-        })
-        .eq('id', task.id);
-
-      if (updateError) throw updateError;
-
-      // Invalidate and refetch to ensure UI is up to date
-      await queryClient.invalidateQueries({ queryKey: ['tasks'] });
-
-      setShowQuestions(false);
-      toast({
-        title: "Success",
-        description: "Task has been broken down into subtasks",
-      });
-      
       onAddSubtask(task.id);
-    } catch (error: any) {
-      const errorMessage = error.message || 'An error occurred while processing responses';
-      addNotification({
-        title: 'Task Breakdown Error',
-        message: errorMessage,
-        type: 'error'
-      });
-      toast({
-        title: "Error",
-        description: "Failed to process responses. Check notifications for details.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -192,7 +140,7 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
         open={showQuestions}
         onOpenChange={setShowQuestions}
         questions={questions}
-        onSubmit={handleQuestionResponse}
+        onSubmit={onQuestionResponse}
       />
     </>
   );
