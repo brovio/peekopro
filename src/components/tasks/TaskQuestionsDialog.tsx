@@ -32,18 +32,22 @@ const TaskQuestionsDialog = ({ questions, open, onOpenChange, onSubmit }: TaskQu
 
   const handleSkip = async () => {
     setIsSkipping(true);
-    // Submit with empty answers to let AI make its best attempt
     onSubmit({});
     onOpenChange(false);
     setIsSkipping(false);
   };
 
-  // Filter out empty or invalid questions
-  const validQuestions = questions.filter(q => q.text && q.text.trim() !== '');
+  // Filter out invalid questions (those that are empty or just contain "optional")
+  const validQuestions = questions.filter(q => {
+    const cleanText = q.text?.replace(/^\[|\]$/g, '').trim();
+    return cleanText && !cleanText.match(/^\(optional\)$/i);
+  });
 
-  // Remove duplicates based on question text
+  // Remove duplicates based on cleaned question text
   const uniqueQuestions = validQuestions.filter((question, index, self) =>
-    index === self.findIndex((q) => q.text === question.text)
+    index === self.findIndex((q) => 
+      q.text.replace(/^\[|\]$/g, '').trim() === question.text.replace(/^\[|\]$/g, '').trim()
+    )
   );
 
   return (
@@ -115,7 +119,7 @@ const TaskQuestionsDialog = ({ questions, open, onOpenChange, onSubmit }: TaskQu
           </Button>
           <Button 
             onClick={handleSubmit}
-            className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white"
+            className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             Submit Answers
             <ArrowRight className="ml-2 h-4 w-4" />
