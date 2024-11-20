@@ -32,18 +32,24 @@ serve(async (req) => {
           messages: [
             {
               role: 'system',
-              content: `You are a task breakdown assistant. For the given task, generate 3-5 specific questions that will help gather information needed for breaking it down into detailed subtasks.
+              content: `You are a task breakdown assistant. For the given task, generate 3-5 questions that will help gather information needed for breaking it down into subtasks.
               Each question should be one of these types:
               1. Text input for open-ended questions
               2. Yes/No for simple binary choices
               3. Multiple choice with radio buttons for single selection from options
-              4. File upload when documents or images are needed
+              4. Checkboxes for multiple selections
+              5. File upload when documents or images are needed
               
-              For multiple choice questions, include "Options:" followed by the choices.
+              For multiple choice or checkbox questions, include "Options:" followed by the choices.
               For yes/no questions, phrase them as questions ending with "(Yes/No)".
               For file upload questions, specify what type of file is expected.
               
-              Focus on gathering essential information that will help create a more detailed and accurate task breakdown.`
+              Example formats:
+              - "Do you want to include custom settings? (Yes/No)"
+              - "Which features do you need? (select all that apply) Options: Feature A, Feature B, Feature C"
+              - "Select your operating system: Options: Windows, macOS, Linux"
+              - "Upload your existing configuration file (if any)"
+              - "What specific requirements do you have? (open text)"`
             },
             {
               role: 'user',
@@ -55,13 +61,10 @@ serve(async (req) => {
       });
 
       if (!questionsResponse.ok) {
-        console.error('OpenAI API error (questions):', questionsResponse.statusText);
         throw new Error(`OpenAI API error: ${questionsResponse.statusText}`);
       }
 
       const questionsData = await questionsResponse.json();
-      console.log('Raw questions response:', questionsData);
-
       const questions = questionsData.choices[0].message.content
         .split('\n')
         .filter(q => q.trim())
@@ -78,6 +81,16 @@ serve(async (req) => {
           } else if (text.toLowerCase().includes('(yes/no)')) {
             type = 'radio';
             options = ['Yes', 'No'];
+          } else if (text.toLowerCase().includes('select all that apply') ||
+                    text.toLowerCase().includes('multiple selections')) {
+            type = 'checkbox';
+            const optionsMatch = text.match(/options:(.*?)(?:\]|$)/i);
+            if (optionsMatch) {
+              options = optionsMatch[1]
+                .split(',')
+                .map(opt => opt.trim())
+                .filter(opt => opt.length > 0);
+            }
           } else if (text.toLowerCase().includes('options:')) {
             type = 'radio';
             const optionsMatch = text.match(/options:(.*?)(?:\]|$)/i);
@@ -92,39 +105,23 @@ serve(async (req) => {
           return { text, type, options };
         });
 
-      console.log('Processed questions:', questions);
-
       return new Response(
         JSON.stringify({ data: questions }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Generate detailed steps based on content and answers
-    const systemPrompt = `You are a task breakdown assistant. Break down the given task into clear, specific, and actionable steps.
-    Each step should be detailed and practical, focusing on what needs to be done.
-    
-    Guidelines:
-    - Return 5-8 detailed steps
-    - Each step should be clear and actionable
-    - Include any necessary prerequisites
-    - Be specific about tools or resources needed
-    - Consider potential challenges or requirements
-    - Focus on practical implementation
-    
-    Format each step as a complete sentence starting with an action verb.`;
+    // Format answers for OpenAI
+    const formattedAnswers = Object.entries(answers)
+      .map(([_, value]) => {
+        if (Array.isArray(value)) {
+          return value.join(', ');
+        }
+        return value;
+      })
+      .filter(answer => answer && answer.length > 0);
 
-    const userPrompt = `Task: ${content}${
-      Object.keys(answers).length > 0 
-        ? `\n\nAdditional information:\n${Object.entries(answers)
-            .map(([_, value]) => `- ${value}`)
-            .filter(answer => answer && answer.length > 0)
-            .join('\n')}`
-        : '\nProvide detailed steps using best practices and common requirements.'
-    }`;
-
-    console.log('Sending to OpenAI:', { systemPrompt, userPrompt });
-
+    // If skipping questions or we have answers, generate steps
     const stepsResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -136,11 +133,15 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: systemPrompt
+            content: 'You are a task breakdown assistant. Break down the given task into clear, actionable steps. Return 5-8 specific steps. Each step should be concise but detailed enough to be actionable.'
           },
           {
             role: 'user',
-            content: userPrompt
+            content: `Task: ${content}${
+              formattedAnswers.length > 0 
+                ? `\n\nAdditional information:\n${formattedAnswers.map(answer => `- ${answer}`).join('\n')}`
+                : '\nProvide steps using common default settings and assumptions.'
+            }`
           }
         ],
         temperature: 0.7,
@@ -148,21 +149,16 @@ serve(async (req) => {
     });
 
     if (!stepsResponse.ok) {
-      console.error('OpenAI API error (steps):', stepsResponse.statusText);
       throw new Error(`OpenAI API error: ${stepsResponse.statusText}`);
     }
 
     const stepsData = await stepsResponse.json();
-    console.log('Raw steps response:', stepsData);
-
     const steps = stepsData.choices[0].message.content
       .split('\n')
       .filter(step => step.trim())
       .map(step => ({
         text: step.replace(/^\d+\.\s*/, '').trim()
       }));
-
-    console.log('Processed steps:', steps);
 
     return new Response(
       JSON.stringify({ data: steps }),
