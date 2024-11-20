@@ -35,21 +35,30 @@ const TaskBreakdownButtons = ({ task, onAddSubtask }: TaskBreakdownButtonsProps)
         throw new Error('Invalid response format from AI service');
       }
 
+      const newSubtasks = steps.map(step => ({
+        id: crypto.randomUUID(),
+        content: step.text,
+        completed: false
+      }));
+
       // Add each step as a subtask
       const { error: updateError } = await supabase
         .from('tasks')
         .update({
-          subtasks: steps.map(step => ({
-            id: crypto.randomUUID(),
-            content: step.text,
-            completed: false
-          }))
+          subtasks: JSON.parse(JSON.stringify(newSubtasks))
         })
         .eq('id', task.id);
 
       if (updateError) throw updateError;
 
-      await queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      // Update the cache immediately
+      queryClient.setQueryData(['tasks'], (oldData: any) => {
+        if (!Array.isArray(oldData)) return oldData;
+        return oldData.map((t: Task) =>
+          t.id === task.id ? { ...t, subtasks: newSubtasks } : t
+        );
+      });
+
       onAddSubtask(task.id);
 
       toast({
@@ -113,21 +122,30 @@ const TaskBreakdownButtons = ({ task, onAddSubtask }: TaskBreakdownButtonsProps)
         throw new Error('Invalid response format from AI service');
       }
 
+      const newSubtasks = steps.map(step => ({
+        id: crypto.randomUUID(),
+        content: step.text,
+        completed: false
+      }));
+
       // Add each step as a subtask
       const { error: updateError } = await supabase
         .from('tasks')
         .update({
-          subtasks: steps.map(step => ({
-            id: crypto.randomUUID(),
-            content: step.text,
-            completed: false
-          }))
+          subtasks: JSON.parse(JSON.stringify(newSubtasks))
         })
         .eq('id', task.id);
 
       if (updateError) throw updateError;
 
-      await queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      // Update the cache immediately
+      queryClient.setQueryData(['tasks'], (oldData: any) => {
+        if (!Array.isArray(oldData)) return oldData;
+        return oldData.map((t: Task) =>
+          t.id === task.id ? { ...t, subtasks: newSubtasks } : t
+        );
+      });
+
       onAddSubtask(task.id);
       setShowQuestions(false);
 
