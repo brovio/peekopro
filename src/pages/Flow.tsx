@@ -42,7 +42,8 @@ const Flow = () => {
     if (!classifyInput.trim() || !user) return;
     
     try {
-      await createTask(classifyInput.trim(), user.id, category);
+      // Create task with category in the content
+      await createTask(`[${category}] ${classifyInput.trim()}`, user.id);
       handleTasksChange();
       setClassifyInput("");
       
