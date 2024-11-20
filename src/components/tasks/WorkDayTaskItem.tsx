@@ -1,6 +1,5 @@
-import { Button } from "@/components/ui/button";
 import { Task } from "@/types/task";
-import { Clock, Trash2, Brain, RefreshCw } from "lucide-react";
+import { Clock } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +7,8 @@ import TaskQuestionsDialog from "./questions/TaskQuestionsDialog";
 import TaskClassificationButtons from "./TaskClassificationButtons";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { useQueryClient } from "@tanstack/react-query";
-import SubtaskItem from "./subtasks/SubtaskItem";
+import TaskActions from "./actions/TaskActions";
+import SubtasksList from "./subtasks/SubtasksList";
 
 interface WorkDayTaskItemProps {
   task: Task;
@@ -69,7 +69,7 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
       const { error: updateError } = await supabase
         .from('tasks')
         .update({
-          subtasks: JSON.stringify(subtasksToAdd)
+          subtasks: subtasksToAdd
         })
         .eq('id', task.id);
 
@@ -101,14 +101,17 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
 
   const handleSubtaskCompletion = async (subtaskId: string, completed: boolean) => {
     try {
-      const updatedSubtasks = task.subtasks?.map(subtask => 
+      // Ensure subtasks is an array before proceeding
+      const currentSubtasks = Array.isArray(task.subtasks) ? task.subtasks : [];
+      
+      const updatedSubtasks = currentSubtasks.map(subtask => 
         subtask.id === subtaskId ? { ...subtask, completed } : subtask
-      ) || [];
+      );
 
       const { error } = await supabase
         .from('tasks')
         .update({
-          subtasks: JSON.stringify(updatedSubtasks)
+          subtasks: updatedSubtasks
         })
         .eq('id', task.id);
 
@@ -141,67 +144,29 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
             </span>
           )}
         </div>
-        <div className="flex items-center gap-1">
-          {showReclassify ? (
-            <TaskClassificationButtons
-              taskId={task.id}
-              onClassify={(taskId, category) => {
-                onMove?.(taskId, category);
-                setShowReclassify(false);
-              }}
-            />
-          ) : (
-            <>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={handleAIBreakdown}
-                disabled={isLoading}
-                title="AI Breakdown"
-              >
-                {isLoading ? (
-                  <div className="animate-spin">
-                    <RefreshCw className="h-4 w-4" />
-                  </div>
-                ) : (
-                  <Brain className="h-4 w-4" />
-                )}
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setShowReclassify(true)}
-                title="Reclassify"
-              >
-                <RefreshCw className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => onDelete(task.id)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </>
-          )}
-        </div>
+        
+        {showReclassify ? (
+          <TaskClassificationButtons
+            taskId={task.id}
+            onClassify={(taskId, category) => {
+              onMove?.(taskId, category);
+              setShowReclassify(false);
+            }}
+          />
+        ) : (
+          <TaskActions
+            isLoading={isLoading}
+            onAIBreakdown={handleAIBreakdown}
+            onReclassify={() => setShowReclassify(true)}
+            onDelete={() => onDelete(task.id)}
+          />
+        )}
       </div>
 
-      {task.subtasks && task.subtasks.length > 0 && (
-        <div className="ml-6 space-y-2 mt-2 mb-4">
-          {task.subtasks.map((subtask, index) => (
-            <SubtaskItem
-              key={subtask.id}
-              subtask={subtask}
-              index={index}
-              onComplete={handleSubtaskCompletion}
-            />
-          ))}
-        </div>
-      )}
+      <SubtasksList
+        subtasks={Array.isArray(task.subtasks) ? task.subtasks : null}
+        onComplete={handleSubtaskCompletion}
+      />
 
       <TaskQuestionsDialog
         open={showQuestions}
