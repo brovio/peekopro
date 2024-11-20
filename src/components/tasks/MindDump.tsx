@@ -4,11 +4,12 @@ import { useToast } from "@/components/ui/use-toast";
 import { ArrowRight, FileText, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useClassifyTask } from "@/hooks/useClassifyTask";
-import { Task, TaskInput, SubTask } from "@/types/task";
+import { Task } from "@/types/task";
 import TaskClassificationButtons from "./TaskClassificationButtons";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
+import { createTask } from "@/services/taskService";
 
 interface MindDumpProps {
   tasks: Task[];
@@ -18,7 +19,7 @@ interface MindDumpProps {
 const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
   const [inputValue, setInputValue] = useState("");
   const { toast } = useToast();
-  const { classifyTask, isClassifying } = useClassifyTask();
+  const { classifyTask } = useClassifyTask();
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -29,47 +30,7 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
       if (!content) return;
 
       try {
-        // First, get the user's profile
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', user.id)
-          .single();
-
-        if (profileError) throw profileError;
-        if (!profileData) throw new Error('Profile not found');
-
-        // Then, insert the task using the profile id
-        const { error: insertError } = await supabase
-          .from('tasks')
-          .insert({
-            content,
-            category: null,
-            confidence: 0,
-            subtasks: [],
-            user_id: profileData.id
-          });
-
-        if (insertError) throw insertError;
-
-        // Then fetch the newly created task
-        const { data: newTaskData, error: fetchError } = await supabase
-          .from('tasks')
-          .select('*')
-          .eq('content', content)
-          .eq('user_id', profileData.id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
-
-        if (fetchError) throw fetchError;
-        if (!newTaskData) throw new Error('Failed to create task');
-
-        const newTask: Task = {
-          ...newTaskData,
-          subtasks: newTaskData.subtasks ? (newTaskData.subtasks as unknown as SubTask[]) : []
-        };
-
+        const newTask = await createTask(content, user.id);
         onTasksChange([newTask, ...tasks]);
         setInputValue("");
 
