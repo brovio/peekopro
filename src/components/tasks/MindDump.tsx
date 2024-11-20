@@ -29,7 +29,17 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
       if (!content) return;
 
       try {
-        // First, insert the task without selecting
+        // First, get the user's profile
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', user.id)
+          .single();
+
+        if (profileError) throw profileError;
+        if (!profileData) throw new Error('Profile not found');
+
+        // Then, insert the task using the profile id
         const { error: insertError } = await supabase
           .from('tasks')
           .insert({
@@ -37,7 +47,7 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
             category: null,
             confidence: 0,
             subtasks: [],
-            user_id: user.id
+            user_id: profileData.id
           });
 
         if (insertError) throw insertError;
@@ -47,7 +57,7 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
           .from('tasks')
           .select('*')
           .eq('content', content)
-          .eq('user_id', user.id)
+          .eq('user_id', profileData.id)
           .order('created_at', { ascending: false })
           .limit(1)
           .single();
