@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Task } from "@/types/task";
-import { Clock, Trash2, Brain, RefreshCw } from "lucide-react";
+import { Clock, Trash2, Brain, RefreshCw, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +8,7 @@ import TaskQuestionsDialog from "./TaskQuestionsDialog";
 import TaskClassificationButtons from "./TaskClassificationButtons";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { useQueryClient } from "@tanstack/react-query";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface WorkDayTaskItemProps {
   task: Task;
@@ -32,9 +33,7 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
         body: { content: task.content }
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       if (!questions || !Array.isArray(questions)) {
         throw new Error('Invalid response format from AI service');
@@ -61,21 +60,21 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
 
   const handleQuestionResponse = async (responses: Record<string, string>) => {
     try {
-      // Update the task with subtasks based on responses
+      const subtasksToAdd = Object.values(responses).map(response => ({
+        id: crypto.randomUUID(),
+        content: response,
+        completed: false
+      }));
+
       const { error: updateError } = await supabase
         .from('tasks')
         .update({
-          subtasks: Object.values(responses).map((response, index) => ({
-            id: crypto.randomUUID(),
-            content: response,
-            completed: false
-          }))
+          subtasks: subtasksToAdd
         })
         .eq('id', task.id);
 
       if (updateError) throw updateError;
 
-      // Invalidate the tasks query to trigger a refresh
       await queryClient.invalidateQueries({ queryKey: ['tasks'] });
 
       setShowQuestions(false);
@@ -84,7 +83,6 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
         description: "Task has been broken down into subtasks",
       });
       
-      // Trigger a refresh of the task list
       onAddSubtask(task.id);
     } catch (error: any) {
       const errorMessage = error.message || 'An error occurred while processing responses';
@@ -96,6 +94,36 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
       toast({
         title: "Error",
         description: "Failed to process responses. Check notifications for details.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSubtaskCompletion = async (subtaskId: string, completed: boolean) => {
+    try {
+      const updatedSubtasks = task.subtasks?.map(subtask => 
+        subtask.id === subtaskId ? { ...subtask, completed } : subtask
+      ) || [];
+
+      const { error } = await supabase
+        .from('tasks')
+        .update({
+          subtasks: updatedSubtasks
+        })
+        .eq('id', task.id);
+
+      if (error) throw error;
+
+      await queryClient.invalidateQueries({ queryKey: ['tasks'] });
+
+      toast({
+        title: completed ? "Subtask completed" : "Subtask uncompleted",
+        description: "Progress updated successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to update subtask status",
         variant: "destructive",
       });
     }
@@ -165,9 +193,21 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
       {task.subtasks && task.subtasks.length > 0 && (
         <div className="ml-6 space-y-2 mt-2 mb-4">
           {task.subtasks.map((subtask, index) => (
-            <div key={subtask.id} className="flex items-center gap-2 text-sm text-gray-300">
-              <span className="text-gray-500">{index + 1}.</span>
-              {subtask.content}
+            <div 
+              key={subtask.id} 
+              className="flex items-center gap-2 text-sm text-gray-300 hover:bg-gray-800/50 p-2 rounded transition-colors"
+            >
+              <Checkbox
+                checked={subtask.completed}
+                onCheckedChange={(checked) => handleSubtaskCompletion(subtask.id, checked as boolean)}
+                className="h-4 w-4"
+              />
+              <span className={`flex-1 ${subtask.completed ? 'line-through text-gray-500' : ''}`}>
+                {index + 1}. {subtask.content}
+              </span>
+              {subtask.completed && (
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+              )}
             </div>
           ))}
         </div>
