@@ -26,7 +26,13 @@ const TaskQuestionsDialog = ({ questions, open, onOpenChange, onSubmit }: TaskQu
   const [isSkipping, setIsSkipping] = useState(false);
 
   const handleSubmit = () => {
-    onSubmit(answers);
+    // Convert any array values to strings before submitting
+    const processedAnswers = Object.entries(answers).reduce((acc, [key, value]) => {
+      acc[key] = Array.isArray(value) ? value.join(', ') : value;
+      return acc;
+    }, {} as Record<string, string>);
+    
+    onSubmit(processedAnswers);
     onOpenChange(false);
   };
 

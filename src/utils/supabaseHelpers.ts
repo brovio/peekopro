@@ -1,10 +1,9 @@
-import { FunctionsResponse } from "@supabase/supabase-js";
+import { FunctionInvokeResult } from "@supabase/supabase-js";
 
-export const handleFunctionResponse = async <T>(response: FunctionsResponse<T>) => {
+export const handleFunctionResponse = async <T>(response: FunctionInvokeResult<T>) => {
   if (response.error) {
     throw new Error(response.error.message || 'Function call failed');
   }
   
-  const data = await response.data;
-  return data;
+  return response.data;
 };
