@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import TaskQuestionsDialog from "./TaskQuestionsDialog";
 import TaskClassificationButtons from "./TaskClassificationButtons";
 import { useNotifications } from "@/contexts/NotificationContext";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface WorkDayTaskItemProps {
   task: Task;
@@ -22,6 +23,7 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
   const [questions, setQuestions] = useState<any[]>([]);
   const { toast } = useToast();
   const { addNotification } = useNotifications();
+  const queryClient = useQueryClient();
 
   const handleAIBreakdown = async () => {
     setIsLoading(true);
@@ -73,6 +75,9 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
 
       if (updateError) throw updateError;
 
+      // Invalidate the tasks query to trigger a refresh
+      await queryClient.invalidateQueries({ queryKey: ['tasks'] });
+
       setShowQuestions(false);
       toast({
         title: "Success",
@@ -102,6 +107,11 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 text-gray-400" />
           <span className="text-sm text-gray-100">{task.content}</span>
+          {task.subtasks && task.subtasks.length > 0 && (
+            <span className="text-xs text-gray-400">
+              ({task.subtasks.length} subtasks)
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-1">
           {showReclassify ? (
@@ -151,6 +161,17 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
           )}
         </div>
       </div>
+
+      {task.subtasks && task.subtasks.length > 0 && (
+        <div className="ml-6 space-y-2 mt-2 mb-4">
+          {task.subtasks.map((subtask, index) => (
+            <div key={subtask.id} className="flex items-center gap-2 text-sm text-gray-300">
+              <span className="text-gray-500">{index + 1}.</span>
+              {subtask.content}
+            </div>
+          ))}
+        </div>
+      )}
 
       <TaskQuestionsDialog
         open={showQuestions}
