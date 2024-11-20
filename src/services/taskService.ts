@@ -9,7 +9,7 @@ export async function createUserProfile(userId: string) {
       .from('profiles')
       .select('id')
       .eq('id', userId)
-      .maybeSingle();
+      .maybeSingle(); // Use maybeSingle() instead of single()
 
     if (fetchError) throw fetchError;
 
@@ -31,7 +31,7 @@ export async function createUserProfile(userId: string) {
       .from('profiles')
       .select('id')
       .eq('id', userId)
-      .single();
+      .maybeSingle(); // Use maybeSingle() here as well
 
     if (verifyError) throw verifyError;
     if (!newProfile) throw new Error('Profile creation failed');
