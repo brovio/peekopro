@@ -1,12 +1,13 @@
-import { useState, forwardRef } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import TaskQuestionsDialog from "@/components/tasks/questions/TaskQuestionsDialog";
 
-export const AITestSection = forwardRef<HTMLInputElement>((props, ref) => {
+const Test = () => {
   const [task, setTask] = useState("");
   const [steps, setSteps] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -129,50 +130,55 @@ export const AITestSection = forwardRef<HTMLInputElement>((props, ref) => {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex gap-4">
-        <Input
-          ref={ref}
-          placeholder="Enter a task to test AI breakdown"
-          value={task}
-          onChange={(e) => setTask(e.target.value)}
-          className="flex-1"
-        />
-        <Button 
-          onClick={handleDirectTest}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            "Quick Breakdown"
-          )}
-        </Button>
-        <Button 
-          onClick={handleGuidedTest}
-          disabled={isLoading}
-          variant="outline"
-        >
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            "Guided Breakdown"
-          )}
-        </Button>
-      </div>
+    <div className="container mx-auto py-8">
+      <Card className="p-6 bg-card">
+        <h1 className="text-2xl font-bold mb-6">AI Test Page</h1>
+        
+        <div className="space-y-4">
+          <div className="flex gap-4">
+            <Input
+              placeholder="Enter a task (e.g., Install Notepad++)"
+              value={task}
+              onChange={(e) => setTask(e.target.value)}
+              className="flex-1"
+            />
+            <Button 
+              onClick={handleDirectTest}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Quick Breakdown"
+              )}
+            </Button>
+            <Button 
+              onClick={handleGuidedTest}
+              disabled={isLoading}
+              variant="outline"
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Guided Breakdown"
+              )}
+            </Button>
+          </div>
 
-      {steps.length > 0 && (
-        <div className="mt-6">
-          <h2 className="text-lg font-semibold mb-3">Steps:</h2>
-          <ul className="list-decimal pl-5 space-y-2">
-            {steps.map((step, index) => (
-              <li key={index} className="text-muted-foreground">
-                {step}
-              </li>
-            ))}
-          </ul>
+          {steps.length > 0 && (
+            <div className="mt-6">
+              <h2 className="text-lg font-semibold mb-3">Steps:</h2>
+              <ul className="list-decimal pl-5 space-y-2">
+                {steps.map((step, index) => (
+                  <li key={index} className="text-muted-foreground">
+                    {step}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
-      )}
+      </Card>
 
       <TaskQuestionsDialog
         open={showQuestions}
@@ -182,6 +188,6 @@ export const AITestSection = forwardRef<HTMLInputElement>((props, ref) => {
       />
     </div>
   );
-});
+};
 
-AITestSection.displayName = 'AITestSection';
+export default Test;

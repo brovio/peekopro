@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Tasks from "./pages/Tasks";
-import Flow from "./pages/Flow";
+import Test from "./pages/Test";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
@@ -33,10 +33,10 @@ function App() {
               }
             />
             <Route
-              path="/flow"
+              path="/test"
               element={
                 <ProtectedRoute>
-                  <Flow />
+                  <Test />
                 </ProtectedRoute>
               }
             />
