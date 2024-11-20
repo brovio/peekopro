@@ -36,11 +36,10 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a task analysis assistant. Based on the task description, generate 2-4 relevant questions that will help break down the task effectively.
-            For technical tasks, ask about technology preferences and constraints.
-            For design tasks, ask about style guidelines and requirements.
-            For documentation tasks, ask about target audience and format preferences.
-            Return ONLY an array of questions, nothing else.`
+            content: `You are a task breakdown assistant. Break down the given task into 3-5 concrete, actionable subtasks.
+            Each subtask should be clear and specific.
+            Return ONLY an array of subtasks, nothing else.
+            Example format: ["Research existing invoice templates", "Create wireframe in Figma", "Design responsive layout"]`
           },
           {
             role: 'user',
@@ -62,23 +61,12 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const questions = data.choices[0].message.content
-      .split('\n')
-      .filter(q => q.trim())
-      .map(q => ({
-        text: q.replace(/^\d+\.\s*/, '').trim(),
-        type: q.toLowerCase().includes('upload') || 
-              q.toLowerCase().includes('reference') || 
-              q.toLowerCase().includes('mockup') || 
-              q.toLowerCase().includes('design') ? 'file' : 
-              q.toLowerCase().includes('prefer') ? 'radio' : 'text',
-        options: q.toLowerCase().includes('prefer') ? ['Manual', 'Automated'] : undefined
-      }));
+    const subtasks = JSON.parse(data.choices[0].message.content);
 
-    console.log('Generated questions:', questions);
+    console.log('Generated subtasks:', subtasks);
 
     return new Response(
-      JSON.stringify({ data: questions }),
+      JSON.stringify({ data: subtasks }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {

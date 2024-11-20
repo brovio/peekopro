@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Task } from "@/types/task";
-import { Clock, Trash2, Brain, RefreshCw } from "lucide-react";
+import { Clock, Trash2, Brain, RefreshCw, Check } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,7 +20,6 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
   const [isLoading, setIsLoading] = useState(false);
   const [showQuestions, setShowQuestions] = useState(false);
   const [showReclassify, setShowReclassify] = useState(false);
-  const [questions, setQuestions] = useState<any[]>([]);
   const { toast } = useToast();
   const { addNotification } = useNotifications();
   const queryClient = useQueryClient();
@@ -28,7 +27,7 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
   const handleAIBreakdown = async () => {
     setIsLoading(true);
     try {
-      const { data: { data: questions }, error } = await supabase.functions.invoke('break-down-task', {
+      const { data: subtasks, error } = await supabase.functions.invoke('break-down-task', {
         body: { content: task.content }
       });
 
@@ -36,12 +35,34 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
         throw error;
       }
 
-      if (!questions || !Array.isArray(questions)) {
+      if (!Array.isArray(subtasks)) {
         throw new Error('Invalid response format from AI service');
       }
 
-      setQuestions(questions);
-      setShowQuestions(true);
+      // Create subtasks directly without questions
+      const formattedSubtasks = subtasks.map(subtask => ({
+        id: crypto.randomUUID(),
+        content: subtask,
+        completed: false
+      }));
+
+      const { error: updateError } = await supabase
+        .from('tasks')
+        .update({
+          subtasks: formattedSubtasks
+        })
+        .eq('id', task.id);
+
+      if (updateError) throw updateError;
+
+      await queryClient.invalidateQueries({ queryKey: ['tasks'] });
+
+      toast({
+        title: "Success",
+        description: "Task has been broken down into subtasks",
+      });
+      
+      onAddSubtask(task.id);
     } catch (error: any) {
       const errorMessage = error.message || 'An error occurred during AI breakdown';
       addNotification({
@@ -59,43 +80,33 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
     }
   };
 
-  const handleQuestionResponse = async (responses: Record<string, string>) => {
+  const handleSubtaskCompletion = async (subtaskId: string) => {
     try {
-      // Update the task with subtasks based on responses
+      const updatedSubtasks = task.subtasks?.map(subtask => 
+        subtask.id === subtaskId 
+          ? { ...subtask, completed: !subtask.completed }
+          : subtask
+      );
+
       const { error: updateError } = await supabase
         .from('tasks')
         .update({
-          subtasks: Object.values(responses).map((response, index) => ({
-            id: crypto.randomUUID(),
-            content: response,
-            completed: false
-          }))
+          subtasks: updatedSubtasks
         })
         .eq('id', task.id);
 
       if (updateError) throw updateError;
 
-      // Invalidate the tasks query to trigger a refresh
       await queryClient.invalidateQueries({ queryKey: ['tasks'] });
 
-      setShowQuestions(false);
       toast({
         title: "Success",
-        description: "Task has been broken down into subtasks",
+        description: "Subtask status updated",
       });
-      
-      // Trigger a refresh of the task list
-      onAddSubtask(task.id);
     } catch (error: any) {
-      const errorMessage = error.message || 'An error occurred while processing responses';
-      addNotification({
-        title: 'Task Breakdown Error',
-        message: errorMessage,
-        type: 'error'
-      });
       toast({
         title: "Error",
-        description: "Failed to process responses. Check notifications for details.",
+        description: "Failed to update subtask status",
         variant: "destructive",
       });
     }
@@ -165,9 +176,21 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
       {task.subtasks && task.subtasks.length > 0 && (
         <div className="ml-6 space-y-2 mt-2 mb-4">
           {task.subtasks.map((subtask, index) => (
-            <div key={subtask.id} className="flex items-center gap-2 text-sm text-gray-300">
-              <span className="text-gray-500">{index + 1}.</span>
-              {subtask.content}
+            <div 
+              key={subtask.id} 
+              className="flex items-center gap-2 text-sm text-gray-300 group"
+            >
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`h-6 w-6 ${subtask.completed ? 'bg-green-500/20' : 'hover:bg-gray-700'}`}
+                onClick={() => handleSubtaskCompletion(subtask.id)}
+              >
+                <Check className={`h-4 w-4 ${subtask.completed ? 'text-green-500' : 'text-gray-400 opacity-0 group-hover:opacity-100'}`} />
+              </Button>
+              <span className={`${subtask.completed ? 'line-through text-gray-500' : ''}`}>
+                {index + 1}. {subtask.content}
+              </span>
             </div>
           ))}
         </div>
@@ -176,8 +199,8 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
       <TaskQuestionsDialog
         open={showQuestions}
         onOpenChange={setShowQuestions}
-        questions={questions}
-        onSubmit={handleQuestionResponse}
+        questions={[]}
+        onSubmit={() => {}}
       />
     </>
   );
