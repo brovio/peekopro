@@ -90,7 +90,13 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
 
               if (error) throw error;
 
-              await queryClient.invalidateQueries({ queryKey: ['tasks'] });
+              // Update the cache immediately to prevent flicker
+              queryClient.setQueryData(['tasks'], (oldData: any) => {
+                if (!Array.isArray(oldData)) return oldData;
+                return oldData.map((t: Task) =>
+                  t.id === task.id ? { ...t, subtasks: updatedSubtasks } : t
+                );
+              });
 
               toast({
                 title: completed ? "Subtask completed" : "Subtask uncompleted",

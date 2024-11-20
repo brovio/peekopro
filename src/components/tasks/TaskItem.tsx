@@ -119,7 +119,14 @@ const TaskItem = ({ task, onDelete, onMove, onAddSubtask }: TaskItemProps) => {
 
               if (error) throw error;
 
-              await queryClient.invalidateQueries({ queryKey: ['tasks'] });
+              // Update the cache immediately to prevent flicker
+              queryClient.setQueryData(['tasks'], (oldData: any) => {
+                if (!Array.isArray(oldData)) return oldData;
+                return oldData.map((t: Task) =>
+                  t.id === task.id ? { ...t, subtasks: updatedSubtasks } : t
+                );
+              });
+
               toast({
                 title: completed ? "Subtask completed" : "Subtask uncompleted",
                 description: "Progress updated successfully",
