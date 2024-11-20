@@ -1,15 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, ListTodo, Users, Lightbulb, AppWindow, TestTube2 } from "lucide-react";
+import { LayoutDashboard, ListTodo, FlowSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useCallback } from "react";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
   { icon: ListTodo, label: "Tasks", path: "/tasks" },
-  { icon: Users, label: "Delegation", path: "/delegation" },
-  { icon: Lightbulb, label: "Project Ideas", path: "/projects" },
-  { icon: AppWindow, label: "App Ideas", path: "/apps" },
-  { icon: TestTube2, label: "Test AI", path: "/test" },
+  { icon: FlowSquare, label: "Flow", path: "/flow" },
 ];
 
 const Sidebar = ({ onShowApiManager }: { onShowApiManager: () => void }) => {
