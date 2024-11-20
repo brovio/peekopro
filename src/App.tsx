@@ -33,7 +33,7 @@ function App() {
               }
             />
             <Route
-              path="/test"
+              path="/flooko"
               element={
                 <ProtectedRoute>
                   <Test />

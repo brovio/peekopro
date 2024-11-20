@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, ListTodo, Users, Lightbulb, AppWindow, TestTube2, Flow } from "lucide-react";
+import { LayoutDashboard, ListTodo, Users, Lightbulb, AppWindow, TestTube2, Workflow } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useCallback } from "react";
 
@@ -9,7 +9,7 @@ const navItems = [
   { icon: Users, label: "Delegation", path: "/delegation" },
   { icon: Lightbulb, label: "Project Ideas", path: "/projects" },
   { icon: AppWindow, label: "App Ideas", path: "/apps" },
-  { icon: Flow, label: "Flow", path: "/flow" },
+  { icon: Workflow, label: "Flooko", path: "/flooko" },
 ];
 
 const Sidebar = ({ onShowApiManager }: { onShowApiManager: () => void }) => {
