@@ -32,7 +32,7 @@ serve(async (req) => {
           messages: [
             {
               role: 'system',
-              content: `You are a task breakdown assistant. For the given task, generate 3-5 questions that will help gather information needed for breaking it down into subtasks.
+              content: `You are a task breakdown assistant. For the given task, generate 3-5 specific questions that will help gather information needed for breaking it down into detailed subtasks.
               Each question should be one of these types:
               1. Text input for open-ended questions
               2. Yes/No for simple binary choices
@@ -42,7 +42,12 @@ serve(async (req) => {
               
               For multiple choice or checkbox questions, include "Options:" followed by the choices.
               For yes/no questions, phrase them as questions ending with "(Yes/No)".
-              For file upload questions, specify what type of file is expected.`
+              For file upload questions, specify what type of file is expected.
+              
+              Example formats:
+              - "Do you want to include custom settings? (Yes/No)"
+              - "Which features do you need? Options: Basic, Advanced, Professional"
+              - "What specific requirements do you have?"`
             },
             {
               role: 'user',
@@ -74,15 +79,6 @@ serve(async (req) => {
           } else if (text.toLowerCase().includes('(yes/no)')) {
             type = 'radio';
             options = ['Yes', 'No'];
-          } else if (text.toLowerCase().includes('select all that apply')) {
-            type = 'checkbox';
-            const optionsMatch = text.match(/options:(.*?)(?:\]|$)/i);
-            if (optionsMatch) {
-              options = optionsMatch[1]
-                .split(',')
-                .map(opt => opt.trim())
-                .filter(opt => opt.length > 0);
-            }
           } else if (text.toLowerCase().includes('options:')) {
             type = 'radio';
             const optionsMatch = text.match(/options:(.*?)(?:\]|$)/i);
@@ -97,6 +93,8 @@ serve(async (req) => {
           return { text, type, options };
         });
 
+      console.log('Generated questions:', questions);
+
       return new Response(
         JSON.stringify({ data: questions }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -105,15 +103,10 @@ serve(async (req) => {
 
     // Format answers for OpenAI
     const formattedAnswers = Object.entries(answers)
-      .map(([_, value]) => {
-        if (Array.isArray(value)) {
-          return value.join(', ');
-        }
-        return value;
-      })
+      .map(([_, value]) => value)
       .filter(answer => answer && answer.length > 0);
 
-    // Generate steps
+    // Generate detailed steps
     const stepsResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -125,14 +118,17 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a task breakdown assistant. Break down the given task into clear, actionable steps. Return 5-8 specific steps. Each step should be concise but detailed enough to be actionable.'
+            content: `You are a task breakdown assistant. Break down the given task into clear, specific, and actionable steps. 
+            Return 5-8 detailed steps. Each step should be concise but detailed enough to be actionable.
+            Focus on practical, implementable steps that someone could follow to complete the task.
+            Include any necessary prerequisites or setup steps.`
           },
           {
             role: 'user',
             content: `Task: ${content}${
               formattedAnswers.length > 0 
                 ? `\n\nAdditional information:\n${formattedAnswers.map(answer => `- ${answer}`).join('\n')}`
-                : ''
+                : '\nProvide detailed steps using best practices and common requirements.'
             }`
           }
         ],
