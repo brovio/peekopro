@@ -23,11 +23,11 @@ export async function createUserProfile(userId: string) {
     if (userError) throw userError;
     if (!user) throw new Error('No authenticated user');
 
-    // Insert the profile
+    // Create new profile
     const { data: profile, error: insertError } = await supabase
       .from('profiles')
       .insert({
-        id: user.id,
+        id: userId,
         email: user.email,
         full_name: user.user_metadata.full_name || null
       })
@@ -48,6 +48,9 @@ export async function createUserProfile(userId: string) {
 
 export async function createTask(content: string, userId: string) {
   try {
+    // Ensure profile exists first
+    await createUserProfile(userId);
+
     // Create the task
     const { data: newTask, error: taskError } = await supabase
       .from('tasks')
@@ -56,7 +59,7 @@ export async function createTask(content: string, userId: string) {
         user_id: userId,
         category: null,
         confidence: 0,
-        subtasks: []
+        subtasks: [] as unknown as Json
       })
       .select()
       .single();
