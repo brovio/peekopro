@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Task } from "@/types/task";
 import { FileText, Trash2, ArrowRight, User, Check, RefreshCw } from "lucide-react";

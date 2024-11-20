@@ -1,7 +1,7 @@
 import Sidebar from "@/components/layout/Sidebar";
 import Navbar from "@/components/layout/Navbar";
 import MindDump from "@/components/tasks/MindDump";
-import { CategoryListBox } from "@/components/tasks/CategoryListBox";
+import CategoryListBox from "@/components/tasks/CategoryListBox";
 import ApiKeyManager from "@/components/ui/ApiKeyManager";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useState } from "react";
