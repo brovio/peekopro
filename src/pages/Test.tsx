@@ -6,6 +6,11 @@ import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import TaskQuestionsDialog from "@/components/tasks/questions/TaskQuestionsDialog";
+import MindDump from "@/components/tasks/MindDump";
+import TaskTestList from "@/components/tasks/test/TaskTestList";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Task } from "@/types/task";
 
 const Test = () => {
   const [task, setTask] = useState("");
@@ -14,6 +19,98 @@ const Test = () => {
   const [showQuestions, setShowQuestions] = useState(false);
   const [questions, setQuestions] = useState<any[]>([]);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  const { data: tasks = [] } = useQuery({
+    queryKey: ['tasks', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', user.id);
+      
+      if (error) {
+        toast({
+          title: "Error fetching tasks",
+          description: error.message,
+          variant: "destructive",
+        });
+        throw error;
+      }
+      
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
+  const updateTask = async (taskId: string, updates: Partial<Task>) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update(updates)
+        .eq('id', taskId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['tasks', user.id] });
+    } catch (error: any) {
+      toast({
+        title: "Failed to update task",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deleteTask = async (taskId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', taskId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['tasks', user.id] });
+    } catch (error: any) {
+      toast({
+        title: "Failed to delete task",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const moveTask = async (taskId: string, category: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ category: category.toLowerCase() })
+        .eq('id', taskId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['tasks', user.id] });
+    } catch (error: any) {
+      toast({
+        title: "Failed to move task",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleDirectTest = async () => {
     if (!task.trim()) {
@@ -130,14 +227,34 @@ const Test = () => {
   };
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto py-8 space-y-8">
       <Card className="p-6 bg-card">
-        <h1 className="text-2xl font-bold mb-6">AI Test Page</h1>
+        <h1 className="text-2xl font-bold mb-6">Mind Dump & Task Management</h1>
+        
+        <div className="space-y-8">
+          <MindDump 
+            tasks={tasks} 
+            onTasksChange={() => {
+              queryClient.invalidateQueries({ queryKey: ['tasks'] });
+            }} 
+          />
+
+          <TaskTestList
+            tasks={tasks}
+            onTaskUpdate={updateTask}
+            onTaskDelete={deleteTask}
+            onTaskMove={moveTask}
+          />
+        </div>
+      </Card>
+
+      <Card className="p-6 bg-card">
+        <h2 className="text-xl font-bold mb-6">AI Task Breakdown Testing</h2>
         
         <div className="space-y-4">
           <div className="flex gap-4">
             <Input
-              placeholder="Enter a task (e.g., Install Notepad++)"
+              placeholder="Enter a task to test AI breakdown"
               value={task}
               onChange={(e) => setTask(e.target.value)}
               className="flex-1"
