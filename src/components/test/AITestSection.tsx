@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, forwardRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
@@ -6,7 +6,7 @@ import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import TaskQuestionsDialog from "@/components/tasks/questions/TaskQuestionsDialog";
 
-export const AITestSection = () => {
+export const AITestSection = forwardRef<HTMLInputElement>((props, ref) => {
   const [task, setTask] = useState("");
   const [steps, setSteps] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -132,6 +132,7 @@ export const AITestSection = () => {
     <div className="space-y-4">
       <div className="flex gap-4">
         <Input
+          ref={ref}
           placeholder="Enter a task to test AI breakdown"
           value={task}
           onChange={(e) => setTask(e.target.value)}
@@ -181,4 +182,6 @@ export const AITestSection = () => {
       />
     </div>
   );
-};
+});
+
+AITestSection.displayName = 'AITestSection';
