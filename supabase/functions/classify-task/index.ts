@@ -15,32 +15,25 @@ serve(async (req) => {
 
   try {
     const { content, previousClassifications, userFeedback } = await req.json();
+    console.log('Processing content:', content);
+    console.log('Previous classifications:', previousClassifications);
+    console.log('User feedback:', userFeedback);
 
-    // Create a prompt that includes previous classifications and user feedback for learning
-    const prompt = `Based on these previous task classifications and user feedback:
-${previousClassifications.map((pc: any) => 
-  `"${pc.content}" was ${pc.userReclassified ? 'RECLASSIFIED by user' : 'classified'} as "${pc.category}"`
-).join('\n')}
+    // Create system message with examples and instructions
+    const systemMessage = `You are a task classification assistant that learns from user feedback. 
+    You must respond with a JSON object containing only two fields:
+    - category: one of the following categories (Work Day, Delegate, Discuss, Family, Personal, Ideas, App Ideas, Project Ideas, Meetings, Follow-Up, Urgent)
+    - confidence: a number between 0 and 1 representing your confidence in the classification`;
 
-${userFeedback ? `Recent user feedback shows that tasks like "${userFeedback.content}" should be classified as "${userFeedback.category}"` : ''}
+    // Create user message with context
+    const userMessage = `Based on these previous task classifications:
+${previousClassifications?.map((pc: any) => 
+  `"${pc.content}" was classified as "${pc.category}"`
+).join('\n') || 'No previous classifications'}
 
-Please classify this new task: "${content}"
+${userFeedback ? `Recent user feedback shows that "${userFeedback.content}" should be "${userFeedback.category}"` : ''}
 
-Choose from these categories only:
-- Work Day
-- Delegate
-- Discuss
-- Family
-- Personal
-- Ideas
-- App Ideas
-- Project Ideas
-- Meetings
-- Follow-Up
-- Urgent
-
-Consider user feedback and reclassifications with higher weight when making your decision.
-Respond with only the category name and confidence score in JSON format.`;
+Please classify this task: "${content}"`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -51,22 +44,46 @@ Respond with only the category name and confidence score in JSON format.`;
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          {
-            role: 'system',
-            content: 'You are a task classification assistant that learns from user feedback. Respond only with JSON containing category and confidence.'
-          },
-          { role: 'user', content: prompt }
+          { role: 'system', content: systemMessage },
+          { role: 'user', content: userMessage }
         ],
         temperature: 0.3,
       }),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to get response from OpenAI');
+      throw new Error(`OpenAI API error: ${response.status}`);
     }
 
     const data = await response.json();
-    const result = JSON.parse(data.choices[0].message.content);
+    console.log('OpenAI response:', data);
+
+    let result;
+    try {
+      // Try to parse the response as JSON first
+      result = JSON.parse(data.choices[0].message.content);
+    } catch (e) {
+      // If parsing fails, try to extract category and confidence from the text
+      const content = data.choices[0].message.content;
+      const categoryMatch = content.match(/"category":\s*"([^"]+)"/);
+      const confidenceMatch = content.match(/"confidence":\s*([\d.]+)/);
+      
+      if (categoryMatch && confidenceMatch) {
+        result = {
+          category: categoryMatch[1],
+          confidence: parseFloat(confidenceMatch[1])
+        };
+      } else {
+        throw new Error('Could not parse OpenAI response into valid format');
+      }
+    }
+
+    // Validate the result
+    if (!result.category || typeof result.confidence !== 'number') {
+      throw new Error('Invalid response format from OpenAI');
+    }
+
+    console.log('Final classification result:', result);
 
     return new Response(
       JSON.stringify(result),
