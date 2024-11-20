@@ -1,5 +1,6 @@
 import { Task, SubTask } from "@/types/task";
 import { supabase } from "@/integrations/supabase/client";
+import { Json } from "@/integrations/supabase/types";
 
 export async function createUserProfile(userId: string) {
   try {
@@ -22,9 +23,20 @@ export async function createUserProfile(userId: string) {
     if (sessionError) throw sessionError;
     if (!session) throw new Error('No active session');
 
-    // If no profile exists, let the database trigger handle the profile creation
-    // Just return the user ID since the trigger will create the profile
-    return userId;
+    // Wait a moment for the trigger to create the profile
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Verify the profile was created
+    const { data: newProfile, error: verifyError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', userId)
+      .single();
+
+    if (verifyError) throw verifyError;
+    if (!newProfile) throw new Error('Profile creation failed');
+
+    return newProfile.id;
   } catch (error: any) {
     console.error('Profile creation error:', error);
     throw new Error('Failed to create or fetch user profile');
