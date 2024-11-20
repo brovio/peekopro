@@ -37,10 +37,30 @@ const TaskQuestionsDialog = ({ questions, open, onOpenChange, onSubmit }: TaskQu
     setIsSkipping(false);
   };
 
-  // Filter out invalid questions (those that are empty or just contain "optional")
+  // Filter out invalid questions and determine question type
   const validQuestions = questions.filter(q => {
     const cleanText = q.text?.replace(/^\[|\]$/g, '').trim();
-    return cleanText && !cleanText.match(/^\(optional\)$/i);
+    if (!cleanText || cleanText.match(/^\(optional\)$/i)) return false;
+    
+    // Update question type based on content if not already set
+    if (!q.type) {
+      if (cleanText.toLowerCase().includes('upload') || 
+          cleanText.toLowerCase().includes('attach') ||
+          cleanText.toLowerCase().includes('file') ||
+          cleanText.toLowerCase().includes('image')) {
+        q.type = 'file';
+      } else if (cleanText.toLowerCase().includes('choose') || 
+                 cleanText.toLowerCase().includes('select') ||
+                 cleanText.toLowerCase().includes('prefer')) {
+        q.type = 'radio';
+        if (!q.options) {
+          q.options = ['Option A', 'Option B'];
+        }
+      } else {
+        q.type = 'text';
+      }
+    }
+    return true;
   });
 
   // Remove duplicates based on cleaned question text

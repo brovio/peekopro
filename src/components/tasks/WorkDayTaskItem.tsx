@@ -59,24 +59,32 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
 
   const handleQuestionResponse = async (responses: Record<string, string>) => {
     try {
-      const { error } = await supabase.functions.invoke('classify-task', {
-        body: { 
-          content: task.content,
-          responses
-        }
-      });
+      // Update the task with subtasks based on responses
+      const { error: updateError } = await supabase
+        .from('tasks')
+        .update({
+          subtasks: Object.values(responses).map((response, index) => ({
+            id: crypto.randomUUID(),
+            content: response,
+            completed: false
+          }))
+        })
+        .eq('id', task.id);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
 
       setShowQuestions(false);
       toast({
         title: "Success",
-        description: "Task has been processed successfully",
+        description: "Task has been broken down into subtasks",
       });
+      
+      // Trigger a refresh of the task list
+      onAddSubtask(task.id);
     } catch (error: any) {
       const errorMessage = error.message || 'An error occurred while processing responses';
       addNotification({
-        title: 'Task Classification Error',
+        title: 'Task Breakdown Error',
         message: errorMessage,
         type: 'error'
       });
@@ -114,7 +122,13 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
                 disabled={isLoading}
                 title="AI Breakdown"
               >
-                <Brain className="h-4 w-4" />
+                {isLoading ? (
+                  <div className="animate-spin">
+                    <RefreshCw className="h-4 w-4" />
+                  </div>
+                ) : (
+                  <Brain className="h-4 w-4" />
+                )}
               </Button>
               <Button
                 variant="ghost"
