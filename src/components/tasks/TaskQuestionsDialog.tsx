@@ -29,9 +29,9 @@ const TaskQuestionsDialog = ({ questions, open, onOpenChange, onSubmit }: TaskQu
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] bg-[#141e38] text-gray-100">
+      <DialogContent className="sm:max-w-[425px] bg-navy-900 border-navy-800">
         <DialogHeader>
-          <DialogTitle>Additional Questions</DialogTitle>
+          <DialogTitle className="text-gray-100">Additional Questions</DialogTitle>
           <DialogDescription className="text-gray-400">
             Please answer these questions to help break down the task more effectively.
           </DialogDescription>
@@ -39,7 +39,7 @@ const TaskQuestionsDialog = ({ questions, open, onOpenChange, onSubmit }: TaskQu
         <div className="space-y-6 py-4">
           {questions.map((question, index) => (
             <div key={index} className="space-y-2">
-              <Label>{question.text}</Label>
+              <Label className="text-gray-200">{question.text}</Label>
               {question.type === 'radio' && question.options && (
                 <RadioGroup
                   onValueChange={(value) => setAnswers(prev => ({ ...prev, [index]: value }))}
@@ -48,7 +48,7 @@ const TaskQuestionsDialog = ({ questions, open, onOpenChange, onSubmit }: TaskQu
                 >
                   {question.options.map((option) => (
                     <div key={option} className="flex items-center space-x-2">
-                      <RadioGroupItem value={option} id={`${index}-${option}`} />
+                      <RadioGroupItem value={option} id={`${index}-${option}`} className="border-gray-600" />
                       <Label htmlFor={`${index}-${option}`} className="text-gray-300">{option}</Label>
                     </div>
                   ))}
@@ -58,19 +58,25 @@ const TaskQuestionsDialog = ({ questions, open, onOpenChange, onSubmit }: TaskQu
                 <Input
                   value={answers[index] || ''}
                   onChange={(e) => setAnswers(prev => ({ ...prev, [index]: e.target.value }))}
-                  className="bg-[#1a2747] border-gray-700 text-gray-100"
+                  className="bg-navy-800 border-gray-700 text-gray-100"
                 />
               )}
               {question.type === 'file' && (
                 <FileUploadInput
                   onFileUpload={(url) => setAnswers(prev => ({ ...prev, [index]: url }))}
+                  className="bg-navy-800 border-gray-700 text-gray-100"
                 />
               )}
             </div>
           ))}
         </div>
         <DialogFooter>
-          <Button onClick={handleSubmit}>Submit Answers</Button>
+          <Button 
+            onClick={handleSubmit}
+            className="bg-primary hover:bg-primary/90 text-white"
+          >
+            Submit Answers
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
