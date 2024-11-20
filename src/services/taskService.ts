@@ -1,14 +1,14 @@
-import { supabase } from "@/integrations/supabase/client";
 import { Task, SubTask } from "@/types/task";
+import { supabase } from "@/integrations/supabase/client";
 
 export async function createUserProfile(userId: string) {
   try {
-    // First try to get the existing profile
+    // First check if profile exists
     const { data: existingProfile, error: fetchError } = await supabase
       .from('profiles')
       .select('id')
       .eq('id', userId)
-      .maybeSingle(); // Use maybeSingle instead of single to avoid 406 error
+      .maybeSingle();
 
     if (fetchError) throw fetchError;
 
@@ -17,13 +17,17 @@ export async function createUserProfile(userId: string) {
       return existingProfile.id;
     }
 
-    // If no profile exists, create one using auth context
-    const { data: newProfile, error: createError } = await supabase.auth.getUser();
+    // If no profile exists, insert it
+    const { data: newProfile, error: insertError } = await supabase
+      .from('profiles')
+      .insert({ id: userId })
+      .select()
+      .single();
     
-    if (createError) throw createError;
+    if (insertError) throw insertError;
+    if (!newProfile) throw new Error('Failed to create profile');
     
-    // The trigger will automatically create the profile
-    return newProfile.user.id;
+    return newProfile.id;
   } catch (error: any) {
     console.error('Profile creation error:', error);
     throw new Error('Failed to create or fetch user profile');
