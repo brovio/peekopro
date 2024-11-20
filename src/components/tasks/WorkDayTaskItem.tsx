@@ -80,7 +80,7 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
       const { error } = await supabase
         .from('tasks')
         .update({
-          subtasks: updatedSubtasks as Json
+          subtasks: updatedSubtasks as unknown as Json
         })
         .eq('id', task.id);
 

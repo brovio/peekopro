@@ -25,7 +25,9 @@ export const useQuestionResponseHandler = (taskId: string) => {
       if (fetchError) throw fetchError;
 
       // Ensure we have an array of subtasks and properly type it
-      const currentSubtasks = ((latestTask?.subtasks as Json) || []) as SubTask[];
+      const currentSubtasks = Array.isArray(latestTask?.subtasks) 
+        ? (latestTask.subtasks as unknown as SubTask[])
+        : [];
       
       // Create new subtasks from responses
       const subtasksToAdd: SubTask[] = Object.values(responses)
@@ -41,7 +43,7 @@ export const useQuestionResponseHandler = (taskId: string) => {
       const { error: updateError } = await supabase
         .from('tasks')
         .update({
-          subtasks: updatedSubtasks as Json
+          subtasks: updatedSubtasks as unknown as Json
         })
         .eq('id', taskId);
 
