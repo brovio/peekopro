@@ -19,22 +19,6 @@ serve(async (req) => {
     console.log('Previous classifications:', previousClassifications);
     console.log('User feedback:', userFeedback);
 
-    // Create system message with examples and instructions
-    const systemMessage = `You are a task classification assistant that learns from user feedback. 
-    You must respond with a JSON object containing only two fields:
-    - category: one of the following categories (Work Day, Delegate, Discuss, Family, Personal, Ideas, App Ideas, Project Ideas, Meetings, Follow-Up, Urgent)
-    - confidence: a number between 0 and 1 representing your confidence in the classification`;
-
-    // Create user message with context
-    const userMessage = `Based on these previous task classifications:
-${previousClassifications?.map((pc: any) => 
-  `"${pc.content}" was classified as "${pc.category}"`
-).join('\n') || 'No previous classifications'}
-
-${userFeedback ? `Recent user feedback shows that "${userFeedback.content}" should be "${userFeedback.category}"` : ''}
-
-Please classify this task: "${content}"`;
-
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -44,8 +28,20 @@ Please classify this task: "${content}"`;
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: systemMessage },
-          { role: 'user', content: userMessage }
+          {
+            role: 'system',
+            content: 'You are a task classification assistant. Classify the task into one of these categories: Work Day, Delegate, Discuss, Family, Personal, Ideas, App Ideas, Project Ideas, Meetings, Follow-Up, Urgent. Respond with ONLY a JSON object containing "category" (string) and "confidence" (number between 0 and 1).'
+          },
+          {
+            role: 'user',
+            content: `Task to classify: "${content}"\n\nPrevious classifications for reference:\n${
+              previousClassifications?.map((pc: any) => 
+                `"${pc.content}" was classified as "${pc.category}"`
+              ).join('\n') || 'No previous classifications'
+            }${
+              userFeedback ? `\n\nRecent user feedback shows that "${userFeedback.content}" should be "${userFeedback.category}"` : ''
+            }`
+          }
         ],
         temperature: 0.3,
       }),
@@ -56,17 +52,21 @@ Please classify this task: "${content}"`;
     }
 
     const data = await response.json();
-    console.log('OpenAI response:', data);
+    console.log('Raw OpenAI response:', data);
 
     let result;
+    const aiResponse = data.choices[0].message.content.trim();
+    console.log('AI response content:', aiResponse);
+
     try {
-      // Try to parse the response as JSON first
-      result = JSON.parse(data.choices[0].message.content);
+      // First try: direct JSON parse
+      result = JSON.parse(aiResponse);
     } catch (e) {
-      // If parsing fails, try to extract category and confidence from the text
-      const content = data.choices[0].message.content;
-      const categoryMatch = content.match(/"category":\s*"([^"]+)"/);
-      const confidenceMatch = content.match(/"confidence":\s*([\d.]+)/);
+      console.log('Failed to parse response directly, trying to extract from text');
+      
+      // Second try: extract from text
+      const categoryMatch = aiResponse.match(/["']?category["']?\s*:\s*["']([^"']+)["']/i);
+      const confidenceMatch = aiResponse.match(/["']?confidence["']?\s*:\s*([\d.]+)/i);
       
       if (categoryMatch && confidenceMatch) {
         result = {
@@ -74,16 +74,22 @@ Please classify this task: "${content}"`;
           confidence: parseFloat(confidenceMatch[1])
         };
       } else {
-        throw new Error('Could not parse OpenAI response into valid format');
+        console.error('Could not extract valid JSON or category/confidence from response');
+        throw new Error('Invalid response format from AI');
       }
     }
 
     // Validate the result
-    if (!result.category || typeof result.confidence !== 'number') {
-      throw new Error('Invalid response format from OpenAI');
+    if (!result || !result.category || typeof result.confidence !== 'number') {
+      console.error('Invalid result structure:', result);
+      throw new Error('Invalid response structure from AI');
     }
 
-    console.log('Final classification result:', result);
+    // Normalize the category to match expected values
+    result.category = result.category.toLowerCase();
+    result.confidence = Math.max(0, Math.min(1, result.confidence)); // Ensure confidence is between 0 and 1
+
+    console.log('Final processed result:', result);
 
     return new Response(
       JSON.stringify(result),
