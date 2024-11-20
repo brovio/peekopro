@@ -50,13 +50,17 @@ const TaskQuestionsDialog = ({ questions, open, onOpenChange, onSubmit }: TaskQu
         
         <div className="flex-1 overflow-y-auto space-y-6 py-4 px-2">
           {questions.map((question, index) => (
-            <div key={index} className="space-y-2 bg-navy-800/50 p-4 rounded-lg">
-              <Label className="text-gray-200 flex items-center gap-2">
-                {question.text}
-                {!question.required && (
-                  <span className="text-xs text-gray-400">(optional)</span>
-                )}
-              </Label>
+            <div 
+              key={index} 
+              className="space-y-2 bg-navy-800/50 p-4 rounded-lg border border-gray-800/50"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <Label className="text-gray-200 flex-1">
+                  {question.text.replace(/^\[|\]$/g, '').trim()}
+                  <span className="text-xs text-gray-400 ml-2">(optional)</span>
+                </Label>
+              </div>
+              
               {question.type === 'radio' && question.options && (
                 <RadioGroup
                   onValueChange={(value) => setAnswers(prev => ({ ...prev, [index]: value }))}
