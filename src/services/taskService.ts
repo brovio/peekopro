@@ -9,7 +9,7 @@ export async function createUserProfile(userId: string) {
       .from('profiles')
       .select('id')
       .eq('id', userId)
-      .maybeSingle(); // Use maybeSingle() instead of single()
+      .maybeSingle();
 
     if (fetchError) throw fetchError;
 
@@ -18,25 +18,26 @@ export async function createUserProfile(userId: string) {
       return existingProfile.id;
     }
 
-    // Get the current user's session to ensure we have the right permissions
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError) throw sessionError;
-    if (!session) throw new Error('No active session');
+    // Get user data from auth
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    if (!user) throw new Error('No authenticated user');
 
-    // Wait a moment for the trigger to create the profile
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Verify the profile was created
-    const { data: newProfile, error: verifyError } = await supabase
+    // Insert the profile manually if it doesn't exist
+    const { data: insertedProfile, error: insertError } = await supabase
       .from('profiles')
+      .insert({
+        id: userId,
+        email: user.email,
+        full_name: user.user_metadata.full_name || null
+      })
       .select('id')
-      .eq('id', userId)
-      .maybeSingle(); // Use maybeSingle() here as well
+      .single();
 
-    if (verifyError) throw verifyError;
-    if (!newProfile) throw new Error('Profile creation failed');
+    if (insertError) throw insertError;
+    if (!insertedProfile) throw new Error('Failed to create profile');
 
-    return newProfile.id;
+    return insertedProfile.id;
   } catch (error: any) {
     console.error('Profile creation error:', error);
     throw new Error('Failed to create or fetch user profile');
