@@ -5,11 +5,13 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { FileUploadInput } from "@/components/ui/file-upload";
 import { useState } from "react";
+import { ArrowRight, Loader2 } from "lucide-react";
 
 interface Question {
   text: string;
   type: 'text' | 'radio' | 'file';
   options?: string[];
+  required?: boolean;
 }
 
 interface TaskQuestionsDialogProps {
@@ -21,25 +23,40 @@ interface TaskQuestionsDialogProps {
 
 const TaskQuestionsDialog = ({ questions, open, onOpenChange, onSubmit }: TaskQuestionsDialogProps) => {
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [isSkipping, setIsSkipping] = useState(false);
 
   const handleSubmit = () => {
     onSubmit(answers);
     onOpenChange(false);
   };
 
+  const handleSkip = async () => {
+    setIsSkipping(true);
+    // Submit with empty answers to let AI make its best attempt
+    onSubmit({});
+    onOpenChange(false);
+    setIsSkipping(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] bg-navy-900 border-navy-800">
+      <DialogContent className="max-w-3xl h-[90vh] flex flex-col bg-navy-900 border-navy-800">
         <DialogHeader>
           <DialogTitle className="text-gray-100">Additional Questions</DialogTitle>
           <DialogDescription className="text-gray-400">
-            Please answer these questions to help break down the task more effectively.
+            Please answer these questions to help break down the task more effectively. All fields are optional.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-6 py-4">
+        
+        <div className="flex-1 overflow-y-auto space-y-6 py-4 px-2">
           {questions.map((question, index) => (
-            <div key={index} className="space-y-2">
-              <Label className="text-gray-200">{question.text}</Label>
+            <div key={index} className="space-y-2 bg-navy-800/50 p-4 rounded-lg">
+              <Label className="text-gray-200 flex items-center gap-2">
+                {question.text}
+                {!question.required && (
+                  <span className="text-xs text-gray-400">(optional)</span>
+                )}
+              </Label>
               {question.type === 'radio' && question.options && (
                 <RadioGroup
                   onValueChange={(value) => setAnswers(prev => ({ ...prev, [index]: value }))}
@@ -59,23 +76,37 @@ const TaskQuestionsDialog = ({ questions, open, onOpenChange, onSubmit }: TaskQu
                   value={answers[index] || ''}
                   onChange={(e) => setAnswers(prev => ({ ...prev, [index]: e.target.value }))}
                   className="bg-navy-800 border-gray-700 text-gray-100"
+                  placeholder="Your answer (optional)"
                 />
               )}
               {question.type === 'file' && (
                 <FileUploadInput
                   onFileUpload={(url) => setAnswers(prev => ({ ...prev, [index]: url }))}
-                  className="bg-navy-800 border-gray-700 text-gray-100"
                 />
               )}
             </div>
           ))}
         </div>
-        <DialogFooter>
+
+        <DialogFooter className="sm:justify-between gap-2 border-t border-navy-800 pt-4">
+          <Button
+            variant="outline"
+            onClick={handleSkip}
+            disabled={isSkipping}
+            className="w-full sm:w-auto border-gray-700 hover:bg-navy-800 text-gray-300"
+          >
+            {isSkipping ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              "Skip & Let AI Try"
+            )}
+          </Button>
           <Button 
             onClick={handleSubmit}
-            className="bg-primary hover:bg-primary/90 text-white"
+            className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white"
           >
             Submit Answers
+            <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </DialogFooter>
       </DialogContent>
