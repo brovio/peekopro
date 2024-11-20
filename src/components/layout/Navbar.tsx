@@ -1,9 +1,10 @@
-import { Search, Bell, LogOut, Undo2, Redo2 } from "lucide-react";
+import { Search, LogOut, Undo2, Redo2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import SettingsDialog from "@/components/settings/SettingsDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 interface NavbarProps {
   onUndo?: () => void;
@@ -60,10 +61,7 @@ const Navbar = ({ onUndo, onRedo, canUndo, canRedo }: NavbarProps) => {
             <Redo2 className="w-5 h-5 text-foreground" />
           </Button>
         )}
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="w-5 h-5 text-foreground" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-        </Button>
+        <NotificationBell />
         <SettingsDialog />
         <Button variant="ghost" size="icon" onClick={handleLogout}>
           <LogOut className="w-5 h-5 text-foreground" />
