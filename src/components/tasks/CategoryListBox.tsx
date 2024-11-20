@@ -10,7 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import TaskItem from "./TaskItem";
 import WorkDayTaskItem from "./WorkDayTaskItem";
 
-interface CategoryListBoxProps {
+export interface CategoryListBoxProps {
   title: string;
   tasks: Task[];
   onTaskUpdate?: (taskId: string, updates: Partial<Task>) => void;
@@ -18,7 +18,7 @@ interface CategoryListBoxProps {
   onTaskMove?: (taskId: string, category: string) => void;
 }
 
-const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove }: CategoryListBoxProps) => {
+export const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove }: CategoryListBoxProps) => {
   const completedTasks = tasks.filter(task => task.completed).length;
   const { toast } = useToast();
   const { categorySettings } = useSettings();
@@ -158,5 +158,3 @@ const getCategoryIcon = (category: string) => {
       return <FileText className="h-4 w-4 text-gray-300" />;
   }
 };
-
-export default CategoryListBox;

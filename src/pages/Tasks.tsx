@@ -1,11 +1,11 @@
 import Sidebar from "@/components/layout/Sidebar";
 import Navbar from "@/components/layout/Navbar";
 import MindDump from "@/components/tasks/MindDump";
-import CategoryListBox from "@/components/tasks/CategoryListBox";
+import { CategoryListBox } from "@/components/tasks/CategoryListBox";
 import ApiKeyManager from "@/components/ui/ApiKeyManager";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useState } from "react";
-import { Task, SubTask, TaskInput } from "@/types/task";
+import { Task, TaskInput } from "@/types/task";
 import { Json } from "@/integrations/supabase/types";
 import { useTaskHistory } from "@/hooks/useTaskHistory";
 import { useToast } from "@/components/ui/use-toast";
@@ -56,7 +56,8 @@ const Tasks = () => {
     try {
       const updateData = {
         ...updates,
-        subtasks: updates.subtasks ? (updates.subtasks as unknown as Json) : null
+        subtasks: updates.subtasks ? updates.subtasks as unknown as Json : undefined,
+        attachments: updates.attachments ? updates.attachments as unknown as Json : undefined
       } as TaskInput;
 
       const { error } = await supabase
