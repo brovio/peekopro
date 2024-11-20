@@ -16,19 +16,14 @@ import {
 } from "@/components/ui/popover";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-
-interface SubTask {
-  id: string;
-  content: string;
-  completed: boolean;
-}
+import { Json } from "@/integrations/supabase/types";
 
 interface CategoryListBoxProps {
   task: Task;
   onSelect: (category: string) => void;
 }
 
-export function CategoryListBox({ task, onSelect }: CategoryListBoxProps) {
+const CategoryListBox = ({ task, onSelect }: CategoryListBoxProps) => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
 
@@ -38,7 +33,7 @@ export function CategoryListBox({ task, onSelect }: CategoryListBoxProps) {
         .from('tasks')
         .update({ 
           category,
-          subtasks: (task.subtasks || []) as SubTask[],
+          subtasks: task.subtasks || [],
         })
         .eq('id', task.id);
 
@@ -81,4 +76,6 @@ export function CategoryListBox({ task, onSelect }: CategoryListBoxProps) {
       </PopoverContent>
     </Popover>
   );
-}
+};
+
+export { CategoryListBox };
