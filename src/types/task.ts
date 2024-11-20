@@ -38,3 +38,8 @@ export interface TaskInput {
   subtasks?: Json;
   attachments?: Json;
 }
+
+export type TaskClassification = {
+  category: string;
+  confidence: number;
+};

@@ -14,11 +14,15 @@ serve(async (req) => {
   }
 
   try {
-    const { content, previousClassifications } = await req.json();
+    const { content, previousClassifications, userFeedback } = await req.json();
 
-    // Create a prompt that includes previous classifications for learning
-    const prompt = `Based on these previous task classifications:
-${previousClassifications.map((pc: any) => `"${pc.content}" was classified as "${pc.category}"`).join('\n')}
+    // Create a prompt that includes previous classifications and user feedback for learning
+    const prompt = `Based on these previous task classifications and user feedback:
+${previousClassifications.map((pc: any) => 
+  `"${pc.content}" was ${pc.userReclassified ? 'RECLASSIFIED by user' : 'classified'} as "${pc.category}"`
+).join('\n')}
+
+${userFeedback ? `Recent user feedback shows that tasks like "${userFeedback.content}" should be classified as "${userFeedback.category}"` : ''}
 
 Please classify this new task: "${content}"
 
@@ -35,6 +39,7 @@ Choose from these categories only:
 - Follow-Up
 - Urgent
 
+Consider user feedback and reclassifications with higher weight when making your decision.
 Respond with only the category name and confidence score in JSON format.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -48,7 +53,7 @@ Respond with only the category name and confidence score in JSON format.`;
         messages: [
           {
             role: 'system',
-            content: 'You are a task classification assistant. Respond only with JSON containing category and confidence.'
+            content: 'You are a task classification assistant that learns from user feedback. Respond only with JSON containing category and confidence.'
           },
           { role: 'user', content: prompt }
         ],
