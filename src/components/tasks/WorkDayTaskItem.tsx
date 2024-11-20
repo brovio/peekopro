@@ -10,6 +10,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import TaskActions from "./actions/TaskActions";
 import SubtasksList from "./subtasks/SubtasksList";
 import { useQuestionResponseHandler } from "./handlers/useQuestionResponseHandler";
+import { Json } from "@/integrations/supabase/types";
 
 interface WorkDayTaskItemProps {
   task: Task;
@@ -79,7 +80,7 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
       const { error } = await supabase
         .from('tasks')
         .update({
-          subtasks: updatedSubtasks as unknown as Json
+          subtasks: updatedSubtasks as Json
         })
         .eq('id', task.id);
 

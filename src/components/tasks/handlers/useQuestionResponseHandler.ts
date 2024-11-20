@@ -12,7 +12,7 @@ export const useQuestionResponseHandler = (taskId: string) => {
 
   const handleQuestionResponse = async (responses: Record<string, string>) => {
     if (!responses || Object.keys(responses).length === 0) {
-      return;
+      return false;
     }
 
     try {
@@ -24,11 +24,11 @@ export const useQuestionResponseHandler = (taskId: string) => {
 
       if (fetchError) throw fetchError;
 
-      // Ensure we have an array of subtasks
-      const currentSubtasks = (latestTask?.subtasks as SubTask[]) || [];
+      // Ensure we have an array of subtasks and properly type it
+      const currentSubtasks = ((latestTask?.subtasks as Json) || []) as SubTask[];
       
       // Create new subtasks from responses
-      const subtasksToAdd = Object.values(responses)
+      const subtasksToAdd: SubTask[] = Object.values(responses)
         .filter(response => response.trim() !== '')
         .map(response => ({
           id: crypto.randomUUID(),
@@ -41,7 +41,7 @@ export const useQuestionResponseHandler = (taskId: string) => {
       const { error: updateError } = await supabase
         .from('tasks')
         .update({
-          subtasks: updatedSubtasks as unknown as Json
+          subtasks: updatedSubtasks as Json
         })
         .eq('id', taskId);
 
