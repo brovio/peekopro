@@ -38,6 +38,14 @@ const TaskQuestionsDialog = ({ questions, open, onOpenChange, onSubmit }: TaskQu
     setIsSkipping(false);
   };
 
+  // Filter out empty or invalid questions
+  const validQuestions = questions.filter(q => q.text && q.text.trim() !== '');
+
+  // Remove duplicates based on question text
+  const uniqueQuestions = validQuestions.filter((question, index, self) =>
+    index === self.findIndex((q) => q.text === question.text)
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl h-[90vh] flex flex-col bg-navy-900 border-navy-800">
@@ -49,7 +57,7 @@ const TaskQuestionsDialog = ({ questions, open, onOpenChange, onSubmit }: TaskQu
         </DialogHeader>
         
         <div className="flex-1 overflow-y-auto space-y-6 py-4 px-2">
-          {questions.map((question, index) => (
+          {uniqueQuestions.map((question, index) => (
             <div 
               key={index} 
               className="space-y-2 bg-navy-800/50 p-4 rounded-lg border border-gray-800/50"
