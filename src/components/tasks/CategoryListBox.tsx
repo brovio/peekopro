@@ -117,6 +117,7 @@ export const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTa
                 task={task}
                 onAddSubtask={handleAddSubtask}
                 onDelete={onTaskDelete}
+                onMove={onTaskMove}
               />
             ) : (
               <TaskItem

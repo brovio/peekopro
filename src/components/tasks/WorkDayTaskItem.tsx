@@ -1,20 +1,23 @@
 import { Button } from "@/components/ui/button";
 import { Task } from "@/types/task";
-import { Clock, Trash2, Brain } from "lucide-react";
+import { Clock, Trash2, Brain, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import TaskQuestionsDialog from "./TaskQuestionsDialog";
+import TaskClassificationButtons from "./TaskClassificationButtons";
 
 interface WorkDayTaskItemProps {
   task: Task;
   onAddSubtask: (taskId: string) => void;
   onDelete: (taskId: string) => void;
+  onMove?: (taskId: string, category: string) => void;
 }
 
-const WorkDayTaskItem = ({ task, onAddSubtask, onDelete }: WorkDayTaskItemProps) => {
+const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskItemProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showQuestions, setShowQuestions] = useState(false);
+  const [showReclassify, setShowReclassify] = useState(false);
   const [questions, setQuestions] = useState<any[]>([]);
   const { toast } = useToast();
 
@@ -110,24 +113,45 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete }: WorkDayTaskItemProps)
           <span className="text-sm text-gray-100">{task.content}</span>
         </div>
         <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={handleAIBreakdown}
-            disabled={isLoading}
-            title="AI Breakdown"
-          >
-            <Brain className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => onDelete(task.id)}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          {showReclassify ? (
+            <TaskClassificationButtons
+              taskId={task.id}
+              onClassify={(taskId, category) => {
+                onMove?.(taskId, category);
+                setShowReclassify(false);
+              }}
+            />
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={handleAIBreakdown}
+                disabled={isLoading}
+                title="AI Breakdown"
+              >
+                <Brain className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setShowReclassify(true)}
+                title="Reclassify"
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => onDelete(task.id)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
