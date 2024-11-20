@@ -10,7 +10,8 @@ import MindDump from "@/components/tasks/MindDump";
 import TaskTestList from "@/components/tasks/test/TaskTestList";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Task } from "@/types/task";
+import { Task, SubTask } from "@/types/task";
+import { Json } from "@/integrations/supabase/types";
 
 const Test = () => {
   const [task, setTask] = useState("");
@@ -41,7 +42,10 @@ const Test = () => {
         throw error;
       }
       
-      return data || [];
+      return (data || []).map(task => ({
+        ...task,
+        subtasks: Array.isArray(task.subtasks) ? task.subtasks as SubTask[] : []
+      })) as Task[];
     },
     enabled: !!user?.id,
   });
@@ -50,9 +54,15 @@ const Test = () => {
     if (!user) return;
 
     try {
+      const updateData = {
+        ...updates,
+        subtasks: updates.subtasks ? JSON.parse(JSON.stringify(updates.subtasks)) as Json : undefined,
+        attachments: updates.attachments ? JSON.parse(JSON.stringify(updates.attachments)) as Json : undefined
+      };
+
       const { error } = await supabase
         .from('tasks')
-        .update(updates)
+        .update(updateData)
         .eq('id', taskId)
         .eq('user_id', user.id);
 
