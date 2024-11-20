@@ -3,11 +3,12 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { FileUploadInput } from "@/components/ui/file-upload";
 import { useState } from "react";
 
 interface Question {
   text: string;
-  type: 'text' | 'radio';
+  type: 'text' | 'radio' | 'file';
   options?: string[];
 }
 
@@ -58,6 +59,11 @@ const TaskQuestionsDialog = ({ questions, open, onOpenChange, onSubmit }: TaskQu
                   value={answers[index] || ''}
                   onChange={(e) => setAnswers(prev => ({ ...prev, [index]: e.target.value }))}
                   className="bg-[#1a2747] border-gray-700 text-gray-100"
+                />
+              )}
+              {question.type === 'file' && (
+                <FileUploadInput
+                  onFileUpload={(url) => setAnswers(prev => ({ ...prev, [index]: url }))}
                 />
               )}
             </div>

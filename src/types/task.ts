@@ -25,14 +25,16 @@ export interface Task {
   user_id?: string;
   subtasks?: SubTask[];
   workDayAttributes?: WorkDayTaskAttributes;
+  attachments?: string[];
 }
 
 export interface TaskInput {
-  content: string;  // Made required
+  content: string;
   category?: string | null;
   confidence?: number;
   completed?: boolean;
   created_at?: string;
-  user_id: string;  // Made required
+  user_id: string;
   subtasks?: Json;
+  attachments?: Json;
 }
