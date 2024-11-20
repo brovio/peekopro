@@ -7,10 +7,10 @@ import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import TaskQuestionsDialog from "@/components/tasks/questions/TaskQuestionsDialog";
 import TaskBreakdown from "@/components/tasks/breakdown/TaskBreakdown";
-import FrogTaskItem from "@/components/tasks/frog/FrogTaskItem";
 import FrogTaskGrid from "@/components/tasks/frog/FrogTaskGrid";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTaskBreakdown } from "@/hooks/useTaskBreakdown";
 
 interface CategorizedTask {
   id: string;
@@ -21,17 +21,23 @@ interface CategorizedTask {
 const Test = () => {
   const [task, setTask] = useState("");
   const [frogTask, setFrogTask] = useState("");
-  const [steps, setSteps] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [showQuestions, setShowQuestions] = useState(false);
-  const [questions, setQuestions] = useState<any[]>([]);
-  const { toast } = useToast();
   const frogInputRef = useRef<HTMLInputElement>(null);
   const [placeholder, setPlaceholder] = useState("Monkey Minding Much?");
   const { user } = useAuth();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  const {
+    isLoading,
+    steps,
+    questions,
+    showQuestions,
+    setShowQuestions,
+    handleDirectTest,
+    handleGuidedTest,
+    handleQuestionResponse
+  } = useTaskBreakdown();
 
-  // Fetch tasks from Supabase
   const { data: tasks = [] } = useQuery({
     queryKey: ['frog-tasks', user?.id],
     queryFn: async () => {
@@ -64,70 +70,6 @@ const Test = () => {
 
     return () => clearTimeout(timer);
   }, []);
-
-  const handleDirectTest = async () => {
-    // Simulated breakdown logic
-    setIsLoading(true);
-    try {
-      const response = await supabase.functions.invoke('break-down-task', { body: { content: task, skipQuestions: true } });
-      const data = await response.json();
-      const steps = data.data || [];
-      setSteps(steps.map(step => step.text));
-      toast({ title: "Task breakdown completed", description: "Your task has been broken down into steps." });
-    } catch (error: any) {
-      console.error('Test page error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to break down task",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleGuidedTest = async () => {
-    // Simulated guided breakdown logic
-    setIsLoading(true);
-    try {
-      const response = await supabase.functions.invoke('break-down-task', { body: { content: task, skipQuestions: false } });
-      const data = await response.json();
-      const questions = data.data || [];
-      setQuestions(questions);
-      setShowQuestions(true);
-    } catch (error: any) {
-      console.error('Test page error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to get questions",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleQuestionResponse = async (answers: Record<string, string>) => {
-    // Simulated question response logic
-    setIsLoading(true);
-    try {
-      const response = await supabase.functions.invoke('break-down-task', { body: { content: task, skipQuestions: true, answers } });
-      const data = await response.json();
-      const steps = data.data || [];
-      setSteps(steps.map(step => step.text));
-      setShowQuestions(false);
-      toast({ title: "Task breakdown completed with your input", description: "Your task has been broken down based on your answers." });
-    } catch (error: any) {
-      console.error('Test page error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to process answers",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleFrogSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,8 +142,8 @@ const Test = () => {
         steps={steps}
         isLoading={isLoading}
         onTaskChange={(value) => setTask(value)}
-        onDirectTest={handleDirectTest}
-        onGuidedTest={handleGuidedTest}
+        onDirectTest={() => handleDirectTest(task)}
+        onGuidedTest={() => handleGuidedTest(task)}
       />
 
       <Card className="p-6 bg-[#1A1F2C]">
@@ -226,22 +168,10 @@ const Test = () => {
           </div>
 
           {tasks.length > 0 && (
-            <div className="space-y-8">
-              <div className="space-y-2">
-                {tasks
-                  .filter(task => !task.category)
-                  .map((task, index) => (
-                    <FrogTaskItem
-                      key={task.id}
-                      task={task.content}
-                      index={index}
-                      onCategorySelect={(category) => handleCategorySelect(task.id, category)}
-                    />
-                  ))}
-              </div>
-
-              <FrogTaskGrid tasks={tasks.filter(task => task.category)} />
-            </div>
+            <FrogTaskGrid 
+              tasks={tasks} 
+              onCategorySelect={handleCategorySelect}
+            />
           )}
         </form>
       </Card>
@@ -250,7 +180,7 @@ const Test = () => {
         open={showQuestions}
         onOpenChange={setShowQuestions}
         questions={questions}
-        onSubmit={handleQuestionResponse}
+        onSubmit={(answers) => handleQuestionResponse(task, answers)}
       />
     </div>
   );
