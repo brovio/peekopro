@@ -1,19 +1,32 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Circle, Square, Diamond, Hexagon, Octagon, Star, Bookmark, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import TaskQuestionsDialog from "@/components/tasks/questions/TaskQuestionsDialog";
+import { cn } from "@/lib/utils";
 
 const Test = () => {
   const [task, setTask] = useState("");
+  const [frogTask, setFrogTask] = useState("");
   const [steps, setSteps] = useState<string[]>([]);
+  const [frogTasks, setFrogTasks] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showQuestions, setShowQuestions] = useState(false);
   const [questions, setQuestions] = useState<any[]>([]);
   const { toast } = useToast();
+  const frogInputRef = useRef<HTMLInputElement>(null);
+  const [placeholder, setPlaceholder] = useState("Monkey Minding Much?");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPlaceholder("come on now, THINK");
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleDirectTest = async () => {
     if (!task.trim()) {
@@ -129,10 +142,32 @@ const Test = () => {
     }
   };
 
+  const handleFrogSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!frogTask.trim()) return;
+    
+    setFrogTasks(prev => [frogTask, ...prev]);
+    setFrogTask("");
+    if (frogInputRef.current) {
+      frogInputRef.current.focus();
+    }
+  };
+
+  const icons = [
+    { Icon: Circle, color: "text-purple-400" },
+    { Icon: Square, color: "text-blue-400" },
+    { Icon: Diamond, color: "text-pink-400" },
+    { Icon: Hexagon, color: "text-green-400" },
+    { Icon: Octagon, color: "text-yellow-400" },
+    { Icon: Star, color: "text-orange-400" },
+    { Icon: Bookmark, color: "text-red-400" },
+    { Icon: Check, color: "text-cyan-400" },
+  ];
+
   return (
-    <div className="container mx-auto py-8">
-      <Card className="p-6 bg-card">
-        <h1 className="text-2xl font-bold mb-6">AI Test Page</h1>
+    <div className="container mx-auto py-8 space-y-8">
+      <Card className="p-6 bg-[#1A1F2C]">
+        <h1 className="text-2xl font-bold mb-6 text-gray-100">Breaking Shit Down (BDC!)</h1>
         
         <div className="space-y-4">
           <div className="flex gap-4">
@@ -140,11 +175,12 @@ const Test = () => {
               placeholder="Enter a task (e.g., Install Notepad++)"
               value={task}
               onChange={(e) => setTask(e.target.value)}
-              className="flex-1"
+              className="flex-1 bg-[#2A2F3C] border-gray-700 text-gray-100"
             />
             <Button 
               onClick={handleDirectTest}
               disabled={isLoading}
+              className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
             >
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -156,6 +192,7 @@ const Test = () => {
               onClick={handleGuidedTest}
               disabled={isLoading}
               variant="outline"
+              className="border-[#9b87f5] text-[#9b87f5] hover:bg-[#2A2F3C]"
             >
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -167,10 +204,10 @@ const Test = () => {
 
           {steps.length > 0 && (
             <div className="mt-6">
-              <h2 className="text-lg font-semibold mb-3">Steps:</h2>
+              <h2 className="text-lg font-semibold mb-3 text-gray-100">Steps:</h2>
               <ul className="list-decimal pl-5 space-y-2">
                 {steps.map((step, index) => (
-                  <li key={index} className="text-muted-foreground">
+                  <li key={index} className="text-gray-300">
                     {step}
                   </li>
                 ))}
@@ -178,6 +215,55 @@ const Test = () => {
             </div>
           )}
         </div>
+      </Card>
+
+      <Card className="p-6 bg-[#1A1F2C]">
+        <h1 className="text-2xl font-bold mb-6 text-gray-100">Find The Frog 🐸 Getting Shit Done</h1>
+        
+        <form onSubmit={handleFrogSubmit} className="space-y-4">
+          <div className="flex gap-4">
+            <Input
+              ref={frogInputRef}
+              placeholder={placeholder}
+              value={frogTask}
+              onChange={(e) => setFrogTask(e.target.value)}
+              className="flex-1 bg-[#2A2F3C] border-gray-700 text-gray-100"
+            />
+            <Button 
+              type="submit"
+              className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
+            >
+              Dump
+            </Button>
+          </div>
+
+          {frogTasks.length > 0 && (
+            <div className="mt-6 space-y-2">
+              {frogTasks.map((task, index) => (
+                <div
+                  key={index}
+                  className={cn(
+                    "flex items-center gap-3 p-3 rounded-md",
+                    "bg-[#2A2F3C] border-b border-gray-700",
+                    "transition-all duration-200 hover:bg-[#3A3F4C]",
+                    "animate-fade-in"
+                  )}
+                >
+                  {icons[index % icons.length].Icon && (
+                    <icons[index % icons.length].Icon 
+                      className={cn(
+                        "w-5 h-5",
+                        icons[index % icons.length].color,
+                        "transition-all duration-300 hover:scale-110"
+                      )}
+                    />
+                  )}
+                  <span className="text-gray-200">{task}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </form>
       </Card>
 
       <TaskQuestionsDialog
