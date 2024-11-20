@@ -61,16 +61,19 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
 
   const handleQuestionResponse = async (responses: Record<string, string>) => {
     try {
+      const currentSubtasks = Array.isArray(task.subtasks) ? task.subtasks : [];
       const subtasksToAdd = Object.values(responses).map(response => ({
         id: crypto.randomUUID(),
         content: response,
         completed: false
       }));
 
+      const updatedSubtasks = [...currentSubtasks, ...subtasksToAdd];
+
       const { error: updateError } = await supabase
         .from('tasks')
         .update({
-          subtasks: subtasksToAdd as unknown as Json
+          subtasks: updatedSubtasks as unknown as Json
         })
         .eq('id', task.id);
 
@@ -164,7 +167,7 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
       </div>
 
       <SubtasksList
-        subtasks={Array.isArray(task.subtasks) ? task.subtasks : null}
+        subtasks={Array.isArray(task.subtasks) ? task.subtasks : []}
         onComplete={handleSubtaskCompletion}
       />
 
