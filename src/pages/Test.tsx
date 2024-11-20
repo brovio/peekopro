@@ -5,7 +5,7 @@ import { AITestSection } from "@/components/test/AITestSection";
 import { useTestTasks } from "@/hooks/useTestTasks";
 
 const Test = () => {
-  const { tasks, handleTasksChange } = useTestTasks();
+  const { tasks, updateTask, deleteTask, moveTask, handleTasksChange } = useTestTasks();
 
   return (
     <div className="container mx-auto py-8 space-y-8">
@@ -20,6 +20,9 @@ const Test = () => {
 
           <TaskTestList
             tasks={tasks}
+            onTaskUpdate={updateTask}
+            onTaskDelete={deleteTask}
+            onTaskMove={moveTask}
           />
         </div>
       </Card>
