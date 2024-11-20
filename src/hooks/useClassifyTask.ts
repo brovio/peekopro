@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ClassificationResult {
   category: string;
@@ -6,34 +7,40 @@ interface ClassificationResult {
 }
 
 export const useClassifyTask = () => {
+  const fetchPreviousClassifications = async () => {
+    const { data: tasks, error } = await supabase
+      .from('tasks')
+      .select('content, category')
+      .not('category', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    if (error) throw error;
+    return tasks;
+  };
+
   const classifyTask = async (content: string): Promise<ClassificationResult> => {
-    // This is a mock implementation - replace with actual GPT-4-mini API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const categories = [
-          "work day",
-          "delegate",
-          "discuss",
-          "family",
-          "personal",
-          "ideas",
-          "app ideas",
-          "project ideas",
-          "meetings",
-          "follow-up",
-          "urgent"
-        ];
-        const randomCategory = categories[Math.floor(Math.random() * categories.length)];
-        resolve({
-          category: randomCategory,
-          confidence: Math.random(),
-        });
-      }, 500);
-    });
+    try {
+      const previousClassifications = await fetchPreviousClassifications();
+      
+      const { data, error } = await supabase.functions.invoke('classify-task', {
+        body: { content, previousClassifications }
+      });
+
+      if (error) throw error;
+
+      return {
+        category: data.category.toLowerCase(),
+        confidence: data.confidence
+      };
+    } catch (error) {
+      console.error('Classification error:', error);
+      throw error;
+    }
   };
 
   return {
     classifyTask,
-    isClassifying: false,
+    isClassifying: false
   };
 };

@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Task } from "@/types/task";
-import { FileText, Trash2, ArrowRight, User, Check } from "lucide-react";
+import { FileText, Trash2, ArrowRight, User, Check, RefreshCw } from "lucide-react";
+import TaskClassificationButtons from "./TaskClassificationButtons";
 
 interface TaskItemProps {
   task: Task;
@@ -9,6 +10,8 @@ interface TaskItemProps {
 }
 
 const TaskItem = ({ task, onDelete, onMove }: TaskItemProps) => {
+  const [showReclassify, setShowReclassify] = useState(false);
+
   return (
     <div
       className="group flex items-center justify-between p-3 rounded-md bg-[#1a2747] hover:bg-[#1f2f52] border border-gray-700 transition-all"
@@ -20,38 +23,59 @@ const TaskItem = ({ task, onDelete, onMove }: TaskItemProps) => {
         <span className="text-sm text-gray-100">{task.content}</span>
       </div>
       <div className="flex items-center gap-1 opacity-100 group-hover:opacity-100 transition-opacity">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-8 w-8 text-gray-300 hover:text-gray-100 hover:bg-[#243156]"
-          onClick={() => onDelete(task.id)}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-8 w-8 text-gray-300 hover:text-gray-100 hover:bg-[#243156]"
-          onClick={() => onMove?.(task.id, "Discuss")}
-        >
-          <ArrowRight className="h-4 w-4" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-8 w-8 text-gray-300 hover:text-gray-100 hover:bg-[#243156]"
-          onClick={() => onMove?.(task.id, "Delegate")}
-        >
-          <User className="h-4 w-4" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-8 w-8 text-gray-300 hover:text-gray-100 hover:bg-[#243156]"
-          onClick={() => onMove?.(task.id, "Complete")}
-        >
-          <Check className="h-4 w-4" />
-        </Button>
+        {showReclassify ? (
+          <TaskClassificationButtons
+            taskId={task.id}
+            onClassify={(taskId, category) => {
+              onMove?.(taskId, category);
+              setShowReclassify(false);
+            }}
+          />
+        ) : (
+          <>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 text-gray-300 hover:text-gray-100 hover:bg-[#243156]"
+              onClick={() => setShowReclassify(true)}
+              title="Reclassify"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 text-gray-300 hover:text-gray-100 hover:bg-[#243156]"
+              onClick={() => onDelete(task.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 text-gray-300 hover:text-gray-100 hover:bg-[#243156]"
+              onClick={() => onMove?.(task.id, "Discuss")}
+            >
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 text-gray-300 hover:text-gray-100 hover:bg-[#243156]"
+              onClick={() => onMove?.(task.id, "Delegate")}
+            >
+              <User className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 text-gray-300 hover:text-gray-100 hover:bg-[#243156]"
+              onClick={() => onMove?.(task.id, "Complete")}
+            >
+              <Check className="h-4 w-4" />
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );
