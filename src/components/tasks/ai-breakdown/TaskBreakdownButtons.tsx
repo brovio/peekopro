@@ -3,9 +3,10 @@ import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import TaskQuestionsDialog from "../questions/TaskQuestionsDialog";
 import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { Task } from "@/types/task";
+import { getAIBreakdown } from "./services/aiService";
+import { handleAIResponse } from "./utils/handleAIResponse";
 
 interface TaskBreakdownButtonsProps {
   task: Task;
@@ -22,43 +23,8 @@ const TaskBreakdownButtons = ({ task, onAddSubtask }: TaskBreakdownButtonsProps)
   const handleDirectBreakdown = async () => {
     setIsLoading(true);
     try {
-      const { data: { data: steps }, error } = await supabase.functions.invoke('break-down-task', {
-        body: { 
-          content: task.content,
-          skipQuestions: true
-        }
-      });
-
-      if (error) throw error;
-
-      if (!steps || !Array.isArray(steps)) {
-        throw new Error('Invalid response format from AI service');
-      }
-
-      const newSubtasks = steps.map(step => ({
-        id: crypto.randomUUID(),
-        content: step.text,
-        completed: false
-      }));
-
-      // Add each step as a subtask
-      const { error: updateError } = await supabase
-        .from('tasks')
-        .update({
-          subtasks: JSON.parse(JSON.stringify(newSubtasks))
-        })
-        .eq('id', task.id);
-
-      if (updateError) throw updateError;
-
-      // Update the cache immediately
-      queryClient.setQueryData(['tasks'], (oldData: any) => {
-        if (!Array.isArray(oldData)) return oldData;
-        return oldData.map((t: Task) =>
-          t.id === task.id ? { ...t, subtasks: newSubtasks } : t
-        );
-      });
-
+      const steps = await getAIBreakdown(task.content, true);
+      await handleAIResponse(steps, task.id, queryClient);
       onAddSubtask(task.id);
 
       toast({
@@ -79,19 +45,7 @@ const TaskBreakdownButtons = ({ task, onAddSubtask }: TaskBreakdownButtonsProps)
   const handleGuidedBreakdown = async () => {
     setIsLoading(true);
     try {
-      const { data: { data: questions }, error } = await supabase.functions.invoke('break-down-task', {
-        body: { 
-          content: task.content,
-          skipQuestions: false
-        }
-      });
-
-      if (error) throw error;
-
-      if (!questions || !Array.isArray(questions)) {
-        throw new Error('Invalid response format from AI service');
-      }
-
+      const questions = await getAIBreakdown(task.content, false);
       setQuestions(questions);
       setShowQuestions(true);
     } catch (error: any) {
@@ -108,44 +62,8 @@ const TaskBreakdownButtons = ({ task, onAddSubtask }: TaskBreakdownButtonsProps)
   const handleQuestionResponse = async (answers: Record<string, string>) => {
     setIsLoading(true);
     try {
-      const { data: { data: steps }, error } = await supabase.functions.invoke('break-down-task', {
-        body: { 
-          content: task.content,
-          skipQuestions: true,
-          answers
-        }
-      });
-
-      if (error) throw error;
-
-      if (!steps || !Array.isArray(steps)) {
-        throw new Error('Invalid response format from AI service');
-      }
-
-      const newSubtasks = steps.map(step => ({
-        id: crypto.randomUUID(),
-        content: step.text,
-        completed: false
-      }));
-
-      // Add each step as a subtask
-      const { error: updateError } = await supabase
-        .from('tasks')
-        .update({
-          subtasks: JSON.parse(JSON.stringify(newSubtasks))
-        })
-        .eq('id', task.id);
-
-      if (updateError) throw updateError;
-
-      // Update the cache immediately
-      queryClient.setQueryData(['tasks'], (oldData: any) => {
-        if (!Array.isArray(oldData)) return oldData;
-        return oldData.map((t: Task) =>
-          t.id === task.id ? { ...t, subtasks: newSubtasks } : t
-        );
-      });
-
+      const steps = await getAIBreakdown(task.content, true, answers);
+      await handleAIResponse(steps, task.id, queryClient);
       onAddSubtask(task.id);
       setShowQuestions(false);
 
