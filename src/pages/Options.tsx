@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useTheme } from "next-themes";
 import { Minus, Plus } from "lucide-react";
 import Header from "@/components/layout/Header";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import OptionsHeader from "@/components/settings/OptionsHeader";
 
 const TOAST_COLORS = [
   { name: "Purple", value: "bg-[#9b87f5]" },
@@ -32,7 +33,6 @@ const Options = () => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   useEffect(() => {
-    // Get saved preferences from localStorage
     const savedFontSize = localStorage.getItem('appFontSize');
     const savedShowToasts = localStorage.getItem('showToasts');
     const savedToastColor = localStorage.getItem('toastColor');
@@ -54,23 +54,11 @@ const Options = () => {
   const handleToastToggle = (checked: boolean) => {
     setShowToasts(checked);
     setHasUnsavedChanges(true);
-    if (checked) {
-      toast({
-        title: "Sample Notification",
-        description: "Flooko Toasty Bread Sample",
-        className: `${toastColor} bg-opacity-90 text-white`,
-      });
-    }
   };
 
   const handleColorChange = (value: string) => {
     setToastColor(value);
     setHasUnsavedChanges(true);
-    toast({
-      title: "Sample Notification",
-      description: "Flooko Toasty Bread Sample",
-      className: `${value} bg-opacity-90 text-white`,
-    });
   };
 
   const handleDurationChange = (increment: boolean) => {
@@ -82,14 +70,28 @@ const Options = () => {
     });
   };
 
+  const previewToast = () => {
+    if (showToasts) {
+      toast({
+        title: "Sample Notification",
+        description: "Flooko Toasty Bread Sample",
+        className: `${toastColor} bg-opacity-90 text-white`,
+      });
+    } else {
+      toast({
+        title: "Notifications Disabled",
+        description: "Enable notifications to see the preview",
+        variant: "destructive",
+      });
+    }
+  };
+
   const saveChanges = () => {
-    // Save all preferences to localStorage
     localStorage.setItem('appFontSize', fontSize.toString());
     localStorage.setItem('showToasts', showToasts.toString());
     localStorage.setItem('toastColor', toastColor);
     localStorage.setItem('toastDuration', (toastDuration * 1000).toString());
     
-    // Apply font size to document root
     document.documentElement.style.fontSize = `${fontSize}px`;
     
     setHasUnsavedChanges(false);
@@ -107,14 +109,11 @@ const Options = () => {
     <div className="min-h-screen bg-background">
       <Header onShowApiManager={() => {}} />
       <div className="container mx-auto px-4 py-8 space-y-8">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Options</h1>
-          {hasUnsavedChanges && (
-            <Button onClick={saveChanges} variant="default">
-              Save Changes
-            </Button>
-          )}
-        </div>
+        <OptionsHeader
+          hasUnsavedChanges={hasUnsavedChanges}
+          onSave={saveChanges}
+          onPreviewToast={previewToast}
+        />
         
         <div className="space-y-6">
           <div className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg">
