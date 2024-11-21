@@ -280,7 +280,7 @@ const Test = () => {
         {!showOnlyBreakdown ? (
           <>
             <Card className="p-3 sm:p-6 bg-[#1A1F2C]">
-              <h1 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-6 text-gray-100">Find The Frog 🐸 Getting Shit Done</h1>
+              <h1 className="text-lg sm:text-2xl font-bold mb-3 sm:mb-6 text-gray-100 truncate">Find The Frog 🐸 Getting Shit Done</h1>
               
               <form onSubmit={handleFrogSubmit} className="space-y-4">
                 <div className="flex gap-4">

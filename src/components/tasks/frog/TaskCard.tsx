@@ -52,18 +52,18 @@ const TaskCard = ({
     )}>
       <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
         <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${color.replace('bg-', 'text-')}`} />
-        <h2 className="text-lg sm:text-xl font-semibold text-gray-100">{category}</h2>
+        <h2 className="text-base sm:text-xl font-semibold text-gray-100 truncate sm:text-clip">{category}</h2>
       </div>
       <div className="space-y-1.5 sm:space-y-2">
         {tasks.map(task => (
           <div key={task.id} className="group relative p-2 sm:p-3 bg-[#2A2F3C] rounded-md text-gray-200">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
                 {category === "#1" && showBreakdownButton && (
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-6 w-6 sm:h-8 sm:w-8 p-0"
+                    className="h-6 w-6 sm:h-8 sm:w-8 p-0 flex-shrink-0"
                     onClick={() => onBreakdown?.(task.id, task.content)}
                   >
                     <Play className="h-3 w-3 sm:h-4 sm:w-4 text-[#9b87f5]" />
@@ -83,10 +83,10 @@ const TaskCard = ({
                     autoFocus
                   />
                 ) : (
-                  <span className="text-sm sm:text-base">{task.content}</span>
+                  <span className="text-sm sm:text-base truncate">{task.content}</span>
                 )}
               </div>
-              <div className="hidden group-hover:flex gap-0.5 sm:gap-1 items-center">
+              <div className="flex gap-0.5 sm:gap-1 items-center invisible group-hover:visible flex-shrink-0">
                 {task.breakdown_comments && (
                   <TaskNotes taskId={task.id} notes={task.breakdown_comments} />
                 )}
