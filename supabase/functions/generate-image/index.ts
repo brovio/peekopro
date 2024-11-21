@@ -8,8 +8,8 @@ const corsHeaders = {
 
 interface ImageRequest {
   prompt: string;
-  provider: 'openai' | 'fal' | 'openrouter';
-  model?: string;
+  provider: string;
+  model: string;
 }
 
 serve(async (req) => {
@@ -18,7 +18,7 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, provider, model } = await req.json() as ImageRequest;
+    const { prompt, provider, model } = await req.json() as ImageRequest
     let response;
     let cost = 0;
 
@@ -37,11 +37,17 @@ serve(async (req) => {
             size: "1024x1024"
           })
         });
-        cost = 0.040; // DALL-E 3 cost per image
+        cost = 0.040;
         break;
 
       case 'fal':
-        response = await fetch('https://fal.run/fal-ai/fast-sdxl', {
+        const falEndpoint = model === 'flux1.1pro' 
+          ? 'fal-ai/flux1.1pro'
+          : model === 'lcm'
+            ? 'fal-ai/lcm'
+            : 'fal-ai/fast-sdxl';
+            
+        response = await fetch(`https://fal.run/${falEndpoint}`, {
           method: 'POST',
           headers: {
             'Authorization': `Key ${Deno.env.get('FAL_API_KEY')}`,
@@ -49,7 +55,7 @@ serve(async (req) => {
           },
           body: JSON.stringify({ prompt })
         });
-        cost = 0.005; // Approximate cost
+        cost = model === 'flux1.1pro' ? 0.008 : model === 'lcm' ? 0.003 : 0.005;
         break;
 
       case 'openrouter':
@@ -60,11 +66,11 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: model || 'sdxl',
+            model,
             prompt,
           })
         });
-        cost = 0.008; // Varies by model
+        cost = model === 'dall-e-3' ? 0.040 : 0.008;
         break;
 
       default:
@@ -79,6 +85,7 @@ serve(async (req) => {
         ...data,
         cost,
         provider,
+        model,
         timestamp: new Date().toISOString()
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

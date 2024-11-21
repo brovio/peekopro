@@ -1,8 +1,6 @@
 import { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import {
@@ -13,27 +11,110 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Header from "@/components/layout/Header";
-import { Loader2 } from "lucide-react";
+import { Loader2, Wand2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const providers = [
-  { id: 'openai', name: 'OpenAI DALL-E 3', cost: '$0.040' },
-  { id: 'fal', name: 'Fal.ai Fast SDXL', cost: '$0.005' },
-  { id: 'openrouter', name: 'OpenRouter SDXL', cost: '$0.008' },
+  { 
+    id: 'openai', 
+    name: 'OpenAI', 
+    models: [
+      { id: 'dall-e-3', name: 'DALL-E 3', cost: '$0.040' }
+    ]
+  },
+  { 
+    id: 'fal', 
+    name: 'Fal.ai', 
+    models: [
+      { id: 'fast-sdxl', name: 'Fast SDXL', cost: '$0.005' },
+      { id: 'flux1.1pro', name: 'FLUX 1.1 Pro', cost: '$0.008' },
+      { id: 'lcm', name: 'LCM', cost: '$0.003' }
+    ]
+  },
+  { 
+    id: 'openrouter', 
+    name: 'OpenRouter', 
+    models: [
+      { id: 'sdxl', name: 'Stable Diffusion XL', cost: '$0.008' },
+      { id: 'playground-v2', name: 'Playground v2', cost: '$0.008' },
+      { id: 'kandinsky-2.2', name: 'Kandinsky 2.2', cost: '$0.007' },
+      { id: 'dall-e-3', name: 'DALL-E 3 (via OpenRouter)', cost: '$0.040' }
+    ]
+  },
+];
+
+const styleOptions = [
+  { id: 'abstract', label: 'Abstract Art' },
+  { id: 'ad', label: 'Advertisement' },
+  { id: 'website', label: 'Website Photos' },
+  { id: 'background', label: 'Background Images' },
+  { id: 'warm', label: 'Warm Tones' },
+  { id: 'cold', label: 'Cold Tones' },
+  { id: 'bw', label: 'Black and White' },
+  { id: 'minimalist', label: 'Minimalist' },
+  { id: 'vintage', label: 'Vintage' },
+  { id: 'futuristic', label: 'Futuristic' },
+  { id: 'nature', label: 'Nature-inspired' },
+  { id: 'geometric', label: 'Geometric' }
 ];
 
 const ImageCreator = () => {
   const [prompt, setPrompt] = useState("");
-  const [provider, setProvider] = useState<string>("");
+  const [provider, setProvider] = useState("");
+  const [model, setModel] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
+  const [generatedPrompts, setGeneratedPrompts] = useState<string[]>([]);
+  const [isGeneratingPrompts, setIsGeneratingPrompts] = useState(false);
   const { toast } = useToast();
 
-  const handleGenerate = async () => {
-    if (!prompt || !provider) {
+  const selectedProvider = providers.find(p => p.id === provider);
+
+  const generatePrompts = async () => {
+    if (!prompt) {
       toast({
         title: "Missing information",
-        description: "Please provide a prompt and select a provider",
+        description: "Please provide an initial prompt",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGeneratingPrompts(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-prompts', {
+        body: { 
+          basePrompt: prompt,
+          styles: selectedStyles,
+          count: 5
+        }
+      });
+
+      if (error) throw error;
+
+      setGeneratedPrompts(data.prompts);
+      toast({
+        title: "Prompts generated",
+        description: "Select a prompt to use it for image generation",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error generating prompts",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingPrompts(false);
+    }
+  };
+
+  const handleGenerate = async () => {
+    if (!prompt || !provider || !model) {
+      toast({
+        title: "Missing information",
+        description: "Please provide a prompt and select a provider and model",
         variant: "destructive",
       });
       return;
@@ -42,7 +123,11 @@ const ImageCreator = () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-image', {
-        body: { prompt, provider }
+        body: { 
+          prompt, 
+          provider,
+          model 
+        }
       });
 
       if (error) throw error;
@@ -81,17 +166,59 @@ const ImageCreator = () => {
                   <SelectContent>
                     {providers.map((p) => (
                       <SelectItem key={p.id} value={p.id}>
-                        {p.name} ({p.cost})
+                        {p.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
+              {provider && (
+                <div>
+                  <label className="block text-sm font-medium mb-2">Model</label>
+                  <Select onValueChange={setModel} value={model}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a model" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {selectedProvider?.models.map((m) => (
+                        <SelectItem key={m.id} value={m.id}>
+                          {m.name} ({m.cost})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               <div>
-                <label className="block text-sm font-medium mb-2">Prompt</label>
+                <label className="block text-sm font-medium mb-2">Style Options</label>
+                <div className="grid grid-cols-2 gap-4">
+                  {styleOptions.map((style) => (
+                    <div key={style.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={style.id}
+                        checked={selectedStyles.includes(style.id)}
+                        onCheckedChange={(checked) => {
+                          setSelectedStyles(
+                            checked
+                              ? [...selectedStyles, style.id]
+                              : selectedStyles.filter((id) => id !== style.id)
+                          );
+                        }}
+                      />
+                      <label htmlFor={style.id} className="text-sm">
+                        {style.label}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Initial Prompt</label>
                 <Textarea
-                  placeholder="Describe the image you want to generate..."
+                  placeholder="Describe your image idea..."
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   className="min-h-[100px]"
@@ -99,8 +226,45 @@ const ImageCreator = () => {
               </div>
 
               <Button 
+                onClick={generatePrompts} 
+                disabled={isGeneratingPrompts || !prompt}
+                variant="secondary"
+                className="w-full"
+              >
+                {isGeneratingPrompts ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating prompts...
+                  </>
+                ) : (
+                  <>
+                    <Wand2 className="mr-2 h-4 w-4" />
+                    Generate 5 Enhanced Prompts
+                  </>
+                )}
+              </Button>
+
+              {generatedPrompts.length > 0 && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium">Enhanced Prompts</label>
+                  <div className="space-y-2">
+                    {generatedPrompts.map((enhancedPrompt, index) => (
+                      <Button
+                        key={index}
+                        variant="outline"
+                        className="w-full justify-start h-auto whitespace-normal text-left"
+                        onClick={() => setPrompt(enhancedPrompt)}
+                      >
+                        {enhancedPrompt}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <Button 
                 onClick={handleGenerate} 
-                disabled={isLoading || !prompt || !provider}
+                disabled={isLoading || !prompt || !provider || !model}
                 className="w-full"
               >
                 {isLoading ? (
