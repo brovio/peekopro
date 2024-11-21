@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Flooko from "./pages/Flooko";
+import Breakdown from "./pages/Breakdown";
+import Notes from "./pages/Notes";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
@@ -19,6 +21,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Flooko />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/breakdown"
+              element={
+                <ProtectedRoute>
+                  <Breakdown />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/notes"
+              element={
+                <ProtectedRoute>
+                  <Notes />
                 </ProtectedRoute>
               }
             />

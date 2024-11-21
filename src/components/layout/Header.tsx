@@ -1,8 +1,9 @@
-import { Menu, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
+import Menu from "./Menu";
 
 interface HeaderProps {
   onShowApiManager: () => void;
@@ -21,7 +22,6 @@ const Header = ({ onShowApiManager }: HeaderProps) => {
     if (now - lastClickTime < 500) {
       setClicks(prev => prev + 1);
       if (clicks === 1) {
-        // Reset buffer and start listening for "peeko"
         setBuffer("");
         if (bufferTimeout) clearTimeout(bufferTimeout);
         const timeout = setTimeout(() => {
@@ -80,9 +80,7 @@ const Header = ({ onShowApiManager }: HeaderProps) => {
       className="h-[100px] sm:h-[100px] h-[75px] bg-black flex items-center justify-between px-3 sm:px-6"
       onClick={handleHeaderClick}
     >
-      <Button variant="ghost" size="icon" className="hover:opacity-80">
-        <Menu className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-      </Button>
+      <Menu />
       
       <div className="flex-1 flex justify-center px-2 sm:px-4">
         <img 
