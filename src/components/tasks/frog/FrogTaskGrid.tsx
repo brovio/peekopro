@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { Briefcase, Dumbbell, BookOpen, FileText } from "lucide-react";
+import { Briefcase, Dumbbell, BookOpen, FileText, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
@@ -48,7 +48,7 @@ const FrogTaskGrid = ({ tasks }: FrogTaskGridProps) => {
       borderColor: "border-[#8B5CF6]" 
     },
     "Complete": {
-      icon: FileText,
+      icon: CheckCircle2,
       color: "bg-[#10B981]",
       borderColor: "border-[#10B981]"
     }
