@@ -12,11 +12,31 @@ interface FrogTaskGridProps {
 
 const FrogTaskGrid = ({ tasks }: FrogTaskGridProps) => {
   const categories = {
-    "#1": { icon: BookOpen, color: "bg-[#9b87f5]" },
-    "Work": { icon: Briefcase, color: "bg-[#7E69AB]" },
-    "Fitness": { icon: Dumbbell, color: "bg-[#6E59A5]" },
-    "Habit": { icon: BookOpen, color: "bg-[#D6BCFA]" },
-    "Journal": { icon: FileText, color: "bg-[#E5DEFF]" }
+    "#1": { 
+      icon: BookOpen, 
+      color: "bg-[#9b87f5]",
+      borderColor: "border-[#9b87f5]" 
+    },
+    "Work": { 
+      icon: Briefcase, 
+      color: "bg-[#0EA5E9]",
+      borderColor: "border-[#0EA5E9]" 
+    },
+    "Fitness": { 
+      icon: Dumbbell, 
+      color: "bg-[#F97316]",
+      borderColor: "border-[#F97316]" 
+    },
+    "Habit": { 
+      icon: BookOpen, 
+      color: "bg-[#D946EF]",
+      borderColor: "border-[#D946EF]" 
+    },
+    "Journal": { 
+      icon: FileText, 
+      color: "bg-[#8B5CF6]",
+      borderColor: "border-[#8B5CF6]" 
+    }
   };
 
   const getTasksByCategory = (category: string) => 
@@ -28,7 +48,7 @@ const FrogTaskGrid = ({ tasks }: FrogTaskGridProps) => {
       <Card className={cn(
         "p-6 transition-all duration-300",
         "bg-[#1A1F2C] hover:bg-[#242938]",
-        "border-[#9b87f5] border-2"
+        "border-2 border-[#9b87f5]"
       )}>
         <div className="flex items-center gap-3 mb-4">
           <BookOpen className="w-6 h-6 text-[#9b87f5]" />
@@ -47,10 +67,10 @@ const FrogTaskGrid = ({ tasks }: FrogTaskGridProps) => {
       <Card className={cn(
         "p-6 transition-all duration-300",
         "bg-[#1A1F2C] hover:bg-[#242938]",
-        "border-[#7E69AB] border-2"
+        "border-2 border-[#0EA5E9]"
       )}>
         <div className="flex items-center gap-3 mb-4">
-          <Briefcase className="w-6 h-6 text-[#7E69AB]" />
+          <Briefcase className="w-6 h-6 text-[#0EA5E9]" />
           <h2 className="text-xl font-semibold text-gray-100">Work</h2>
         </div>
         <div className="space-y-2">
@@ -65,17 +85,17 @@ const FrogTaskGrid = ({ tasks }: FrogTaskGridProps) => {
       {/* Fitness, Habit, Journal Grid - Responsive */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {["Fitness", "Habit", "Journal"].map(category => {
-          const Icon = categories[category as keyof typeof categories].icon;
-          const color = categories[category as keyof typeof categories].color;
+          const categoryConfig = categories[category as keyof typeof categories];
+          const Icon = categoryConfig.icon;
           
           return (
             <Card key={category} className={cn(
               "p-6 transition-all duration-300",
               "bg-[#1A1F2C] hover:bg-[#242938]",
-              `border-2 border-${color}`
+              `border-2 ${categoryConfig.borderColor}`
             )}>
               <div className="flex items-center gap-3 mb-4">
-                <Icon className={`w-6 h-6 ${color.replace('bg-', 'text-')}`} />
+                <Icon className={`w-6 h-6 ${categoryConfig.color.replace('bg-', 'text-')}`} />
                 <h2 className="text-xl font-semibold text-gray-100">{category}</h2>
               </div>
               <div className="space-y-2">
