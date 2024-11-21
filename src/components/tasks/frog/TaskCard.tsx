@@ -1,9 +1,9 @@
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { BookOpen, Briefcase, Dumbbell, FileText, Play } from "lucide-react";
+import { BookOpen, Briefcase, Dumbbell, Play } from "lucide-react";
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
 import TaskActionButtons from "./TaskActionButtons";
+import TaskNotes from "./TaskNotes";
 import { Button } from "@/components/ui/button";
 
 interface TaskCardProps {
@@ -16,6 +16,7 @@ interface TaskCardProps {
     content: string;
     category: string;
     completed?: boolean;
+    breakdown_comments?: string;
   }>;
   onEdit: (taskId: string, newContent: string) => void;
   onDelete: (taskId: string) => void;
@@ -85,7 +86,10 @@ const TaskCard = ({
                   <span>{task.content}</span>
                 )}
               </div>
-              <div className="hidden group-hover:flex gap-1">
+              <div className="hidden group-hover:flex gap-1 items-center">
+                {task.breakdown_comments && (
+                  <TaskNotes taskId={task.id} notes={task.breakdown_comments} />
+                )}
                 <TaskActionButtons
                   onEdit={() => setEditingTaskId(task.id)}
                   onDelete={() => onDelete(task.id)}

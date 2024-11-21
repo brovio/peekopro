@@ -2,43 +2,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 interface BreakdownCommentsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   taskId: string;
-  onComplete: () => void;
+  onComplete: (comments: string) => void;
 }
 
 const BreakdownCommentsModal = ({ open, onOpenChange, taskId, onComplete }: BreakdownCommentsModalProps) => {
   const [comments, setComments] = useState("");
-  const { toast } = useToast();
 
-  const handleSubmit = async () => {
-    try {
-      const { error } = await supabase
-        .from('tasks')
-        .update({ breakdown_comments: comments })
-        .eq('id', taskId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Comments saved",
-        description: "Your breakdown comments have been saved successfully.",
-      });
-
-      onComplete();
-      onOpenChange(false);
-    } catch (error: any) {
-      toast({
-        title: "Error saving comments",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+  const handleSubmit = () => {
+    onComplete(comments);
+    onOpenChange(false);
   };
 
   return (

@@ -4,6 +4,9 @@ import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import BreakdownCommentsModal from "./BreakdownCommentsModal";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface TaskBreakdownProps {
   task: string;
@@ -27,6 +30,42 @@ const TaskBreakdown = ({
   onComplete 
 }: TaskBreakdownProps) => {
   const [showCommentsModal, setShowCommentsModal] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const handleComplete = async (comments: string) => {
+    if (!taskId) return;
+
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ 
+          category: 'Complete',
+          breakdown_comments: comments,
+          completed: true 
+        })
+        .eq('id', taskId);
+
+      if (error) throw error;
+
+      await queryClient.invalidateQueries({ queryKey: ['frog-tasks'] });
+      
+      toast({
+        title: "Task completed",
+        description: "Task has been moved to Complete category",
+      });
+
+      if (onComplete) {
+        onComplete();
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error completing task",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <Card className="p-6 bg-[#1A1F2C]">
@@ -94,7 +133,7 @@ const TaskBreakdown = ({
           open={showCommentsModal}
           onOpenChange={setShowCommentsModal}
           taskId={taskId}
-          onComplete={onComplete || (() => {})}
+          onComplete={handleComplete}
         />
       )}
     </Card>
