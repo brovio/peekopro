@@ -57,7 +57,7 @@ const Header = ({ onShowApiManager }: HeaderProps) => {
 
   return (
     <header 
-      className="h-[100px] bg-navy-900 flex items-center justify-between px-6"
+      className="h-[100px] bg-black flex items-center justify-between px-6"
       onClick={handleHeaderClick}
     >
       <Button variant="ghost" size="icon" className="hover:opacity-80">
@@ -68,7 +68,7 @@ const Header = ({ onShowApiManager }: HeaderProps) => {
         <img 
           src="/lovable-uploads/3fcd2b3e-6c2e-4e5e-a2ce-3c8528cf39b3.png"
           alt="Flooko Logo"
-          className="h-[98px] object-contain my-[1px]"
+          className="w-[300px] object-contain my-[1px]"
         />
       </div>
       
