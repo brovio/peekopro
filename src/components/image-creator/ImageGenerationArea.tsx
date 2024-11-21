@@ -44,18 +44,38 @@ const ImageGenerationArea = ({ prompt, provider, model, styles }: ImageGeneratio
       const imageUrl = data.url || data.images?.[0]?.url;
       if (!imageUrl) throw new Error("No image URL in response");
 
+      // Save the generated image to the database
+      const { error: dbError } = await supabase
+        .from('generated_images')
+        .insert({
+          url: imageUrl,
+          prompt,
+          provider,
+          model,
+          styles,
+          width: data.width || 1024,
+          height: data.height || 1024,
+          format: data.format || 'png',
+          cost: data.cost || 0
+        });
+
+      if (dbError) throw dbError;
+
       setGeneratedImage(imageUrl);
       setMetadata({
         prompt,
         model,
         provider,
         styles,
-        cost: data.cost
+        width: data.width || 1024,
+        height: data.height || 1024,
+        format: data.format || 'png',
+        cost: data.cost || 0
       });
       
       toast({
         title: "Image generated",
-        description: `Cost: ${data.cost}`,
+        description: `Cost: $${data.cost}`,
       });
     } catch (error: any) {
       console.error('Image generation error:', error);
