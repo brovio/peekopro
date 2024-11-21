@@ -3,61 +3,13 @@ import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import Header from "@/components/layout/Header";
 import { Loader2, Wand2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Checkbox } from "@/components/ui/checkbox";
-
-const providers = [
-  { 
-    id: 'openai', 
-    name: 'OpenAI', 
-    models: [
-      { id: 'dall-e-3', name: 'DALL-E 3', cost: '$0.040' }
-    ]
-  },
-  { 
-    id: 'fal', 
-    name: 'Fal.ai', 
-    models: [
-      { id: 'fast-sdxl', name: 'Fast SDXL', cost: '$0.005' },
-      { id: 'flux1.1pro', name: 'FLUX 1.1 Pro', cost: '$0.008' },
-      { id: 'lcm', name: 'LCM', cost: '$0.003' }
-    ]
-  },
-  { 
-    id: 'openrouter', 
-    name: 'OpenRouter', 
-    models: [
-      { id: 'sdxl', name: 'Stable Diffusion XL', cost: '$0.008' },
-      { id: 'playground-v2', name: 'Playground v2', cost: '$0.008' },
-      { id: 'kandinsky-2.2', name: 'Kandinsky 2.2', cost: '$0.007' },
-      { id: 'dall-e-3', name: 'DALL-E 3 (via OpenRouter)', cost: '$0.040' }
-    ]
-  },
-];
-
-const styleOptions = [
-  { id: 'abstract', label: 'Abstract Art' },
-  { id: 'ad', label: 'Advertisement' },
-  { id: 'website', label: 'Website Photos' },
-  { id: 'background', label: 'Background Images' },
-  { id: 'warm', label: 'Warm Tones' },
-  { id: 'cold', label: 'Cold Tones' },
-  { id: 'bw', label: 'Black and White' },
-  { id: 'minimalist', label: 'Minimalist' },
-  { id: 'vintage', label: 'Vintage' },
-  { id: 'futuristic', label: 'Futuristic' },
-  { id: 'nature', label: 'Nature-inspired' },
-  { id: 'geometric', label: 'Geometric' }
-];
+import ProviderSelector from "@/components/image-creator/ProviderSelector";
+import StyleOptions from "@/components/image-creator/StyleOptions";
+import PromptList from "@/components/image-creator/PromptList";
+import ImagePreview from "@/components/image-creator/ImagePreview";
 
 const ImageCreator = () => {
   const [prompt, setPrompt] = useState("");
@@ -68,9 +20,14 @@ const ImageCreator = () => {
   const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
   const [generatedPrompts, setGeneratedPrompts] = useState<string[]>([]);
   const [isGeneratingPrompts, setIsGeneratingPrompts] = useState(false);
+  const [generatingPromptId, setGeneratingPromptId] = useState<string | null>(null);
+  const [imageMetadata, setImageMetadata] = useState<{
+    prompt: string;
+    model: string;
+    provider: string;
+    styles: string[];
+  } | null>(null);
   const { toast } = useToast();
-
-  const selectedProvider = providers.find(p => p.id === provider);
 
   const generatePrompts = async () => {
     if (!prompt) {
@@ -110,8 +67,8 @@ const ImageCreator = () => {
     }
   };
 
-  const handleGenerate = async () => {
-    if (!prompt || !provider || !model) {
+  const handleGenerate = async (promptToUse: string = prompt) => {
+    if (!promptToUse || !provider || !model) {
       toast({
         title: "Missing information",
         description: "Please provide a prompt and select a provider and model",
@@ -121,10 +78,11 @@ const ImageCreator = () => {
     }
 
     setIsLoading(true);
+    setGeneratingPromptId(promptToUse);
     try {
       const { data, error } = await supabase.functions.invoke('generate-image', {
         body: { 
-          prompt, 
+          prompt: promptToUse, 
           provider,
           model 
         }
@@ -132,7 +90,15 @@ const ImageCreator = () => {
 
       if (error) throw error;
 
-      setGeneratedImage(data.url || data.images?.[0]?.url);
+      const imageUrl = data.url || data.images?.[0]?.url;
+      setGeneratedImage(imageUrl);
+      setImageMetadata({
+        prompt: promptToUse,
+        model,
+        provider,
+        styles: selectedStyles,
+      });
+      
       toast({
         title: "Image generated",
         description: `Cost: ${data.cost}`,
@@ -145,6 +111,7 @@ const ImageCreator = () => {
       });
     } finally {
       setIsLoading(false);
+      setGeneratingPromptId(null);
     }
   };
 
@@ -157,63 +124,17 @@ const ImageCreator = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <Card className="p-6 space-y-6">
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Provider</label>
-                <Select onValueChange={setProvider} value={provider}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a provider" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {providers.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <ProviderSelector
+                provider={provider}
+                model={model}
+                onProviderChange={setProvider}
+                onModelChange={setModel}
+              />
 
-              {provider && (
-                <div>
-                  <label className="block text-sm font-medium mb-2">Model</label>
-                  <Select onValueChange={setModel} value={model}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a model" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {selectedProvider?.models.map((m) => (
-                        <SelectItem key={m.id} value={m.id}>
-                          {m.name} ({m.cost})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Style Options</label>
-                <div className="grid grid-cols-2 gap-4">
-                  {styleOptions.map((style) => (
-                    <div key={style.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={style.id}
-                        checked={selectedStyles.includes(style.id)}
-                        onCheckedChange={(checked) => {
-                          setSelectedStyles(
-                            checked
-                              ? [...selectedStyles, style.id]
-                              : selectedStyles.filter((id) => id !== style.id)
-                          );
-                        }}
-                      />
-                      <label htmlFor={style.id} className="text-sm">
-                        {style.label}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <StyleOptions
+                selectedStyles={selectedStyles}
+                onStyleChange={setSelectedStyles}
+              />
 
               <div>
                 <label className="block text-sm font-medium mb-2">Initial Prompt</label>
@@ -245,29 +166,21 @@ const ImageCreator = () => {
               </Button>
 
               {generatedPrompts.length > 0 && (
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium">Enhanced Prompts</label>
-                  <div className="space-y-2">
-                    {generatedPrompts.map((enhancedPrompt, index) => (
-                      <Button
-                        key={index}
-                        variant="outline"
-                        className="w-full justify-start h-auto whitespace-normal text-left"
-                        onClick={() => setPrompt(enhancedPrompt)}
-                      >
-                        {enhancedPrompt}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
+                <PromptList
+                  prompts={generatedPrompts}
+                  onSelectPrompt={setPrompt}
+                  onGenerateImage={handleGenerate}
+                  isGenerating={isLoading}
+                  generatingPromptId={generatingPromptId}
+                />
               )}
 
               <Button 
-                onClick={handleGenerate} 
+                onClick={() => handleGenerate()} 
                 disabled={isLoading || !prompt || !provider || !model}
                 className="w-full"
               >
-                {isLoading ? (
+                {isLoading && !generatingPromptId ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Generating...
@@ -279,21 +192,7 @@ const ImageCreator = () => {
             </div>
           </Card>
 
-          <Card className="p-6">
-            <div className="aspect-square w-full bg-muted rounded-lg overflow-hidden">
-              {generatedImage ? (
-                <img
-                  src={generatedImage}
-                  alt="Generated"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                  Generated image will appear here
-                </div>
-              )}
-            </div>
-          </Card>
+          <ImagePreview generatedImage={generatedImage} metadata={imageMetadata} />
         </div>
       </div>
     </div>
