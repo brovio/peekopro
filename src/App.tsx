@@ -10,6 +10,7 @@ import Breakdown from "./pages/Breakdown";
 import Notes from "./pages/Notes";
 import Options from "./pages/Options";
 import Journal from "./pages/Journal";
+import ImageCreator from "./pages/ImageCreator";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
@@ -49,6 +50,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Journal />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/images"
+                element={
+                  <ProtectedRoute>
+                    <ImageCreator />
                   </ProtectedRoute>
                 }
               />
