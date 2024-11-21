@@ -3,7 +3,6 @@ import { cn } from "@/lib/utils";
 import { Briefcase, Dumbbell, BookOpen, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
 import TaskCard from "./TaskCard";
@@ -104,7 +103,6 @@ const FrogTaskGrid = ({ tasks }: FrogTaskGridProps) => {
       const { error } = await supabase
         .from('tasks')
         .update({ 
-          category: 'completed',
           completed: true 
         })
         .eq('id', taskId);
