@@ -30,7 +30,7 @@ const NoteCard = ({ id, title, description, color, text_color, onDelete, onEdit 
 
   const handleScreenshot = async () => {
     try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({ preferCurrentTab: true });
+      const stream = await navigator.mediaDevices.getDisplayMedia();
       // Handle the screenshot stream
       stream.getTracks().forEach(track => track.stop());
     } catch (error) {
