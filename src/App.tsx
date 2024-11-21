@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Flooko from "./pages/Flooko";
 import Breakdown from "./pages/Breakdown";
 import Notes from "./pages/Notes";
+import Options from "./pages/Options";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
@@ -37,6 +38,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Notes />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/options"
+              element={
+                <ProtectedRoute>
+                  <Options />
                 </ProtectedRoute>
               }
             />

@@ -1,6 +1,6 @@
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu as MenuIcon, Home, FileText, SplitSquareVertical } from "lucide-react";
+import { Menu as MenuIcon, Home, FileText, SplitSquareVertical, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Menu = () => {
@@ -29,6 +29,12 @@ const Menu = () => {
             <Button variant="ghost" className="w-full justify-start">
               <FileText className="mr-2 h-5 w-5" />
               Notes
+            </Button>
+          </Link>
+          <Link to="/options">
+            <Button variant="ghost" className="w-full justify-start">
+              <Settings className="mr-2 h-5 w-5" />
+              Options
             </Button>
           </Link>
         </nav>
