@@ -6,7 +6,7 @@ import type {
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000000
+const TOAST_REMOVE_DELAY = 200 // For fade out animation
 
 type ToasterToast = ToastProps & {
   id: string
@@ -140,6 +140,10 @@ function dispatch(action: Action) {
 type Toast = Omit<ToasterToast, "id">
 
 function toast({ ...props }: Toast) {
+  // Check if toasts are enabled
+  const showToasts = localStorage.getItem('showToasts') !== 'false';
+  if (!showToasts) return { id: '', dismiss: () => {}, update: () => {} };
+
   const id = genId()
 
   const update = (props: ToasterToast) =>
@@ -147,6 +151,7 @@ function toast({ ...props }: Toast) {
       type: "UPDATE_TOAST",
       toast: { ...props, id },
     })
+    
   const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id })
 
   dispatch({
@@ -162,7 +167,7 @@ function toast({ ...props }: Toast) {
   })
 
   return {
-    id: id,
+    id,
     dismiss,
     update,
   }

@@ -18,9 +18,16 @@ const TOAST_COLORS = [
 
 const Options = () => {
   const { theme, setTheme } = useTheme();
-  const [showToasts, setShowToasts] = useState(true);
+  const [showToasts, setShowToasts] = useState(() => {
+    const saved = localStorage.getItem('showToasts');
+    return saved ? saved === 'true' : true;
+  });
   const [fontSize, setFontSize] = useState(16);
   const [toastColor, setToastColor] = useState(TOAST_COLORS[0].value);
+  const [toastDuration, setToastDuration] = useState(() => {
+    const saved = localStorage.getItem('toastDuration');
+    return saved ? Number(saved) / 1000 : 3;
+  });
   const { toast } = useToast();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
@@ -66,22 +73,34 @@ const Options = () => {
     });
   };
 
+  const handleDurationChange = (increment: boolean) => {
+    setToastDuration(prev => {
+      const newDuration = increment ? prev + 1 : prev - 1;
+      const finalDuration = Math.min(Math.max(1, newDuration), 10);
+      setHasUnsavedChanges(true);
+      return finalDuration;
+    });
+  };
+
   const saveChanges = () => {
     // Save all preferences to localStorage
     localStorage.setItem('appFontSize', fontSize.toString());
     localStorage.setItem('showToasts', showToasts.toString());
     localStorage.setItem('toastColor', toastColor);
+    localStorage.setItem('toastDuration', (toastDuration * 1000).toString());
     
     // Apply font size to document root
     document.documentElement.style.fontSize = `${fontSize}px`;
     
     setHasUnsavedChanges(false);
     
-    toast({
-      title: "Settings Saved",
-      description: "Your preferences have been updated successfully",
-      className: `${toastColor} bg-opacity-90 text-white`,
-    });
+    if (showToasts) {
+      toast({
+        title: "Settings Saved",
+        description: "Your preferences have been updated successfully",
+        className: `${toastColor} bg-opacity-90 text-white`,
+      });
+    }
   };
 
   return (
@@ -124,6 +143,32 @@ const Options = () => {
               onCheckedChange={handleToastToggle}
             />
           </div>
+
+          {showToasts && (
+            <div className="p-4 bg-secondary/50 rounded-lg space-y-4">
+              <Label>Toast Duration (seconds)</Label>
+              <p className="text-sm text-muted-foreground">How long should notifications stay on screen?</p>
+              <div className="flex items-center justify-center gap-4">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleDurationChange(false)}
+                  disabled={toastDuration <= 1}
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <span className="min-w-[3ch] text-center">{toastDuration}</span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleDurationChange(true)}
+                  disabled={toastDuration >= 10}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
 
           {showToasts && (
             <div className="p-4 bg-secondary/50 rounded-lg space-y-4">
