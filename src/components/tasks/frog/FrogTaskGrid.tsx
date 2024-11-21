@@ -8,10 +8,9 @@ interface FrogTaskGridProps {
     content: string;
     category: string;
   }[];
-  onCategorySelect: (taskId: string, category: string) => Promise<void>;
 }
 
-const FrogTaskGrid = ({ tasks, onCategorySelect }: FrogTaskGridProps) => {
+const FrogTaskGrid = ({ tasks }: FrogTaskGridProps) => {
   const categories = {
     "#1": { icon: BookOpen, color: "bg-[#9b87f5]" },
     "Work": { icon: Briefcase, color: "bg-[#7E69AB]" },

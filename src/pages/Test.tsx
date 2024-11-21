@@ -7,10 +7,8 @@ import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import TaskQuestionsDialog from "@/components/tasks/questions/TaskQuestionsDialog";
 import TaskBreakdown from "@/components/tasks/breakdown/TaskBreakdown";
+import FrogTaskItem from "@/components/tasks/frog/FrogTaskItem";
 import FrogTaskGrid from "@/components/tasks/frog/FrogTaskGrid";
-import { useAuth } from "@/contexts/AuthContext";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTaskBreakdown } from "@/hooks/useTaskBreakdown";
 
 interface CategorizedTask {
   id: string;
@@ -21,47 +19,15 @@ interface CategorizedTask {
 const Test = () => {
   const [task, setTask] = useState("");
   const [frogTask, setFrogTask] = useState("");
+  const [steps, setSteps] = useState<string[]>([]);
+  const [frogTasks, setFrogTasks] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showQuestions, setShowQuestions] = useState(false);
+  const [questions, setQuestions] = useState<any[]>([]);
+  const { toast } = useToast();
   const frogInputRef = useRef<HTMLInputElement>(null);
   const [placeholder, setPlaceholder] = useState("Monkey Minding Much?");
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  
-  const {
-    isLoading,
-    steps,
-    questions,
-    showQuestions,
-    setShowQuestions,
-    handleDirectTest,
-    handleGuidedTest,
-    handleQuestionResponse
-  } = useTaskBreakdown();
-
-  const { data: tasks = [] } = useQuery({
-    queryKey: ['frog-tasks', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        toast({
-          title: "Error fetching tasks",
-          description: error.message,
-          variant: "destructive",
-        });
-        throw error;
-      }
-      
-      return data as CategorizedTask[];
-    },
-    enabled: !!user?.id
-  });
+  const [categorizedTasks, setCategorizedTasks] = useState<CategorizedTask[]>([]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -71,75 +37,143 @@ const Test = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleFrogSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!frogTask.trim() || !user) return;
-    
+  const handleDirectTest = async () => {
+    if (!task.trim()) {
+      toast({
+        title: "Please enter a task",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      const { data: newTask, error } = await supabase
-        .from('tasks')
-        .insert({
-          content: frogTask.trim(),
-          user_id: user.id,
-          category: null
-        })
-        .select()
-        .single();
+      const { data: { data: steps }, error } = await supabase.functions.invoke('break-down-task', {
+        body: { 
+          content: task,
+          skipQuestions: true
+        }
+      });
 
       if (error) throw error;
 
-      await queryClient.invalidateQueries({ queryKey: ['frog-tasks'] });
-      setFrogTask("");
-      
-      if (frogInputRef.current) {
-        frogInputRef.current.focus();
+      if (!steps || !Array.isArray(steps)) {
+        throw new Error('Invalid response format from AI service');
       }
 
+      setSteps(steps.map(step => step.text));
       toast({
-        title: "Task added",
-        description: "Your task has been saved successfully.",
+        title: "Success",
+        description: "Task breakdown completed",
       });
     } catch (error: any) {
+      console.error('Test page error:', error);
       toast({
-        title: "Error adding task",
-        description: error.message,
+        title: "Error",
+        description: error.message || "Failed to break down task",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleCategorySelect = async (taskId: string, category: string) => {
-    if (!user) return;
+  const handleGuidedTest = async () => {
+    if (!task.trim()) {
+      toast({
+        title: "Please enter a task",
+        variant: "destructive",
+      });
+      return;
+    }
 
+    setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from('tasks')
-        .update({ category: category.toLowerCase() })
-        .eq('id', taskId)
-        .eq('user_id', user.id);
+      const { data: { data: questions }, error } = await supabase.functions.invoke('break-down-task', {
+        body: { 
+          content: task,
+          skipQuestions: false
+        }
+      });
 
       if (error) throw error;
 
-      await queryClient.invalidateQueries({ queryKey: ['frog-tasks'] });
-      
-      toast({
-        title: "Task updated",
-        description: `Task moved to ${category}`,
-      });
+      if (!questions || !Array.isArray(questions)) {
+        throw new Error('Invalid response format from AI service');
+      }
+
+      setQuestions(questions);
+      setShowQuestions(true);
     } catch (error: any) {
+      console.error('Test page error:', error);
       toast({
-        title: "Error updating task",
-        description: error.message,
+        title: "Error",
+        description: error.message || "Failed to get questions",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const processAnswers = (answers: Record<string, string | string[]>): Record<string, string> => {
-    return Object.entries(answers).reduce((acc, [key, value]) => {
-      acc[key] = Array.isArray(value) ? value.join(', ') : value;
-      return acc;
-    }, {} as Record<string, string>);
+  const handleQuestionResponse = async (answers: Record<string, string>) => {
+    setIsLoading(true);
+    try {
+      const { data: { data: steps }, error } = await supabase.functions.invoke('break-down-task', {
+        body: { 
+          content: task,
+          skipQuestions: true,
+          answers
+        }
+      });
+
+      if (error) throw error;
+
+      if (!steps || !Array.isArray(steps)) {
+        throw new Error('Invalid response format from AI service');
+      }
+
+      setSteps(steps.map(step => step.text));
+      setShowQuestions(false);
+      toast({
+        title: "Success",
+        description: "Task breakdown completed with your input",
+      });
+    } catch (error: any) {
+      console.error('Test page error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to process answers",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFrogSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!frogTask.trim()) return;
+    
+    const newTask = {
+      id: crypto.randomUUID(),
+      content: frogTask,
+      category: "Uncategorized"
+    };
+    
+    setCategorizedTasks(prev => [newTask, ...prev]);
+    setFrogTask("");
+    if (frogInputRef.current) {
+      frogInputRef.current.focus();
+    }
+  };
+
+  const handleCategorySelect = (taskId: string, category: string) => {
+    setCategorizedTasks(prev => 
+      prev.map(task => 
+        task.id === taskId ? { ...task, category } : task
+      )
+    );
   };
 
   return (
@@ -149,8 +183,8 @@ const Test = () => {
         steps={steps}
         isLoading={isLoading}
         onTaskChange={(value) => setTask(value)}
-        onDirectTest={() => handleDirectTest(task)}
-        onGuidedTest={() => handleGuidedTest(task)}
+        onDirectTest={handleDirectTest}
+        onGuidedTest={handleGuidedTest}
       />
 
       <Card className="p-6 bg-[#1A1F2C]">
@@ -168,17 +202,28 @@ const Test = () => {
             <Button 
               type="submit"
               className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
-              disabled={!user}
             >
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Dump"}
+              Dump
             </Button>
           </div>
 
-          {tasks.length > 0 && (
-            <FrogTaskGrid 
-              tasks={tasks} 
-              onCategorySelect={handleCategorySelect}
-            />
+          {categorizedTasks.length > 0 && (
+            <div className="space-y-8">
+              <div className="space-y-2">
+                {categorizedTasks
+                  .filter(task => task.category === "Uncategorized")
+                  .map((task, index) => (
+                    <FrogTaskItem
+                      key={task.id}
+                      task={task.content}
+                      index={index}
+                      onCategorySelect={(category) => handleCategorySelect(task.id, category)}
+                    />
+                  ))}
+              </div>
+
+              <FrogTaskGrid tasks={categorizedTasks.filter(task => task.category !== "Uncategorized")} />
+            </div>
           )}
         </form>
       </Card>
@@ -187,7 +232,7 @@ const Test = () => {
         open={showQuestions}
         onOpenChange={setShowQuestions}
         questions={questions}
-        onSubmit={(answers) => handleQuestionResponse(task, processAnswers(answers))}
+        onSubmit={handleQuestionResponse}
       />
     </div>
   );
