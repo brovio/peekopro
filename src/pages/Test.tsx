@@ -256,15 +256,6 @@ const Test = () => {
 
   return (
     <div className="container mx-auto py-8 space-y-8">
-      <TaskBreakdown
-        task={task}
-        steps={steps}
-        isLoading={isLoading}
-        onTaskChange={(value) => setTask(value)}
-        onDirectTest={handleDirectTest}
-        onGuidedTest={handleGuidedTest}
-      />
-
       <Card className="p-6 bg-[#1A1F2C]">
         <h1 className="text-2xl font-bold mb-6 text-gray-100">Find The Frog 🐸 Getting Shit Done</h1>
         
@@ -305,6 +296,15 @@ const Test = () => {
           )}
         </form>
       </Card>
+
+      <TaskBreakdown
+        task={task}
+        steps={steps}
+        isLoading={isLoading}
+        onTaskChange={(value) => setTask(value)}
+        onDirectTest={handleDirectTest}
+        onGuidedTest={handleGuidedTest}
+      />
 
       <TaskQuestionsDialog
         open={showQuestions}
