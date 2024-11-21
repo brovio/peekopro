@@ -107,6 +107,7 @@ const FrogTaskGrid = ({ tasks }: FrogTaskGridProps) => {
       const { error } = await supabase
         .from('tasks')
         .update({ 
+          category: 'Complete',
           completed: true 
         })
         .eq('id', taskId);
@@ -117,7 +118,7 @@ const FrogTaskGrid = ({ tasks }: FrogTaskGridProps) => {
       
       toast({
         title: "Task completed",
-        description: "Task has been marked as complete",
+        description: "Task has been moved to Complete",
       });
     } catch (error: any) {
       toast({
@@ -131,7 +132,7 @@ const FrogTaskGrid = ({ tasks }: FrogTaskGridProps) => {
   const getTasksByCategory = (category: string) => 
     tasks.filter(task => task.category === category && !task.completed);
 
-  const completedTasks = tasks.filter(task => task.completed);
+  const completedTasks = tasks.filter(task => task.category === 'Complete' || task.completed);
 
   return (
     <div className="grid gap-6 animate-fade-in">
