@@ -1,10 +1,16 @@
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { BookOpen, Briefcase, Dumbbell, Play } from "lucide-react";
+import { BookOpen, Briefcase, Dumbbell, Play, MoreVertical } from "lucide-react";
 import { useState } from "react";
 import TaskActionButtons from "./TaskActionButtons";
 import TaskNotes from "./TaskNotes";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface TaskCardProps {
   category: string;
@@ -83,18 +89,47 @@ const TaskCard = ({
                     autoFocus
                   />
                 ) : (
-                  <span className="text-sm sm:text-base truncate">{task.content}</span>
+                  <span className="text-sm sm:text-base break-words whitespace-normal w-full">{task.content}</span>
                 )}
               </div>
-              <div className="flex gap-0.5 sm:gap-1 items-center invisible group-hover:visible flex-shrink-0">
-                {task.breakdown_comments && (
-                  <TaskNotes taskId={task.id} notes={task.breakdown_comments} />
-                )}
-                <TaskActionButtons
-                  onEdit={() => setEditingTaskId(task.id)}
-                  onDelete={() => onDelete(task.id)}
-                  onComplete={() => onComplete(task.id)}
-                />
+              <div className="flex-shrink-0">
+                {/* Desktop view actions */}
+                <div className="hidden sm:flex gap-0.5 items-center invisible group-hover:visible">
+                  {task.breakdown_comments && (
+                    <TaskNotes taskId={task.id} notes={task.breakdown_comments} />
+                  )}
+                  <TaskActionButtons
+                    onEdit={() => setEditingTaskId(task.id)}
+                    onDelete={() => onDelete(task.id)}
+                    onComplete={() => onComplete(task.id)}
+                  />
+                </div>
+                {/* Mobile view dropdown */}
+                <div className="sm:hidden">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-32 bg-[#2A2F3C] border-gray-700">
+                      <DropdownMenuItem onClick={() => setEditingTaskId(task.id)} className="text-gray-200">
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onDelete(task.id)} className="text-gray-200">
+                        Delete
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onComplete(task.id)} className="text-gray-200">
+                        Complete
+                      </DropdownMenuItem>
+                      {task.breakdown_comments && (
+                        <DropdownMenuItem onClick={() => {}} className="text-gray-200">
+                          View Notes
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
             </div>
           </div>
