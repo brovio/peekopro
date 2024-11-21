@@ -13,6 +13,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
 import ApiKeyManager from "@/components/ui/ApiKeyManager";
+import { Task } from "@/types/task";
+
+type CategorizedTask = Pick<Task, 'id' | 'content' | 'category'>;
 
 const Test = () => {
   const [task, setTask] = useState("");
