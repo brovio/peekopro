@@ -9,6 +9,8 @@ import TaskQuestionsDialog from "@/components/tasks/questions/TaskQuestionsDialo
 import TaskBreakdown from "@/components/tasks/breakdown/TaskBreakdown";
 import FrogTaskItem from "@/components/tasks/frog/FrogTaskItem";
 import FrogTaskGrid from "@/components/tasks/frog/FrogTaskGrid";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface CategorizedTask {
   id: string;
@@ -20,14 +22,43 @@ const Test = () => {
   const [task, setTask] = useState("");
   const [frogTask, setFrogTask] = useState("");
   const [steps, setSteps] = useState<string[]>([]);
-  const [frogTasks, setFrogTasks] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showQuestions, setShowQuestions] = useState(false);
   const [questions, setQuestions] = useState<any[]>([]);
   const { toast } = useToast();
   const frogInputRef = useRef<HTMLInputElement>(null);
   const [placeholder, setPlaceholder] = useState("Monkey Minding Much?");
-  const [categorizedTasks, setCategorizedTasks] = useState<CategorizedTask[]>([]);
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Fetch tasks from Supabase
+  const { data: categorizedTasks = [], isLoading: isLoadingTasks } = useQuery({
+    queryKey: ['frog-tasks', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', user.id);
+      
+      if (error) {
+        toast({
+          title: "Error fetching tasks",
+          description: error.message,
+          variant: "destructive",
+        });
+        throw error;
+      }
+      
+      return data.map(task => ({
+        id: task.id,
+        content: task.content,
+        category: task.category || "Uncategorized"
+      })) as CategorizedTask[];
+    },
+    enabled: !!user?.id
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -151,30 +182,77 @@ const Test = () => {
     }
   };
 
-  const handleFrogSubmit = (e: React.FormEvent) => {
+  const handleFrogSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!frogTask.trim()) return;
+    if (!frogTask.trim() || !user?.id) return;
     
-    const newTask = {
-      id: crypto.randomUUID(),
-      content: frogTask,
-      category: "Uncategorized"
-    };
-    
-    setCategorizedTasks(prev => [newTask, ...prev]);
-    setFrogTask("");
-    if (frogInputRef.current) {
-      frogInputRef.current.focus();
+    try {
+      const { data: newTask, error } = await supabase
+        .from('tasks')
+        .insert({
+          content: frogTask,
+          category: "Uncategorized",
+          user_id: user.id
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['frog-tasks'] });
+      setFrogTask("");
+      
+      if (frogInputRef.current) {
+        frogInputRef.current.focus();
+      }
+
+      toast({
+        title: "Task added",
+        description: "New task has been created successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error adding task",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
-  const handleCategorySelect = (taskId: string, category: string) => {
-    setCategorizedTasks(prev => 
-      prev.map(task => 
-        task.id === taskId ? { ...task, category } : task
-      )
-    );
+  const handleCategorySelect = async (taskId: string, category: string) => {
+    if (!user?.id) return;
+
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ category })
+        .eq('id', taskId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['frog-tasks'] });
+      
+      toast({
+        title: "Task updated",
+        description: `Task category changed to ${category}`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error updating task",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
+
+  if (isLoadingTasks) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-8 space-y-8">
