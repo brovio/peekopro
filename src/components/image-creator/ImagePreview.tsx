@@ -7,6 +7,7 @@ interface ImagePreviewProps {
     model: string;
     provider: string;
     styles: string[];
+    cost?: string;
   };
 }
 
@@ -32,6 +33,7 @@ const ImagePreview = ({ generatedImage, metadata }: ImagePreviewProps) => {
           <p><strong>Prompt:</strong> {metadata.prompt}</p>
           <p><strong>Provider:</strong> {metadata.provider}</p>
           <p><strong>Model:</strong> {metadata.model}</p>
+          <p><strong>Cost:</strong> {metadata.cost}</p>
           {metadata.styles.length > 0 && (
             <p><strong>Styles:</strong> {metadata.styles.join(', ')}</p>
           )}
