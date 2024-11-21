@@ -23,7 +23,7 @@ const TaskItem = ({ task, onDelete, onMove }: TaskItemProps) => {
         </button>
         <span className="text-sm text-gray-100">{task.content}</span>
       </div>
-      <div className="flex items-center gap-1 opacity-100 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center opacity-100 group-hover:opacity-100 transition-opacity bg-[#243156] rounded-md px-1">
         {showReclassify ? (
           <TaskClassificationButtons
             taskId={task.id}
@@ -37,7 +37,7 @@ const TaskItem = ({ task, onDelete, onMove }: TaskItemProps) => {
             <Button 
               variant="ghost" 
               size="icon" 
-              className="h-8 w-8 text-gray-300 hover:text-gray-100 hover:bg-[#243156]"
+              className="h-7 w-7 text-gray-300 hover:text-gray-100"
               onClick={() => setShowReclassify(true)}
               title="Reclassify"
             >
@@ -46,7 +46,7 @@ const TaskItem = ({ task, onDelete, onMove }: TaskItemProps) => {
             <Button 
               variant="ghost" 
               size="icon" 
-              className="h-8 w-8 text-gray-300 hover:text-gray-100 hover:bg-[#243156]"
+              className="h-7 w-7 text-gray-300 hover:text-gray-100"
               onClick={() => onDelete(task.id)}
             >
               <Trash2 className="h-4 w-4" />
@@ -54,7 +54,7 @@ const TaskItem = ({ task, onDelete, onMove }: TaskItemProps) => {
             <Button 
               variant="ghost" 
               size="icon" 
-              className="h-8 w-8 text-gray-300 hover:text-gray-100 hover:bg-[#243156]"
+              className="h-7 w-7 text-gray-300 hover:text-gray-100"
               onClick={() => onMove?.(task.id, "Discuss")}
             >
               <ArrowRight className="h-4 w-4" />
@@ -62,7 +62,7 @@ const TaskItem = ({ task, onDelete, onMove }: TaskItemProps) => {
             <Button 
               variant="ghost" 
               size="icon" 
-              className="h-8 w-8 text-gray-300 hover:text-gray-100 hover:bg-[#243156]"
+              className="h-7 w-7 text-gray-300 hover:text-gray-100"
               onClick={() => onMove?.(task.id, "Delegate")}
             >
               <User className="h-4 w-4" />
@@ -70,7 +70,7 @@ const TaskItem = ({ task, onDelete, onMove }: TaskItemProps) => {
             <Button 
               variant="ghost" 
               size="icon" 
-              className="h-8 w-8 text-gray-300 hover:text-gray-100 hover:bg-[#243156]"
+              className="h-7 w-7 text-gray-300 hover:text-gray-100"
               onClick={() => onMove?.(task.id, "Complete")}
             >
               <Check className="h-4 w-4" />

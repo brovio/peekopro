@@ -123,12 +123,14 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
             }}
           />
         ) : (
-          <TaskActions
-            isLoading={isLoading}
-            onAIBreakdown={handleAIBreakdown}
-            onReclassify={() => setShowReclassify(true)}
-            onDelete={() => onDelete(task.id)}
-          />
+          <div className="bg-gray-700/50 rounded-md px-1">
+            <TaskActions
+              isLoading={isLoading}
+              onAIBreakdown={handleAIBreakdown}
+              onReclassify={() => setShowReclassify(true)}
+              onDelete={() => onDelete(task.id)}
+            />
+          </div>
         )}
       </div>
 
@@ -141,7 +143,7 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
         open={showQuestions}
         onOpenChange={setShowQuestions}
         questions={questions}
-        onSubmit={onQuestionResponse}
+        onSubmit={handleQuestionResponse}
       />
     </>
   );
