@@ -1,11 +1,21 @@
 import { useState, useEffect } from "react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useTheme } from "next-themes";
+import { Minus, Plus } from "lucide-react";
 import Header from "@/components/layout/Header";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import OptionsHeader from "@/components/settings/OptionsHeader";
-import ToastSettings from "@/components/settings/ToastSettings";
-import FontSettings from "@/components/settings/FontSettings";
-import ThemeSettings from "@/components/settings/ThemeSettings";
+
+const TOAST_COLORS = [
+  { name: "Purple", value: "bg-[#9b87f5]" },
+  { name: "Blue", value: "bg-[#0EA5E9]" },
+  { name: "Green", value: "bg-[#22C55E]" },
+  { name: "Orange", value: "bg-[#F97316]" },
+  { name: "Pink", value: "bg-[#D946EF]" },
+];
 
 const Options = () => {
   const { theme, setTheme } = useTheme();
@@ -14,7 +24,7 @@ const Options = () => {
     return saved ? saved === 'true' : true;
   });
   const [fontSize, setFontSize] = useState(16);
-  const [toastColor, setToastColor] = useState('bg-[#9b87f5]');
+  const [toastColor, setToastColor] = useState(TOAST_COLORS[0].value);
   const [toastDuration, setToastDuration] = useState(() => {
     const saved = localStorage.getItem('toastDuration');
     return saved ? Number(saved) / 1000 : 3;
@@ -105,23 +115,109 @@ const Options = () => {
           onPreviewToast={previewToast}
         />
         
-        <div className="space-y-8">
-          <ThemeSettings />
-          
-          <ToastSettings
-            showToasts={showToasts}
-            toastDuration={toastDuration}
-            toastColor={toastColor}
-            onToastToggle={handleToastToggle}
-            onDurationChange={handleDurationChange}
-            onColorChange={handleColorChange}
-            onPreviewToast={previewToast}
-          />
-          
-          <FontSettings
-            fontSize={fontSize}
-            onFontSizeChange={handleFontSizeChange}
-          />
+        <div className="space-y-6">
+          <div className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg">
+            <div className="space-y-1">
+              <Label htmlFor="theme">Dark Mode</Label>
+              <p className="text-sm text-muted-foreground">Toggle between light and dark themes</p>
+            </div>
+            <Switch
+              id="theme"
+              checked={theme === 'dark'}
+              onCheckedChange={(checked) => {
+                setTheme(checked ? 'dark' : 'light');
+                setHasUnsavedChanges(true);
+              }}
+            />
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg">
+            <div className="space-y-1">
+              <Label htmlFor="toasts">Toast Notifications</Label>
+              <p className="text-sm text-muted-foreground">Show notification toasts</p>
+            </div>
+            <Switch
+              id="toasts"
+              checked={showToasts}
+              onCheckedChange={handleToastToggle}
+            />
+          </div>
+
+          {showToasts && (
+            <div className="p-4 bg-secondary/50 rounded-lg space-y-4">
+              <Label>Toast Duration (seconds)</Label>
+              <p className="text-sm text-muted-foreground">How long should notifications stay on screen?</p>
+              <div className="flex items-center justify-center gap-4">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleDurationChange(false)}
+                  disabled={toastDuration <= 1}
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <span className="min-w-[3ch] text-center">{toastDuration}</span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleDurationChange(true)}
+                  disabled={toastDuration >= 10}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {showToasts && (
+            <div className="p-4 bg-secondary/50 rounded-lg space-y-4">
+              <Label>Toast Color</Label>
+              <RadioGroup 
+                value={toastColor} 
+                onValueChange={handleColorChange}
+                className="grid grid-cols-2 gap-4 sm:grid-cols-5"
+              >
+                {TOAST_COLORS.map((color) => (
+                  <div key={color.value} className="flex items-center space-x-2">
+                    <RadioGroupItem value={color.value} id={color.value} />
+                    <Label htmlFor={color.value} className="flex items-center gap-2">
+                      {color.name}
+                      <div className={`w-4 h-4 rounded ${color.value}`} />
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+          )}
+
+          <div className="p-4 bg-secondary/50 rounded-lg space-y-4">
+            <div className="space-y-1">
+              <Label>Font Size</Label>
+              <p className="text-sm text-muted-foreground">Adjust the base font size</p>
+            </div>
+            <div className="flex items-center justify-center gap-4">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => handleFontSizeChange(false)}
+                disabled={fontSize <= 12}
+              >
+                <Minus className="h-4 w-4" />
+              </Button>
+              <span className="min-w-[3ch] text-center">{fontSize}</span>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => handleFontSizeChange(true)}
+                disabled={fontSize >= 24}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="mt-4 p-4 bg-background rounded border">
+              <p style={{ fontSize: `${fontSize}px` }}>Sample Flooke</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
