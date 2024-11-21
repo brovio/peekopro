@@ -53,28 +53,30 @@ serve(async (req) => {
         break;
 
       case 'fal':
-        let falModel;
+        let falEndpoint;
         switch (model) {
           case 'flux1.1pro':
-            falModel = 'fal-ai/flux';
+            falEndpoint = 'fal-ai/flux';
             break;
           case 'lcm':
-            falModel = 'fal-ai/lcm';
+            falEndpoint = 'fal-ai/lcm';
             break;
           default:
-            falModel = 'fal-ai/fast-sdxl';
+            falEndpoint = 'fal-ai/fast-sdxl';
         }
         
-        response = await fetch(`https://api.fal.ai/v1/generation/${falModel}`, {
+        response = await fetch(`https://fal.run/v1/${falEndpoint}`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${Deno.env.get('FAL_API_KEY')}`,
+            'Authorization': `Key ${Deno.env.get('FAL_API_KEY')}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             prompt,
-            image_size: "1024x1024",
-            num_images: 1
+            height: 1024,
+            width: 1024,
+            scheduler: "K_EULER",
+            num_inference_steps: 50
           })
         });
         
@@ -87,9 +89,12 @@ serve(async (req) => {
         }
         
         // Handle different response formats from Fal.ai
-        imageUrl = falData.images?.[0]?.url || falData.image?.url;
-        if (!imageUrl && Array.isArray(falData)) {
+        if (Array.isArray(falData)) {
           imageUrl = falData[0]?.url;
+        } else if (falData.images) {
+          imageUrl = falData.images[0]?.url;
+        } else if (falData.image) {
+          imageUrl = falData.image.url;
         }
         
         cost = model === 'flux1.1pro' ? 0.008 : model === 'lcm' ? 0.003 : 0.005;
