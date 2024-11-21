@@ -1,11 +1,13 @@
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { Briefcase, Dumbbell, BookOpen, FileText, CheckCircle2 } from "lucide-react";
+import { Briefcase, Dumbbell, BookOpen, FileText, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
 import TaskCard from "./TaskCard";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
 
 interface FrogTaskGridProps {
   tasks: {
@@ -20,6 +22,7 @@ const FrogTaskGrid = ({ tasks }: FrogTaskGridProps) => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [isCompleteOpen, setIsCompleteOpen] = useState(false);
 
   const categories = {
     "#1": { 
@@ -177,17 +180,34 @@ const FrogTaskGrid = ({ tasks }: FrogTaskGridProps) => {
         ))}
       </div>
 
-      {/* Complete Section */}
-      <TaskCard
-        category="Complete"
-        icon={categories["Complete"].icon}
-        color={categories["Complete"].color}
-        borderColor={categories["Complete"].borderColor}
-        tasks={completedTasks}
-        onEdit={handleEditTask}
-        onDelete={handleDeleteTask}
-        onComplete={handleCompleteTask}
-      />
+      {/* Complete Section - Collapsible */}
+      <Collapsible open={isCompleteOpen} onOpenChange={setIsCompleteOpen}>
+        <Card className="p-6 bg-[#1A1F2C] border-2 border-[#10B981]">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="w-6 h-6 text-[#10B981]" />
+              <h2 className="text-xl font-semibold text-gray-100">Complete</h2>
+              <span className="text-sm text-gray-400">({completedTasks.length})</span>
+            </div>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm">
+                {isCompleteOpen ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </Button>
+            </CollapsibleTrigger>
+          </div>
+          <CollapsibleContent className="space-y-2">
+            {completedTasks.map(task => (
+              <div key={task.id} className="group relative p-3 bg-[#2A2F3C] rounded-md text-gray-200 opacity-75">
+                <span>{task.content}</span>
+              </div>
+            ))}
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
     </div>
   );
 };
