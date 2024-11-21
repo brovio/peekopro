@@ -6,7 +6,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
 import TaskCard from "./TaskCard";
-import CompletedTasksSection from "./CompletedTasksSection";
 
 interface FrogTaskGridProps {
   tasks: {
@@ -47,6 +46,11 @@ const FrogTaskGrid = ({ tasks }: FrogTaskGridProps) => {
       icon: FileText, 
       color: "bg-[#8B5CF6]",
       borderColor: "border-[#8B5CF6]" 
+    },
+    "Complete": {
+      icon: FileText,
+      color: "bg-[#10B981]",
+      borderColor: "border-[#10B981]"
     }
   };
 
@@ -172,8 +176,17 @@ const FrogTaskGrid = ({ tasks }: FrogTaskGridProps) => {
         ))}
       </div>
 
-      {/* Completed Tasks Section */}
-      <CompletedTasksSection tasks={completedTasks} />
+      {/* Complete Section */}
+      <TaskCard
+        category="Complete"
+        icon={categories["Complete"].icon}
+        color={categories["Complete"].color}
+        borderColor={categories["Complete"].borderColor}
+        tasks={completedTasks}
+        onEdit={handleEditTask}
+        onDelete={handleDeleteTask}
+        onComplete={handleCompleteTask}
+      />
     </div>
   );
 };
