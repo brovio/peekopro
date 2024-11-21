@@ -9,6 +9,7 @@ import Flooko from "./pages/Flooko";
 import Breakdown from "./pages/Breakdown";
 import Notes from "./pages/Notes";
 import Options from "./pages/Options";
+import Journal from "./pages/Journal";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
@@ -40,6 +41,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Notes />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/journal"
+                element={
+                  <ProtectedRoute>
+                    <Journal />
                   </ProtectedRoute>
                 }
               />
