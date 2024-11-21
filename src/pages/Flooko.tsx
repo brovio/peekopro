@@ -12,12 +12,7 @@ import FrogTaskGrid from "@/components/tasks/frog/FrogTaskGrid";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
-
-interface CategorizedTask {
-  id: string;
-  content: string;
-  category: string;
-}
+import ApiKeyManager from "@/components/ui/ApiKeyManager";
 
 const Test = () => {
   const [task, setTask] = useState("");
@@ -28,6 +23,7 @@ const Test = () => {
   const [questions, setQuestions] = useState<any[]>([]);
   const [breakdownTaskId, setBreakdownTaskId] = useState<string | null>(null);
   const [showOnlyBreakdown, setShowOnlyBreakdown] = useState(false);
+  const [showApiManager, setShowApiManager] = useState(false);
   const { toast } = useToast();
   const frogInputRef = useRef<HTMLInputElement>(null);
   const [placeholder, setPlaceholder] = useState("Monkey Minding Much?");
@@ -69,6 +65,10 @@ const Test = () => {
 
     return () => clearTimeout(timer);
   }, []);
+
+  const handleShowApiManager = () => {
+    setShowApiManager(true);
+  };
 
   const handleBreakdownComplete = async () => {
     setShowOnlyBreakdown(false);
@@ -272,7 +272,7 @@ const Test = () => {
 
   return (
     <div className="min-h-screen bg-navy-900">
-      <Header />
+      <Header onShowApiManager={handleShowApiManager} />
       <div className="container mx-auto py-8 space-y-8">
         {!showOnlyBreakdown ? (
           <>
@@ -333,6 +333,12 @@ const Test = () => {
           />
         )}
 
+        {showApiManager && (
+          <ApiKeyManager
+            open={showApiManager}
+            onOpenChange={setShowApiManager}
+          />
+        )}
         <TaskQuestionsDialog
           open={showQuestions}
           onOpenChange={setShowQuestions}
