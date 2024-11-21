@@ -18,21 +18,15 @@ interface TaskQuestionsDialogProps {
   questions: Question[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (answers: Record<string, string>) => void;
+  onSubmit: (answers: Record<string, string | string[]>) => void;
 }
 
 const TaskQuestionsDialog = ({ questions, open, onOpenChange, onSubmit }: TaskQuestionsDialogProps) => {
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [isSkipping, setIsSkipping] = useState(false);
 
   const handleSubmit = () => {
-    // Convert any array values to strings before submitting
-    const processedAnswers = Object.entries(answers).reduce((acc, [key, value]) => {
-      acc[key] = Array.isArray(value) ? value.join(', ') : value;
-      return acc;
-    }, {} as Record<string, string>);
-    
-    onSubmit(processedAnswers);
+    onSubmit(answers);
     onOpenChange(false);
   };
 
@@ -102,7 +96,7 @@ const TaskQuestionsDialog = ({ questions, open, onOpenChange, onSubmit }: TaskQu
               {question.type === 'radio' && question.options && (
                 <RadioGroup
                   onValueChange={(value) => setAnswers(prev => ({ ...prev, [index]: value }))}
-                  value={answers[index]}
+                  value={answers[index] as string}
                   className="space-y-2"
                 >
                   {question.options.map((option) => (
@@ -115,7 +109,7 @@ const TaskQuestionsDialog = ({ questions, open, onOpenChange, onSubmit }: TaskQu
               )}
               {question.type === 'text' && (
                 <Input
-                  value={answers[index] || ''}
+                  value={answers[index] as string || ''}
                   onChange={(e) => setAnswers(prev => ({ ...prev, [index]: e.target.value }))}
                   className="bg-navy-800 border-gray-700 text-gray-100"
                   placeholder="Your answer (optional)"
