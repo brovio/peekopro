@@ -10,9 +10,9 @@ const Test = () => {
           <Menu className="h-6 w-6" />
         </Button>
         
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-center my-[1%]">
           <img 
-            src="/lovable-uploads/eed02813-10fd-4028-a218-8deef97ff463.png" 
+            src="/lovable-uploads/f7045611-6d1f-4dcc-bb1e-4255dfb8800d.png" 
             alt="Flooko Logo" 
             className="h-8"
           />
