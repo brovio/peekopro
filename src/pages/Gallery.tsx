@@ -23,6 +23,32 @@ interface GeneratedImage {
   created_at: string;
 }
 
+const filterImages = (
+  images: GeneratedImage[] | undefined, 
+  selectedProvider: string, 
+  selectedModel: string, 
+  selectedStyle: string
+): GeneratedImage[] => {
+  if (!images) return [];
+
+  return images.filter(image => {
+    const providerMatch = !selectedProvider || image.provider === selectedProvider;
+    const modelMatch = !selectedModel || image.model === selectedModel;
+    const styleMatch = !selectedStyle || (image.styles && image.styles.includes(selectedStyle));
+    
+    return providerMatch && modelMatch && styleMatch;
+  });
+};
+
+const groupImagesByProviderModel = (images: GeneratedImage[]): Record<string, GeneratedImage[]> => {
+  return images.reduce((acc, image) => {
+    const key = `${image.provider} - ${image.model}`;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(image);
+    return acc;
+  }, {} as Record<string, GeneratedImage[]>);
+};
+
 const Gallery = () => {
   const [selectedProvider, setSelectedProvider] = useState<string>("");
   const [selectedModel, setSelectedModel] = useState<string>("");
@@ -42,19 +68,8 @@ const Gallery = () => {
     }
   });
 
-  const filteredImages = images?.filter(image => {
-    if (selectedProvider && image.provider !== selectedProvider) return false;
-    if (selectedModel && image.model !== selectedModel) return false;
-    if (selectedStyle && (!image.styles || !image.styles.includes(selectedStyle))) return false;
-    return true;
-  });
-
-  const groupedImages = filteredImages?.reduce((acc, image) => {
-    const key = `${image.provider} - ${image.model}`;
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(image);
-    return acc;
-  }, {} as Record<string, GeneratedImage[]>);
+  const filteredImages = filterImages(images, selectedProvider, selectedModel, selectedStyle);
+  const groupedImages = groupImagesByProviderModel(filteredImages);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -62,12 +77,18 @@ const Gallery = () => {
 
       <div className="flex flex-wrap gap-4 mb-8">
         <div className="w-full sm:w-auto">
-          <Select value={selectedProvider} onValueChange={setSelectedProvider}>
+          <Select 
+            value={selectedProvider} 
+            onValueChange={(value) => {
+              setSelectedProvider(value);
+              setSelectedModel(""); // Reset model when provider changes
+            }}
+          >
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Filter by Provider" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Providers</SelectItem>
+              <SelectItem value="all">All Providers</SelectItem>
               {providers.map(provider => (
                 <SelectItem key={provider.id} value={provider.id}>
                   {provider.name}
@@ -77,14 +98,17 @@ const Gallery = () => {
           </Select>
         </div>
 
-        {selectedProvider && (
+        {selectedProvider && selectedProvider !== "all" && (
           <div className="w-full sm:w-auto">
-            <Select value={selectedModel} onValueChange={setSelectedModel}>
+            <Select 
+              value={selectedModel} 
+              onValueChange={setSelectedModel}
+            >
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Filter by Model" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Models</SelectItem>
+                <SelectItem value="all">All Models</SelectItem>
                 {providers
                   .find(p => p.id === selectedProvider)
                   ?.models.map(model => (
@@ -98,12 +122,15 @@ const Gallery = () => {
         )}
 
         <div className="w-full sm:w-auto">
-          <Select value={selectedStyle} onValueChange={setSelectedStyle}>
+          <Select 
+            value={selectedStyle} 
+            onValueChange={setSelectedStyle}
+          >
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Filter by Style" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Styles</SelectItem>
+              <SelectItem value="all">All Styles</SelectItem>
               {styleOptions.map(style => (
                 <SelectItem key={style.id} value={style.id}>
                   {style.label}
@@ -118,7 +145,7 @@ const Gallery = () => {
         <div className="flex justify-center items-center min-h-[200px]">
           <Loader2 className="h-8 w-8 animate-spin" />
         </div>
-      ) : !groupedImages || Object.keys(groupedImages).length === 0 ? (
+      ) : !filteredImages || filteredImages.length === 0 ? (
         <div className="text-center text-muted-foreground">
           No images found matching your criteria
         </div>
