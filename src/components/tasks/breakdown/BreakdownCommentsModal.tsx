@@ -1,51 +1,65 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface BreakdownCommentsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (comments: string) => void;
+  taskId: string;
+  onComplete: () => void;
 }
 
-const BreakdownCommentsModal = ({
-  open,
-  onOpenChange,
-  onSubmit,
-}: BreakdownCommentsModalProps) => {
+const BreakdownCommentsModal = ({ open, onOpenChange, taskId, onComplete }: BreakdownCommentsModalProps) => {
   const [comments, setComments] = useState("");
+  const { toast } = useToast();
 
-  const handleSubmit = () => {
-    onSubmit(comments);
-    setComments("");
+  const handleSubmit = async () => {
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ breakdown_comments: comments })
+        .eq('id', taskId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Comments saved",
+        description: "Your breakdown comments have been saved successfully.",
+      });
+
+      onComplete();
+      onOpenChange(false);
+    } catch (error: any) {
+      toast({
+        title: "Error saving comments",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] bg-navy-900 border-gray-700">
         <DialogHeader>
-          <DialogTitle>Add Breakdown Comments</DialogTitle>
+          <DialogTitle className="text-gray-100">Add Breakdown Comments</DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
+        <div className="py-4">
           <Textarea
             value={comments}
             onChange={(e) => setComments(e.target.value)}
-            placeholder="Add any comments or notes about this task breakdown..."
-            className="min-h-[100px]"
+            placeholder="Add your comments about the task breakdown..."
+            className="h-32 bg-navy-800 border-gray-700 text-gray-100"
           />
         </div>
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+        <DialogFooter>
+          <Button onClick={handleSubmit} className="bg-primary hover:bg-primary/90">
+            Save Comments
           </Button>
-          <Button onClick={handleSubmit}>Save & Complete</Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

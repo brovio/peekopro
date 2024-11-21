@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import BreakdownCommentsModal from "./BreakdownCommentsModal";
 import { useState } from "react";
-import { useCompleteTask } from "@/hooks/useCompleteTask";
+import BreakdownCommentsModal from "./BreakdownCommentsModal";
 
 interface TaskBreakdownProps {
   task: string;
@@ -13,93 +13,91 @@ interface TaskBreakdownProps {
   onTaskChange: (value: string) => void;
   onDirectTest: () => void;
   onGuidedTest: () => void;
-  onComplete: () => void;
+  onComplete?: () => void;
 }
 
-const TaskBreakdown = ({
-  task,
-  steps,
-  isLoading,
+const TaskBreakdown = ({ 
+  task, 
+  steps, 
+  isLoading, 
   taskId,
-  onTaskChange,
-  onDirectTest,
+  onTaskChange, 
+  onDirectTest, 
   onGuidedTest,
-  onComplete
+  onComplete 
 }: TaskBreakdownProps) => {
   const [showCommentsModal, setShowCommentsModal] = useState(false);
-  const completeTask = useCompleteTask();
-
-  const handleDone = async () => {
-    setShowCommentsModal(true);
-  };
-
-  const handleCommentsSubmit = async (comments: string) => {
-    if (taskId) {
-      try {
-        // First save the comments
-        const { error: commentsError } = await supabase
-          .from('tasks')
-          .update({ breakdown_comments: comments })
-          .eq('id', taskId);
-
-        if (commentsError) throw commentsError;
-
-        // Then complete the task
-        const success = await completeTask(taskId);
-        
-        if (success) {
-          setShowCommentsModal(false);
-          onComplete();
-        }
-      } catch (error: any) {
-        console.error('Error saving comments:', error);
-      }
-    }
-  };
 
   return (
-    <div className="space-y-4">
+    <Card className="p-6 bg-[#1A1F2C]">
+      <h1 className="text-2xl font-bold mb-6 text-gray-100">Breaking Shit Down (BDC!)</h1>
+      
       <div className="space-y-4">
-        <Input
-          value={task}
-          onChange={(e) => onTaskChange(e.target.value)}
-          placeholder="Enter a task to break down"
-          className="w-full"
-        />
-        <div className="flex gap-2">
-          <Button onClick={onDirectTest} disabled={isLoading}>
-            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Direct"}
+        <div className="flex gap-4">
+          <Input
+            placeholder="Enter a task (e.g., Install Notepad++)"
+            value={task}
+            onChange={(e) => onTaskChange(e.target.value)}
+            className="flex-1 bg-[#2A2F3C] border-gray-700 text-gray-100"
+          />
+          <Button 
+            onClick={onDirectTest}
+            disabled={isLoading}
+            className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
+          >
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              "Quick Breakdown"
+            )}
           </Button>
-          <Button onClick={onGuidedTest} disabled={isLoading}>
-            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Guided"}
+          <Button 
+            onClick={onGuidedTest}
+            disabled={isLoading}
+            variant="outline"
+            className="border-[#9b87f5] text-[#9b87f5] hover:bg-[#2A2F3C]"
+          >
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              "Guided Breakdown"
+            )}
           </Button>
         </div>
+
+        {steps.length > 0 && (
+          <div className="mt-6">
+            <h2 className="text-lg font-semibold mb-3 text-gray-100">Steps:</h2>
+            <ul className="list-decimal pl-5 space-y-2">
+              {steps.map((step, index) => (
+                <li key={index} className="text-gray-300">
+                  {step}
+                </li>
+              ))}
+            </ul>
+            {taskId && onComplete && (
+              <div className="mt-6 flex justify-end">
+                <Button
+                  onClick={() => setShowCommentsModal(true)}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  Done
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {steps.length > 0 && (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            {steps.map((step, index) => (
-              <div
-                key={index}
-                className="p-3 bg-[#1A1F2C] rounded-md text-gray-200"
-              >
-                {step}
-              </div>
-            ))}
-          </div>
-          <Button onClick={handleDone} className="w-full">
-            Done
-          </Button>
-        </div>
+      {taskId && (
+        <BreakdownCommentsModal
+          open={showCommentsModal}
+          onOpenChange={setShowCommentsModal}
+          taskId={taskId}
+          onComplete={onComplete || (() => {})}
+        />
       )}
-
-      <BreakdownCommentsModal
-        open={showCommentsModal}
-        onOpenChange={setShowCommentsModal}
-        onSubmit={handleCommentsSubmit}
-      />
-    </div>
+    </Card>
   );
 };
 
