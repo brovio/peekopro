@@ -3,10 +3,8 @@ import { SettingsProvider } from "./contexts/SettingsContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { Toaster } from "@/components/ui/toaster";
 import { Routes, Route, Navigate } from "react-router-dom";
-import Dashboard from "./pages/Dashboard";
-import Tasks from "./pages/Tasks";
-import Test from "./pages/Test";
 import Login from "./pages/Login";
+import Flooko from "./pages/Flooko";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
@@ -20,23 +18,7 @@ function App() {
               path="/"
               element={
                 <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/tasks"
-              element={
-                <ProtectedRoute>
-                  <Tasks />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/flooko"
-              element={
-                <ProtectedRoute>
-                  <Test />
+                  <Flooko />
                 </ProtectedRoute>
               }
             />
