@@ -1,4 +1,4 @@
-import { FunctionInvokeResult } from "@supabase/supabase-js";
+import { FunctionInvokeResult } from '@supabase/supabase-js';
 
 export const handleFunctionResponse = async <T>(response: FunctionInvokeResult<T>) => {
   if (response.error) {

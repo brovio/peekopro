@@ -135,6 +135,13 @@ const Test = () => {
     }
   };
 
+  const processAnswers = (answers: Record<string, string | string[]>): Record<string, string> => {
+    return Object.entries(answers).reduce((acc, [key, value]) => {
+      acc[key] = Array.isArray(value) ? value.join(', ') : value;
+      return acc;
+    }, {} as Record<string, string>);
+  };
+
   return (
     <div className="container mx-auto py-8 space-y-8">
       <TaskBreakdown
@@ -180,7 +187,7 @@ const Test = () => {
         open={showQuestions}
         onOpenChange={setShowQuestions}
         questions={questions}
-        onSubmit={(answers) => handleQuestionResponse(task, answers)}
+        onSubmit={(answers) => handleQuestionResponse(task, processAnswers(answers))}
       />
     </div>
   );
