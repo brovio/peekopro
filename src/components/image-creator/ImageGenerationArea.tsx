@@ -31,6 +31,10 @@ const ImageGenerationArea = ({ prompt, provider, model, styles }: ImageGeneratio
     setIsLoading(true);
     setError(null);
     try {
+      // Get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
       const { data, error } = await supabase.functions.invoke('generate-image', {
         body: { 
           prompt, 
@@ -44,7 +48,7 @@ const ImageGenerationArea = ({ prompt, provider, model, styles }: ImageGeneratio
       const imageUrl = data.url || data.images?.[0]?.url;
       if (!imageUrl) throw new Error("No image URL in response");
 
-      // Save the generated image to the database
+      // Save the generated image to the database with user_id
       const { error: dbError } = await supabase
         .from('generated_images')
         .insert({
@@ -56,7 +60,8 @@ const ImageGenerationArea = ({ prompt, provider, model, styles }: ImageGeneratio
           width: data.width || 1024,
           height: data.height || 1024,
           format: data.format || 'png',
-          cost: data.cost || 0
+          cost: data.cost || 0,
+          user_id: user.id // Add the user_id here
         });
 
       if (dbError) throw dbError;
