@@ -36,6 +36,7 @@ export type Database = {
       tasks: {
         Row: {
           attachments: Json | null
+          breakdown_comments: string | null
           category: string | null
           completed: boolean | null
           confidence: number | null
@@ -47,6 +48,7 @@ export type Database = {
         }
         Insert: {
           attachments?: Json | null
+          breakdown_comments?: string | null
           category?: string | null
           completed?: boolean | null
           confidence?: number | null
@@ -58,6 +60,7 @@ export type Database = {
         }
         Update: {
           attachments?: Json | null
+          breakdown_comments?: string | null
           category?: string | null
           completed?: boolean | null
           confidence?: number | null

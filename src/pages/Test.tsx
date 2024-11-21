@@ -25,13 +25,14 @@ const Test = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showQuestions, setShowQuestions] = useState(false);
   const [questions, setQuestions] = useState<any[]>([]);
+  const [breakdownTaskId, setBreakdownTaskId] = useState<string | null>(null);
+  const [showOnlyBreakdown, setShowOnlyBreakdown] = useState(false);
   const { toast } = useToast();
   const frogInputRef = useRef<HTMLInputElement>(null);
   const [placeholder, setPlaceholder] = useState("Monkey Minding Much?");
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Fetch tasks from Supabase
   const { data: categorizedTasks = [], isLoading: isLoadingTasks } = useQuery({
     queryKey: ['frog-tasks', user?.id],
     queryFn: async () => {
@@ -67,6 +68,20 @@ const Test = () => {
 
     return () => clearTimeout(timer);
   }, []);
+
+  const handleBreakdownComplete = async () => {
+    setShowOnlyBreakdown(false);
+    setBreakdownTaskId(null);
+    setTask("");
+    setSteps([]);
+    await queryClient.invalidateQueries({ queryKey: ['frog-tasks'] });
+  };
+
+  const handleStartBreakdown = (taskContent: string, taskId: string) => {
+    setTask(taskContent);
+    setBreakdownTaskId(taskId);
+    setShowOnlyBreakdown(true);
+  };
 
   const handleDirectTest = async () => {
     if (!task.trim()) {
@@ -256,55 +271,64 @@ const Test = () => {
 
   return (
     <div className="container mx-auto py-8 space-y-8">
-      <Card className="p-6 bg-[#1A1F2C]">
-        <h1 className="text-2xl font-bold mb-6 text-gray-100">Find The Frog 🐸 Getting Shit Done</h1>
-        
-        <form onSubmit={handleFrogSubmit} className="space-y-4">
-          <div className="flex gap-4">
-            <Input
-              ref={frogInputRef}
-              placeholder={placeholder}
-              value={frogTask}
-              onChange={(e) => setFrogTask(e.target.value)}
-              className="flex-1 bg-[#2A2F3C] border-gray-700 text-gray-100"
-            />
-            <Button 
-              type="submit"
-              className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
-            >
-              Dump
-            </Button>
-          </div>
-
-          {categorizedTasks.length > 0 && (
-            <div className="space-y-8">
-              <div className="space-y-2">
-                {categorizedTasks
-                  .filter(task => task.category === "Uncategorized")
-                  .map((task, index) => (
-                    <FrogTaskItem
-                      key={task.id}
-                      task={task.content}
-                      index={index}
-                      onCategorySelect={(category) => handleCategorySelect(task.id, category)}
-                    />
-                  ))}
+      {!showOnlyBreakdown ? (
+        <>
+          <Card className="p-6 bg-[#1A1F2C]">
+            <h1 className="text-2xl font-bold mb-6 text-gray-100">Find The Frog 🐸 Getting Shit Done</h1>
+            
+            <form onSubmit={handleFrogSubmit} className="space-y-4">
+              <div className="flex gap-4">
+                <Input
+                  ref={frogInputRef}
+                  placeholder={placeholder}
+                  value={frogTask}
+                  onChange={(e) => setFrogTask(e.target.value)}
+                  className="flex-1 bg-[#2A2F3C] border-gray-700 text-gray-100"
+                />
+                <Button 
+                  type="submit"
+                  className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
+                >
+                  Dump
+                </Button>
               </div>
 
-              <FrogTaskGrid tasks={categorizedTasks.filter(task => task.category !== "Uncategorized")} />
-            </div>
-          )}
-        </form>
-      </Card>
+              {categorizedTasks.length > 0 && (
+                <div className="space-y-8">
+                  <div className="space-y-2">
+                    {categorizedTasks
+                      .filter(task => task.category === "Uncategorized")
+                      .map((task, index) => (
+                        <FrogTaskItem
+                          key={task.id}
+                          task={task.content}
+                          index={index}
+                          onCategorySelect={(category) => handleCategorySelect(task.id, category)}
+                        />
+                      ))}
+                  </div>
 
-      <TaskBreakdown
-        task={task}
-        steps={steps}
-        isLoading={isLoading}
-        onTaskChange={(value) => setTask(value)}
-        onDirectTest={handleDirectTest}
-        onGuidedTest={handleGuidedTest}
-      />
+                  <FrogTaskGrid 
+                    tasks={categorizedTasks.filter(task => task.category !== "Uncategorized")}
+                    onBreakdownStart={handleStartBreakdown}
+                  />
+                </div>
+              )}
+            </form>
+          </Card>
+        </>
+      ) : (
+        <TaskBreakdown
+          task={task}
+          steps={steps}
+          isLoading={isLoading}
+          taskId={breakdownTaskId || undefined}
+          onTaskChange={(value) => setTask(value)}
+          onDirectTest={handleDirectTest}
+          onGuidedTest={handleGuidedTest}
+          onComplete={handleBreakdownComplete}
+        />
+      )}
 
       <TaskQuestionsDialog
         open={showQuestions}

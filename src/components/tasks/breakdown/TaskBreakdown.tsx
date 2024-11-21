@@ -2,24 +2,32 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import BreakdownCommentsModal from "./BreakdownCommentsModal";
 
 interface TaskBreakdownProps {
   task: string;
   steps: string[];
   isLoading: boolean;
+  taskId?: string;
   onTaskChange: (value: string) => void;
   onDirectTest: () => void;
   onGuidedTest: () => void;
+  onComplete?: () => void;
 }
 
 const TaskBreakdown = ({ 
   task, 
   steps, 
   isLoading, 
+  taskId,
   onTaskChange, 
   onDirectTest, 
-  onGuidedTest 
+  onGuidedTest,
+  onComplete 
 }: TaskBreakdownProps) => {
+  const [showCommentsModal, setShowCommentsModal] = useState(false);
+
   return (
     <Card className="p-6 bg-[#1A1F2C]">
       <h1 className="text-2xl font-bold mb-6 text-gray-100">Breaking Shit Down (BDC!)</h1>
@@ -67,9 +75,28 @@ const TaskBreakdown = ({
                 </li>
               ))}
             </ul>
+            {taskId && onComplete && (
+              <div className="mt-6 flex justify-end">
+                <Button
+                  onClick={() => setShowCommentsModal(true)}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  Done
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </div>
+
+      {taskId && (
+        <BreakdownCommentsModal
+          open={showCommentsModal}
+          onOpenChange={setShowCommentsModal}
+          taskId={taskId}
+          onComplete={onComplete || (() => {})}
+        />
+      )}
     </Card>
   );
 };
