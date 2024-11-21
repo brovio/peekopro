@@ -53,28 +53,45 @@ serve(async (req) => {
         break;
 
       case 'fal':
-        const falEndpoint = model === 'flux1.1pro' 
-          ? 'fal-ai/flux1.1pro'
-          : model === 'lcm'
-            ? 'fal-ai/lcm'
-            : 'fal-ai/fast-sdxl';
-            
-        response = await fetch(`https://fal.run/${falEndpoint}`, {
+        let falModel;
+        switch (model) {
+          case 'flux1.1pro':
+            falModel = 'fal-ai/flux';
+            break;
+          case 'lcm':
+            falModel = 'fal-ai/lcm';
+            break;
+          default:
+            falModel = 'fal-ai/fast-sdxl';
+        }
+        
+        response = await fetch(`https://api.fal.ai/v1/generation/${falModel}`, {
           method: 'POST',
           headers: {
-            'Authorization': `Key ${Deno.env.get('FAL_API_KEY')}`,
+            'Authorization': `Bearer ${Deno.env.get('FAL_API_KEY')}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ prompt })
+          body: JSON.stringify({
+            prompt,
+            image_size: "1024x1024",
+            num_images: 1
+          })
         });
+        
         const falData = await response.json();
         console.log('Fal.ai response:', falData);
         
         if (!response.ok) {
-          throw new Error(`Fal.ai error: ${falData.error || 'Unknown error'}`);
+          const errorMessage = falData.error?.message || falData.detail || falData.error || 'Unknown error';
+          throw new Error(`Fal.ai error: ${errorMessage}`);
         }
         
-        imageUrl = falData.images?.[0]?.url;
+        // Handle different response formats from Fal.ai
+        imageUrl = falData.images?.[0]?.url || falData.image?.url;
+        if (!imageUrl && Array.isArray(falData)) {
+          imageUrl = falData[0]?.url;
+        }
+        
         cost = model === 'flux1.1pro' ? 0.008 : model === 'lcm' ? 0.003 : 0.005;
         break;
 
