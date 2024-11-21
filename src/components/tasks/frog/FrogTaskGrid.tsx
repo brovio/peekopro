@@ -1,6 +1,12 @@
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { Briefcase, Dumbbell, BookOpen, FileText } from "lucide-react";
+import { Briefcase, Dumbbell, BookOpen, FileText, Check, Play } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import { useState } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface FrogTaskGridProps {
   tasks: {
@@ -11,6 +17,10 @@ interface FrogTaskGridProps {
 }
 
 const FrogTaskGrid = ({ tasks }: FrogTaskGridProps) => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+
   const categories = {
     "#1": { 
       icon: BookOpen, 
@@ -39,6 +49,120 @@ const FrogTaskGrid = ({ tasks }: FrogTaskGridProps) => {
     }
   };
 
+  const handleMoveTask = async (taskId: string, newCategory: string) => {
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ category: newCategory })
+        .eq('id', taskId);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['frog-tasks'] });
+      
+      toast({
+        title: "Task moved",
+        description: `Task moved to ${newCategory}`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error moving task",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditTask = async (taskId: string, newContent: string) => {
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ content: newContent })
+        .eq('id', taskId);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['frog-tasks'] });
+      setEditingTaskId(null);
+      
+      toast({
+        title: "Task updated",
+        description: "Task content has been updated",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error updating task",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const renderTaskItem = (task: { id: string; content: string; category: string }) => {
+    const isEditing = editingTaskId === task.id;
+
+    return (
+      <div key={task.id} className="group relative p-3 bg-[#2A2F3C] rounded-md text-gray-200">
+        {task.category === "#1" && (
+          <Play className="inline-block mr-2 h-4 w-4 text-[#9b87f5]" />
+        )}
+        {isEditing ? (
+          <input
+            type="text"
+            defaultValue={task.content}
+            className="w-full bg-[#1A1F2C] p-2 rounded text-gray-200"
+            onBlur={(e) => handleEditTask(task.id, e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleEditTask(task.id, e.currentTarget.value);
+              }
+            }}
+            autoFocus
+          />
+        ) : (
+          <>
+            <span>{task.content}</span>
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 hidden group-hover:flex gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => setEditingTaskId(task.id)}
+              >
+                <FileText className="h-4 w-4" />
+              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                  >
+                    <Check className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-48">
+                  <div className="grid gap-1">
+                    {Object.keys(categories).map((category) => (
+                      <Button
+                        key={category}
+                        variant="ghost"
+                        className="w-full justify-start"
+                        onClick={() => handleMoveTask(task.id, category)}
+                      >
+                        Move to {category}
+                      </Button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
+
   const getTasksByCategory = (category: string) => 
     tasks.filter(task => task.category === category);
 
@@ -55,11 +179,7 @@ const FrogTaskGrid = ({ tasks }: FrogTaskGridProps) => {
           <h2 className="text-xl font-semibold text-gray-100">#1 Priority</h2>
         </div>
         <div className="space-y-2">
-          {getTasksByCategory("#1").map(task => (
-            <div key={task.id} className="p-3 bg-[#2A2F3C] rounded-md text-gray-200">
-              {task.content}
-            </div>
-          ))}
+          {getTasksByCategory("#1").map(task => renderTaskItem(task))}
         </div>
       </Card>
 
@@ -74,11 +194,7 @@ const FrogTaskGrid = ({ tasks }: FrogTaskGridProps) => {
           <h2 className="text-xl font-semibold text-gray-100">Work</h2>
         </div>
         <div className="space-y-2">
-          {getTasksByCategory("Work").map(task => (
-            <div key={task.id} className="p-3 bg-[#2A2F3C] rounded-md text-gray-200">
-              {task.content}
-            </div>
-          ))}
+          {getTasksByCategory("Work").map(task => renderTaskItem(task))}
         </div>
       </Card>
 
@@ -99,11 +215,7 @@ const FrogTaskGrid = ({ tasks }: FrogTaskGridProps) => {
                 <h2 className="text-xl font-semibold text-gray-100">{category}</h2>
               </div>
               <div className="space-y-2">
-                {getTasksByCategory(category).map(task => (
-                  <div key={task.id} className="p-3 bg-[#2A2F3C] rounded-md text-gray-200">
-                    {task.content}
-                  </div>
-                ))}
+                {getTasksByCategory(category).map(task => renderTaskItem(task))}
               </div>
             </Card>
           );
