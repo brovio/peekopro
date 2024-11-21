@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Briefcase, Repeat, BookOpen, FileText, Trophy } from "lucide-react";
+import { Briefcase, Repeat, BookOpen, Dumbbell, Trophy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
@@ -141,21 +141,38 @@ const FrogTaskGrid = ({ tasks, onBreakdownStart }: FrogTaskGridProps) => {
 
       {/* Fitness, Habit, Journal Grid - Responsive */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {["Fitness", "Habit", "Journal"].map(category => (
-          <TaskCard
-            key={category}
-            category={category}
-            icon={category === "Habit" ? Repeat : BookOpen}
-            color="bg-[#F97316]"
-            borderColor="border-[#F97316]"
-            tasks={getTasksByCategory(category)}
-            onEdit={handleEditTask}
-            onDelete={handleDeleteTask}
-            onComplete={handleCompleteTask}
-            onBreakdown={handleBreakdownClick}
-            showBreakdownButton
-          />
-        ))}
+        {["Fitness", "Habit", "Journal"].map(category => {
+          let icon;
+          switch (category) {
+            case "Fitness":
+              icon = Dumbbell;
+              break;
+            case "Habit":
+              icon = Repeat;
+              break;
+            case "Journal":
+              icon = BookOpen;
+              break;
+            default:
+              icon = BookOpen;
+          }
+          
+          return (
+            <TaskCard
+              key={category}
+              category={category}
+              icon={icon}
+              color="bg-[#F97316]"
+              borderColor="border-[#F97316]"
+              tasks={getTasksByCategory(category)}
+              onEdit={handleEditTask}
+              onDelete={handleDeleteTask}
+              onComplete={handleCompleteTask}
+              onBreakdown={handleBreakdownClick}
+              showBreakdownButton
+            />
+          );
+        })}
       </div>
 
       {/* Complete Section */}
