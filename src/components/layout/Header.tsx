@@ -1,6 +1,8 @@
-import { Menu, LogIn } from "lucide-react";
+import { Menu, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
 
 interface HeaderProps {
   onShowApiManager: () => void;
@@ -11,6 +13,8 @@ const Header = ({ onShowApiManager }: HeaderProps) => {
   const [lastClickTime, setLastClickTime] = useState(0);
   const [buffer, setBuffer] = useState("");
   const [bufferTimeout, setBufferTimeout] = useState<NodeJS.Timeout | null>(null);
+  const { logout } = useAuth();
+  const { toast } = useToast();
 
   const handleHeaderClick = () => {
     const now = Date.now();
@@ -30,6 +34,22 @@ const Header = ({ onShowApiManager }: HeaderProps) => {
       setClicks(1);
     }
     setLastClickTime(now);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to logout",
+        variant: "destructive",
+      });
+    }
   };
 
   useEffect(() => {
@@ -72,8 +92,13 @@ const Header = ({ onShowApiManager }: HeaderProps) => {
         />
       </div>
       
-      <Button variant="ghost" size="icon" className="hover:opacity-80">
-        <LogIn className="h-6 w-6 text-white" />
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        className="hover:opacity-80"
+        onClick={handleLogout}
+      >
+        <LogOut className="h-6 w-6 text-white" />
       </Button>
     </header>
   );
