@@ -13,7 +13,12 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <ThemeProvider 
+      attribute="data-theme"
+      defaultTheme="system"
+      enableSystem
+      themes={["light", "dark", "zanely-1", "zanely-2", "flookey-1", "flookey-2", "flookey-3"]}
+    >
       <AuthProvider>
         <NotificationProvider>
           <SettingsProvider>
