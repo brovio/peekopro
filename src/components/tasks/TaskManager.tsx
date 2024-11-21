@@ -5,16 +5,19 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
+import { Loader2 } from "lucide-react";
 
 const TaskManager = () => {
   const { visibleCategories } = useSettings();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   
-  const { data: tasks = [], error } = useQuery({
+  const { data: tasks = [], error, isLoading } = useQuery({
     queryKey: ['tasks', user?.id],
     queryFn: async () => {
-      if (!user?.id) throw new Error('User not authenticated');
+      if (!user?.id || !isAuthenticated) {
+        throw new Error('User not authenticated');
+      }
       
       const { data, error } = await supabase
         .from('tasks')
@@ -22,6 +25,7 @@ const TaskManager = () => {
         .eq('user_id', user.id);
       
       if (error) {
+        console.error('Supabase error:', error);
         toast({
           title: "Error fetching tasks",
           description: error.message,
@@ -32,9 +36,42 @@ const TaskManager = () => {
       
       return data || [];
     },
-    enabled: !!user?.id,
-    retry: 3,
+    enabled: !!user?.id && isAuthenticated,
+    retry: (failureCount, error) => {
+      // Only retry if it's not an authentication error
+      if (error.message === 'User not authenticated') return false;
+      return failureCount < 3;
+    },
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
+
+  if (!isAuthenticated) {
+    return (
+      <Card className="bg-[#141e38] border-gray-700">
+        <CardHeader>
+          <CardTitle className="text-gray-100">Task Manager</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-gray-400">Please sign in to view your tasks.</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <Card className="bg-[#141e38] border-gray-700">
+        <CardHeader>
+          <CardTitle className="text-gray-100">Task Manager</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-4">
+            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (error) {
     return (
@@ -59,18 +96,22 @@ const TaskManager = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {filteredTasks.map((task) => (
-            <div key={task.id} className="space-y-2">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="font-medium text-gray-100">{task.content}</h3>
-                  <p className="text-sm text-gray-400">{task.category}</p>
+          {filteredTasks.length === 0 ? (
+            <div className="text-gray-400">No tasks found.</div>
+          ) : (
+            filteredTasks.map((task) => (
+              <div key={task.id} className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="font-medium text-gray-100">{task.content}</h3>
+                    <p className="text-sm text-gray-400">{task.category}</p>
+                  </div>
+                  <span className="text-sm font-medium text-gray-300">{task.confidence}%</span>
                 </div>
-                <span className="text-sm font-medium text-gray-300">{task.confidence}%</span>
+                <Progress value={task.confidence} className="h-2" />
               </div>
-              <Progress value={task.confidence} className="h-2" />
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </CardContent>
     </Card>
