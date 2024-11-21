@@ -46,34 +46,34 @@ const TaskCard = ({
 
   return (
     <Card className={cn(
-      "p-6 transition-all duration-300",
+      "p-3 sm:p-6 transition-all duration-300",
       "bg-[#1A1F2C] hover:bg-[#242938]",
       `border-2 ${borderColor}`
     )}>
-      <div className="flex items-center gap-3 mb-4">
-        <Icon className={`w-6 h-6 ${color.replace('bg-', 'text-')}`} />
-        <h2 className="text-xl font-semibold text-gray-100">{category}</h2>
+      <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
+        <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${color.replace('bg-', 'text-')}`} />
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-100">{category}</h2>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-1.5 sm:space-y-2">
         {tasks.map(task => (
-          <div key={task.id} className="group relative p-3 bg-[#2A2F3C] rounded-md text-gray-200">
+          <div key={task.id} className="group relative p-2 sm:p-3 bg-[#2A2F3C] rounded-md text-gray-200">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 {category === "#1" && showBreakdownButton && (
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0"
+                    className="h-6 w-6 sm:h-8 sm:w-8 p-0"
                     onClick={() => onBreakdown?.(task.id, task.content)}
                   >
-                    <Play className="h-4 w-4 text-[#9b87f5]" />
+                    <Play className="h-3 w-3 sm:h-4 sm:w-4 text-[#9b87f5]" />
                   </Button>
                 )}
                 {editingTaskId === task.id ? (
                   <input
                     type="text"
                     defaultValue={task.content}
-                    className="w-full bg-[#1A1F2C] p-2 rounded text-gray-200"
+                    className="w-full bg-[#1A1F2C] p-1.5 sm:p-2 rounded text-gray-200 text-sm sm:text-base"
                     onBlur={(e) => handleEditTask(task.id, e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
@@ -83,10 +83,10 @@ const TaskCard = ({
                     autoFocus
                   />
                 ) : (
-                  <span>{task.content}</span>
+                  <span className="text-sm sm:text-base">{task.content}</span>
                 )}
               </div>
-              <div className="hidden group-hover:flex gap-1 items-center">
+              <div className="hidden group-hover:flex gap-0.5 sm:gap-1 items-center">
                 {task.breakdown_comments && (
                   <TaskNotes taskId={task.id} notes={task.breakdown_comments} />
                 )}

@@ -276,11 +276,11 @@ const Test = () => {
   return (
     <div className="min-h-screen bg-navy-900">
       <Header onShowApiManager={handleShowApiManager} />
-      <div className="container mx-auto py-8 space-y-8">
+      <div className="container mx-auto px-0.5 sm:px-8 py-2 sm:py-8 space-y-4 sm:space-y-8">
         {!showOnlyBreakdown ? (
           <>
-            <Card className="p-6 bg-[#1A1F2C]">
-              <h1 className="text-2xl font-bold mb-6 text-gray-100">Find The Frog 🐸 Getting Shit Done</h1>
+            <Card className="p-3 sm:p-6 bg-[#1A1F2C]">
+              <h1 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-6 text-gray-100">Find The Frog 🐸 Getting Shit Done</h1>
               
               <form onSubmit={handleFrogSubmit} className="space-y-4">
                 <div className="flex gap-4">
