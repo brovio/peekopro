@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Briefcase, Dumbbell, BookOpen, FileText, CheckCircle2 } from "lucide-react";
+import { Briefcase, Repeat, BookOpen, FileText, Trophy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
@@ -114,7 +114,7 @@ const FrogTaskGrid = ({ tasks, onBreakdownStart }: FrogTaskGridProps) => {
       {/* #1 Section - Full width */}
       <TaskCard
         category="#1"
-        icon={BookOpen}
+        icon={Trophy}
         color="bg-[#9b87f5]"
         borderColor="border-[#9b87f5]"
         tasks={getTasksByCategory("#1")}
@@ -145,7 +145,7 @@ const FrogTaskGrid = ({ tasks, onBreakdownStart }: FrogTaskGridProps) => {
           <TaskCard
             key={category}
             category={category}
-            icon={Dumbbell}
+            icon={category === "Habit" ? Repeat : BookOpen}
             color="bg-[#F97316]"
             borderColor="border-[#F97316]"
             tasks={getTasksByCategory(category)}
