@@ -23,11 +23,11 @@ const queryClient = new QueryClient()
 // App layout component with providers
 const AppLayout = () => {
   return (
-    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <AuthProvider>
         <SettingsProvider>
           <NotificationProvider>
-            <div className="min-h-screen bg-background">
+            <div className="min-h-screen bg-background dark">
               <Outlet />
               <Toaster />
             </div>
