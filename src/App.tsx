@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom"
+import { createBrowserRouter, RouterProvider, Navigate, Outlet } from "react-router-dom"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { ThemeProvider } from "./components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
@@ -19,6 +19,20 @@ import Breakdown from "./pages/Breakdown"
 import ProtectedRoute from "./components/auth/ProtectedRoute"
 
 const queryClient = new QueryClient()
+
+// App layout component with providers
+const AppLayout = () => {
+  return (
+    <AuthProvider>
+      <SettingsProvider>
+        <NotificationProvider>
+          <Outlet />
+          <Toaster />
+        </NotificationProvider>
+      </SettingsProvider>
+    </AuthProvider>
+  )
+}
 
 function App() {
   const [isInitialized, setIsInitialized] = useState(false)
@@ -41,68 +55,73 @@ function App() {
 
   const router = createBrowserRouter([
     {
-      path: "/",
-      element: <Navigate to="/images" replace />,
-    },
-    {
-      path: "/login",
-      element: <Login />,
-    },
-    {
-      path: "/images",
-      element: (
-        <ProtectedRoute>
-          <ImageCreator />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: "/gallery",
-      element: (
-        <ProtectedRoute>
-          <Gallery />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: "/journal",
-      element: (
-        <ProtectedRoute>
-          <Journal />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: "/notes",
-      element: (
-        <ProtectedRoute>
-          <Notes />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: "/options",
-      element: (
-        <ProtectedRoute>
-          <Options />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: "/flooko",
-      element: (
-        <ProtectedRoute>
-          <Flooko />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: "/breakdown",
-      element: (
-        <ProtectedRoute>
-          <Breakdown />
-        </ProtectedRoute>
-      ),
+      element: <AppLayout />,
+      children: [
+        {
+          path: "/",
+          element: <Navigate to="/images" replace />,
+        },
+        {
+          path: "/login",
+          element: <Login />,
+        },
+        {
+          path: "/images",
+          element: (
+            <ProtectedRoute>
+              <ImageCreator />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/gallery",
+          element: (
+            <ProtectedRoute>
+              <Gallery />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/journal",
+          element: (
+            <ProtectedRoute>
+              <Journal />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/notes",
+          element: (
+            <ProtectedRoute>
+              <Notes />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/options",
+          element: (
+            <ProtectedRoute>
+              <Options />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/flooko",
+          element: (
+            <ProtectedRoute>
+              <Flooko />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/breakdown",
+          element: (
+            <ProtectedRoute>
+              <Breakdown />
+            </ProtectedRoute>
+          ),
+        },
+      ],
     },
   ])
 
@@ -113,15 +132,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        <RouterProvider router={router}>
-          <AuthProvider>
-            <SettingsProvider>
-              <NotificationProvider>
-                <Toaster />
-              </NotificationProvider>
-            </SettingsProvider>
-          </AuthProvider>
-        </RouterProvider>
+        <RouterProvider router={router} />
       </ThemeProvider>
     </QueryClientProvider>
   )
