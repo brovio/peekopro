@@ -9,6 +9,7 @@ interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
   signOut: () => Promise<void>
+  logout: () => Promise<void> // Added for backward compatibility
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -16,6 +17,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   isAuthenticated: false,
   signOut: async () => {},
+  logout: async () => {} // Added for backward compatibility
 })
 
 export const useAuth = () => {
@@ -72,6 +74,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     user,
     isAuthenticated: !!session,
     signOut,
+    logout: signOut // Added for backward compatibility
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

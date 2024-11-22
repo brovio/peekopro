@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react"
 import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeProvider } from "./components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import { supabase } from "./integrations/supabase/client"
 import { AuthProvider } from "./contexts/AuthContext"
 import { SettingsProvider } from "./contexts/SettingsContext"
 import { NotificationProvider } from "./contexts/NotificationContext"
 
-// Pages
 import Login from "./pages/Login"
 import ImageCreator from "./pages/ImageCreator"
 import Gallery from "./pages/Gallery"
@@ -33,7 +32,6 @@ function App() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
-        // Clear any auth-related state or cached data when session ends
         queryClient.clear()
       }
     })
@@ -109,7 +107,7 @@ function App() {
   ])
 
   if (!isInitialized) {
-    return null // Or a loading spinner
+    return null
   }
 
   return (
