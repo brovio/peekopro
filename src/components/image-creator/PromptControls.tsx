@@ -1,14 +1,14 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
-import { Wand2, Loader2, Sparkles } from "lucide-react";
+import { Loader2, Wand2, Sparkles } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { usePromptHistory } from "@/hooks/usePromptHistory";
 
 interface PromptControlsProps {
   prompt: string;
@@ -24,6 +24,13 @@ const PromptControls = ({
   isGenerating
 }: PromptControlsProps) => {
   const [promptCount, setPromptCount] = useState(5);
+  const { promptHistory, addPrompt } = usePromptHistory();
+
+  const handleGeneratePrompts = async () => {
+    if (!prompt.trim()) return;
+    await addPrompt(prompt);
+    onGeneratePrompts(promptCount);
+  };
 
   return (
     <div className="space-y-6 bg-card p-6 rounded-lg border">
@@ -35,6 +42,23 @@ const PromptControls = ({
           onChange={(e) => onPromptChange(e.target.value)}
           className="min-h-[100px] resize-none"
         />
+        {promptHistory.length > 0 && (
+          <div className="mt-2">
+            <label className="block text-sm font-medium mb-2">Recent Prompts</label>
+            <div className="space-y-2 max-h-32 overflow-y-auto">
+              {promptHistory.map((item: any) => (
+                <Button
+                  key={item.id}
+                  variant="ghost"
+                  className="w-full justify-start text-left text-sm"
+                  onClick={() => onPromptChange(item.prompt)}
+                >
+                  {item.prompt}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="space-y-4">
@@ -57,7 +81,7 @@ const PromptControls = ({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  onClick={() => onGeneratePrompts(promptCount)}
+                  onClick={handleGeneratePrompts}
                   disabled={isGenerating || !prompt}
                   variant="secondary"
                   className="flex-1"
@@ -79,34 +103,6 @@ const PromptControls = ({
                 {isGenerating ? 
                   "Please wait while advanced prompts are being generated..." :
                   "Generate multiple enhanced versions of your prompt"
-                }
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={() => onGeneratePrompts(1)}
-                  disabled={isGenerating || !prompt}
-                  variant="outline"
-                  className="flex-1"
-                >
-                  {isGenerating ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <>
-                      <Sparkles className="mr-2 h-4 w-4" />
-                      Generate Initial Prompt
-                    </>
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                {isGenerating ? 
-                  "Please wait while your prompt is being enhanced..." :
-                  "Generate an enhanced version of your initial prompt"
                 }
               </TooltipContent>
             </Tooltip>

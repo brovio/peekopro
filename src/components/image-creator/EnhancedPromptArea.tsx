@@ -1,6 +1,12 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface EnhancedPromptAreaProps {
   prompts: string[];
@@ -32,20 +38,32 @@ const EnhancedPromptArea = ({
             ))}
           </SelectContent>
         </Select>
-        <Button
-          onClick={() => onGenerateImage(selectedPrompt)}
-          disabled={isGenerating || !selectedPrompt}
-          className="ml-auto"
-        >
-          {isGenerating ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Generating...
-            </>
-          ) : (
-            "Generate Image"
-          )}
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={() => onGenerateImage(selectedPrompt)}
+                disabled={isGenerating || !selectedPrompt}
+                className="ml-auto"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  "Generate Image"
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {isGenerating ? 
+                "Please wait while your image is being generated..." :
+                "Click to generate an image from your prompt"
+              }
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
       {selectedPrompt && (
         <div className="space-y-4">
