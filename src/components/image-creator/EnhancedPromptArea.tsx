@@ -23,6 +23,12 @@ const EnhancedPromptArea = ({
   onGenerateImage,
   isGenerating,
 }: EnhancedPromptAreaProps) => {
+  const handleGenerateImage = async () => {
+    if (selectedPrompt) {
+      await onGenerateImage(selectedPrompt);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
@@ -42,7 +48,7 @@ const EnhancedPromptArea = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                onClick={() => onGenerateImage(selectedPrompt)}
+                onClick={handleGenerateImage}
                 disabled={isGenerating || !selectedPrompt}
                 className="ml-auto"
               >
