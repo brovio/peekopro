@@ -54,20 +54,16 @@ const ImageGenerationArea = ({ prompt, provider, model, styles }: ImageGeneratio
         throw new Error('No upload path returned from storage');
       }
 
-      // Get the public URL with error handling
-      const { data: { publicUrl }, error: urlError } = supabase.storage
+      // Get the public URL - fixed the type error by removing error destructuring
+      const { data } = supabase.storage
         .from('generated-images')
         .getPublicUrl(uploadData.path);
 
-      if (urlError) {
-        throw new Error(`Failed to get public URL: ${urlError.message}`);
-      }
-
-      if (!publicUrl) {
+      if (!data.publicUrl) {
         throw new Error('No public URL returned from storage');
       }
 
-      return publicUrl;
+      return data.publicUrl;
     } catch (error: any) {
       console.error('Error in uploadImageToStorage:', error);
       throw new Error(`Failed to upload image: ${error.message}`);
