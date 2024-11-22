@@ -21,7 +21,7 @@ const EnhancedPromptArea = ({
     <div className="space-y-4">
       <div className="flex items-center gap-4">
         <Select value={selectedPrompt} onValueChange={onPromptSelect}>
-          <SelectTrigger className="w-[200px] border-2 border-input">
+          <SelectTrigger className="w-[200px] border border-input">
             <SelectValue placeholder="Select a prompt" />
           </SelectTrigger>
           <SelectContent>

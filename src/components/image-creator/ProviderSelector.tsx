@@ -55,7 +55,7 @@ const ProviderSelector = ({
       <div>
         <label className="block text-sm font-medium mb-2">Provider</label>
         <Select onValueChange={onProviderChange} value={provider}>
-          <SelectTrigger className="border-2 border-input">
+          <SelectTrigger className="border border-input">
             <SelectValue placeholder="Select a provider" />
           </SelectTrigger>
           <SelectContent>
@@ -72,7 +72,7 @@ const ProviderSelector = ({
         <div>
           <label className="block text-sm font-medium mb-2">Model</label>
           <Select onValueChange={onModelChange} value={model}>
-            <SelectTrigger className="border-2 border-input">
+            <SelectTrigger className="border border-input">
               <SelectValue placeholder="Select a model" />
             </SelectTrigger>
             <SelectContent>
