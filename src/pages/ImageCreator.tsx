@@ -1,15 +1,13 @@
 import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
-import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
 import Header from "@/components/layout/Header";
-import { Wand2, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import ProviderSelector from "@/components/image-creator/ProviderSelector";
 import StyleOptions from "@/components/image-creator/StyleOptions";
 import ImageSettings, { ImageSettings as IImageSettings } from "@/components/image-creator/ImageSettings";
 import EnhancedPromptCard from "@/components/image-creator/EnhancedPromptCard";
+import PromptControls from "@/components/image-creator/PromptControls";
 
 const ImageCreator = () => {
   const [prompt, setPrompt] = useState("");
@@ -26,7 +24,7 @@ const ImageCreator = () => {
   });
   const { toast } = useToast();
 
-  const generatePrompts = async () => {
+  const generatePrompts = async (count: number) => {
     if (!prompt) {
       toast({
         title: "Missing information",
@@ -42,7 +40,7 @@ const ImageCreator = () => {
         body: { 
           basePrompt: prompt,
           styles: selectedStyles,
-          count: 5
+          count: count
         }
       });
 
@@ -68,77 +66,57 @@ const ImageCreator = () => {
     <div className="min-h-screen bg-background">
       <Header onShowApiManager={() => {}} />
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-8">AI Image Creator</h1>
+        <h1 className="text-3xl font-bold mb-8">AI Image Creator</h1>
         
-        <div className="grid grid-cols-1 gap-8">
-          <Card className="p-6 space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="space-y-6">
+            <Card className="p-6">
+              <ProviderSelector
+                provider={provider}
+                model={model}
+                onProviderChange={setProvider}
+                onModelChange={setModel}
+              />
+            </Card>
+
+            <StyleOptions
+              selectedStyles={selectedStyles}
+              onStyleChange={setSelectedStyles}
+            />
+
+            <Card className="p-6">
+              <ImageSettings
+                settings={imageSettings}
+                onSettingsChange={setImageSettings}
+              />
+            </Card>
+
+            <PromptControls
+              prompt={prompt}
+              onPromptChange={setPrompt}
+              onGeneratePrompts={generatePrompts}
+              isGenerating={isGeneratingPrompts}
+            />
+          </div>
+
+          <div className="space-y-6">
+            {generatedPrompts.length > 0 && (
               <div className="space-y-6">
-                <ProviderSelector
-                  provider={provider}
-                  model={model}
-                  onProviderChange={setProvider}
-                  onModelChange={setModel}
-                />
-
-                <StyleOptions
-                  selectedStyles={selectedStyles}
-                  onStyleChange={setSelectedStyles}
-                />
-
-                <ImageSettings
-                  settings={imageSettings}
-                  onSettingsChange={setImageSettings}
-                />
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Initial Prompt</label>
-                  <Textarea
-                    placeholder="Describe your image idea..."
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    className="min-h-[100px]"
+                <h2 className="text-xl font-semibold">Generated Prompts</h2>
+                {generatedPrompts.map((enhancedPrompt, index) => (
+                  <EnhancedPromptCard
+                    key={index}
+                    prompt={enhancedPrompt}
+                    provider={provider}
+                    model={model}
+                    styles={selectedStyles}
+                    width={imageSettings.width}
+                    height={imageSettings.height}
                   />
-                </div>
-
-                <Button 
-                  onClick={generatePrompts} 
-                  disabled={isGeneratingPrompts || !prompt}
-                  variant="secondary"
-                  className="w-full"
-                >
-                  {isGeneratingPrompts ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Generating prompts...
-                    </>
-                  ) : (
-                    <>
-                      <Wand2 className="mr-2 h-4 w-4" />
-                      Generate 5 Enhanced Prompts
-                    </>
-                  )}
-                </Button>
+                ))}
               </div>
-            </div>
-          </Card>
-
-          {generatedPrompts.length > 0 && (
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold">Generated Prompts</h2>
-              {generatedPrompts.map((enhancedPrompt, index) => (
-                <EnhancedPromptCard
-                  key={index}
-                  prompt={enhancedPrompt}
-                  provider={provider}
-                  model={model}
-                  styles={selectedStyles}
-                  width={imageSettings.width}
-                  height={imageSettings.height}
-                />
-              ))}
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>
