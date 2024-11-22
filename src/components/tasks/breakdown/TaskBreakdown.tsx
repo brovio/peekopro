@@ -7,18 +7,22 @@ interface TaskBreakdownProps {
   task: string;
   steps: string[];
   isLoading: boolean;
+  taskId?: string | undefined;
   onTaskChange: (value: string) => void;
   onDirectTest: () => void;
   onGuidedTest: () => void;
+  onComplete?: () => void;
 }
 
 const TaskBreakdown = ({ 
   task, 
   steps, 
   isLoading, 
+  taskId,
   onTaskChange,
   onDirectTest, 
   onGuidedTest,
+  onComplete,
 }: TaskBreakdownProps) => {
   return (
     <Card className="p-4 sm:p-6 bg-[#1A1F2C]">
