@@ -23,14 +23,16 @@ const queryClient = new QueryClient()
 // App layout component with providers
 const AppLayout = () => {
   return (
-    <AuthProvider>
-      <SettingsProvider>
-        <NotificationProvider>
-          <Outlet />
-          <Toaster />
-        </NotificationProvider>
-      </SettingsProvider>
-    </AuthProvider>
+    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+      <AuthProvider>
+        <SettingsProvider>
+          <NotificationProvider>
+            <Outlet />
+            <Toaster />
+          </NotificationProvider>
+        </SettingsProvider>
+      </AuthProvider>
+    </ThemeProvider>
   )
 }
 
@@ -131,9 +133,7 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        <RouterProvider router={router} />
-      </ThemeProvider>
+      <RouterProvider router={router} />
     </QueryClientProvider>
   )
 }
