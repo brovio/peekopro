@@ -119,6 +119,8 @@ const ImageCreator = () => {
                 onPromptSelect={setSelectedPrompt}
                 onGenerateImage={generateImage}
                 isGenerating={isGeneratingImage}
+                provider={provider}
+                model={model}
               />
             </Card>
           </div>
