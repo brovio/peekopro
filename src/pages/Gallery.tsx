@@ -1,28 +1,16 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, ZoomIn } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { styleOptions } from "@/components/image-creator/StyleOptions";
 import { providers } from "@/components/image-creator/ProviderSelector";
 import Header from "@/components/layout/Header";
-
-interface GeneratedImage {
-  id: string;
-  url: string;
-  prompt: string;
-  provider: string;
-  model: string;
-  styles: string[];
-  width: number;
-  height: number;
-  format: string;
-  cost: number;
-  created_at: string;
-}
+import { GalleryHeader } from "@/components/gallery/GalleryHeader";
+import { ImageCard } from "@/components/gallery/ImageCard";
+import type { GeneratedImage } from "@/components/gallery/types";
+import { useToast } from "@/hooks/use-toast";
 
 const filterImages = (
   images: GeneratedImage[] | undefined, 
@@ -56,6 +44,9 @@ const Gallery = () => {
   const [selectedStyle, setSelectedStyle] = useState<string>("");
   const [selectedImage, setSelectedImage] = useState<GeneratedImage | null>(null);
   const [showApiManager, setShowApiManager] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: images, isLoading } = useQuery({
     queryKey: ['generated-images'],
@@ -70,6 +61,47 @@ const Gallery = () => {
     }
   });
 
+  const deleteImagesMutation = useMutation({
+    mutationFn: async (imageIds: string[]) => {
+      const { error } = await supabase
+        .from('generated_images')
+        .delete()
+        .in('id', imageIds);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['generated-images'] });
+      setSelectedImages(new Set());
+      toast({
+        title: "Images deleted",
+        description: "Selected images have been deleted successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete images",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleImageSelect = (id: string, selected: boolean) => {
+    const newSelected = new Set(selectedImages);
+    if (selected) {
+      newSelected.add(id);
+    } else {
+      newSelected.delete(id);
+    }
+    setSelectedImages(newSelected);
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedImages.size === 0) return;
+    deleteImagesMutation.mutate(Array.from(selectedImages));
+  };
+
   const filteredImages = filterImages(images, selectedProvider, selectedModel, selectedStyle);
   const groupedImages = groupImagesByProviderModel(filteredImages);
 
@@ -77,7 +109,10 @@ const Gallery = () => {
     <div className="min-h-screen bg-background">
       <Header onShowApiManager={() => setShowApiManager(true)} />
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">Image Gallery</h1>
+        <GalleryHeader 
+          selectedCount={selectedImages.size}
+          onDeleteSelected={handleDeleteSelected}
+        />
 
         <div className="flex flex-wrap gap-4 mb-8">
           <div className="w-full sm:w-auto">
@@ -85,14 +120,14 @@ const Gallery = () => {
               value={selectedProvider} 
               onValueChange={(value) => {
                 setSelectedProvider(value);
-                setSelectedModel(""); // Reset model when provider changes
+                setSelectedModel("");
               }}
             >
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Filter by Provider" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Providers</SelectItem>
+                <SelectItem value="">All Providers</SelectItem>
                 {providers.map(provider => (
                   <SelectItem key={provider.id} value={provider.id}>
                     {provider.name}
@@ -102,7 +137,7 @@ const Gallery = () => {
             </Select>
           </div>
 
-          {selectedProvider && selectedProvider !== "all" && (
+          {selectedProvider && (
             <div className="w-full sm:w-auto">
               <Select 
                 value={selectedModel} 
@@ -112,7 +147,7 @@ const Gallery = () => {
                   <SelectValue placeholder="Filter by Model" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Models</SelectItem>
+                  <SelectItem value="">All Models</SelectItem>
                   {providers
                     .find(p => p.id === selectedProvider)
                     ?.models.map(model => (
@@ -134,7 +169,7 @@ const Gallery = () => {
                 <SelectValue placeholder="Filter by Style" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Styles</SelectItem>
+                <SelectItem value="">All Styles</SelectItem>
                 {styleOptions.map(style => (
                   <SelectItem key={style.id} value={style.id}>
                     {style.label}
@@ -159,44 +194,13 @@ const Gallery = () => {
               <h2 className="text-xl font-semibold mb-4">{group}</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {groupImages.map((image) => (
-                  <Card key={image.id} className="overflow-hidden">
-                    <div className="relative aspect-square">
-                      <img
-                        src={image.url}
-                        alt={image.prompt}
-                        className="w-full h-full object-cover cursor-pointer"
-                        onClick={() => setSelectedImage(image)}
-                      />
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        className="absolute top-2 right-2"
-                        onClick={() => setSelectedImage(image)}
-                      >
-                        <ZoomIn className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <div className="p-4 space-y-2">
-                      <p className="text-sm line-clamp-2" title={image.prompt}>
-                        {image.prompt}
-                      </p>
-                      <div className="flex flex-wrap gap-1">
-                        {image.styles?.map((style) => (
-                          <span
-                            key={style}
-                            className="text-xs bg-secondary px-2 py-1 rounded-full"
-                          >
-                            {styleOptions.find(s => s.id === style)?.label || style}
-                          </span>
-                        ))}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        <p>Size: {image.width}x{image.height}</p>
-                        <p>Format: {image.format}</p>
-                        <p>Cost: ${image.cost}</p>
-                      </div>
-                    </div>
-                  </Card>
+                  <ImageCard
+                    key={image.id}
+                    image={image}
+                    isSelected={selectedImages.has(image.id)}
+                    onSelect={handleImageSelect}
+                    onImageClick={setSelectedImage}
+                  />
                 ))}
               </div>
             </div>
