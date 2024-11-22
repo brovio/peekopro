@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
-import { Loader2, Wand2, Sparkles } from "lucide-react";
+import { Loader2, Wand2 } from "lucide-react";
+import { useState } from "react";
 import {
   Tooltip,
   TooltipContent,

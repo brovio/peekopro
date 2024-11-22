@@ -9,9 +9,13 @@ export const usePromptHistory = () => {
   const { data: promptHistory = [], isLoading } = useQuery({
     queryKey: ['prompt-history'],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
       const { data, error } = await supabase
         .from('prompt_history')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -29,9 +33,15 @@ export const usePromptHistory = () => {
 
   const { mutate: addPrompt } = useMutation({
     mutationFn: async (prompt: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
       const { error } = await supabase
         .from('prompt_history')
-        .insert([{ prompt }]);
+        .insert({
+          prompt,
+          user_id: user.id
+        });
 
       if (error) throw error;
     },
