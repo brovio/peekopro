@@ -6,6 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
+import StepsList from "./StepsList";
 
 interface TaskBreakdownProps {
   task: string;
@@ -44,7 +45,6 @@ const TaskBreakdown = ({
       if (error) throw error;
 
       if (data.improvedPrompt) {
-        // Save to database
         const { error: dbError } = await supabase
           .from('subtask_breakdowns')
           .insert({
@@ -129,18 +129,8 @@ const TaskBreakdown = ({
           </div>
         </div>
 
-        {steps.length > 0 && (
-          <div className="mt-6">
-            <h2 className="text-lg font-semibold mb-3 text-gray-100">Steps:</h2>
-            <ul className="list-decimal pl-5 space-y-3">
-              {steps.map((step, index) => (
-                <li key={index} className="text-gray-300 break-words">
-                  {step}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        {/* Replace the old steps list with our new StepsList component */}
+        <StepsList steps={steps} />
       </div>
     </Card>
   );
