@@ -27,8 +27,10 @@ const AppLayout = () => {
       <AuthProvider>
         <SettingsProvider>
           <NotificationProvider>
-            <Outlet />
-            <Toaster />
+            <div className="min-h-screen bg-background">
+              <Outlet />
+              <Toaster />
+            </div>
           </NotificationProvider>
         </SettingsProvider>
       </AuthProvider>
@@ -61,7 +63,7 @@ function App() {
       children: [
         {
           path: "/",
-          element: <Navigate to="/images" replace />,
+          element: <Navigate to="/flooko" replace />,
         },
         {
           path: "/login",
