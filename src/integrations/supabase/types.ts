@@ -69,50 +69,6 @@ export type Database = {
           },
         ]
       }
-      generation_profiles: {
-        Row: {
-          created_at: string
-          height: number
-          id: string
-          model: string
-          name: string
-          provider: string
-          styles: string[] | null
-          user_id: string
-          width: number
-        }
-        Insert: {
-          created_at?: string
-          height: number
-          id?: string
-          model: string
-          name: string
-          provider: string
-          styles?: string[] | null
-          user_id: string
-          width: number
-        }
-        Update: {
-          created_at?: string
-          height?: number
-          id?: string
-          model?: string
-          name?: string
-          provider?: string
-          styles?: string[] | null
-          user_id?: string
-          width?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "generation_profiles_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       journal_entries: {
         Row: {
           content: string | null
