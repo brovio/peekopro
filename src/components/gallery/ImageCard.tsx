@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Download, Share2, ZoomIn } from "lucide-react";
 import { GeneratedImage } from "./types";
-import { styleOptions } from "@/components/image-creator/StyleOptions";
+import { styleOptions } from "@/components/image-creator/StyleOptionsData";
 
 interface ImageCardProps {
   image: GeneratedImage;

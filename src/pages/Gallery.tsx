@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { styleOptions } from "@/components/image-creator/StyleOptions";
+import { styleOptions } from "@/components/image-creator/StyleOptionsData";
 import { providers } from "@/components/image-creator/ProviderSelector";
 import Header from "@/components/layout/Header";
 import { GalleryHeader } from "@/components/gallery/GalleryHeader";
