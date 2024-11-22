@@ -14,8 +14,13 @@ interface ImageRequest {
   height?: number;
 }
 
+const VALID_DALLE_DIMENSIONS = [
+  '1024x1024',
+  '1024x1792',
+  '1792x1024'
+];
+
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -31,8 +36,14 @@ serve(async (req) => {
     console.log(`Prompt: ${prompt}`);
     console.log(`Dimensions: ${width}x${height}`);
 
+    const dimensionString = `${width}x${height}`;
+
     switch (provider) {
       case 'openai':
+        if (!VALID_DALLE_DIMENSIONS.includes(dimensionString)) {
+          throw new Error(`Invalid dimensions for DALL-E 3. Must be one of: ${VALID_DALLE_DIMENSIONS.join(', ')}`);
+        }
+
         response = await fetch('https://api.openai.com/v1/images/generations', {
           method: 'POST',
           headers: {
@@ -43,7 +54,7 @@ serve(async (req) => {
             model: "dall-e-3",
             prompt,
             n: 1,
-            size: `${width}x${height}`,
+            size: dimensionString,
             response_format: 'url'
           })
         });
@@ -93,7 +104,6 @@ serve(async (req) => {
         
         const falData = await response.json();
         
-        // Handle different response formats from Fal.ai
         if (Array.isArray(falData)) {
           imageUrl = falData[0]?.url;
         } else if (falData.images) {
