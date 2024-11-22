@@ -10,9 +10,18 @@ interface ImageGenerationAreaProps {
   provider: string;
   model: string;
   styles: string[];
+  width: number;
+  height: number;
 }
 
-const ImageGenerationArea = ({ prompt, provider, model, styles }: ImageGenerationAreaProps) => {
+const ImageGenerationArea = ({ 
+  prompt, 
+  provider, 
+  model, 
+  styles,
+  width,
+  height 
+}: ImageGenerationAreaProps) => {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +29,6 @@ const ImageGenerationArea = ({ prompt, provider, model, styles }: ImageGeneratio
 
   const uploadImageToStorage = async (imageUrl: string) => {
     try {
-      // Fetch the image with proper error handling
       const response = await fetch(imageUrl);
       if (!response.ok) {
         throw new Error(`Failed to fetch image: ${response.statusText}`);
@@ -31,12 +39,10 @@ const ImageGenerationArea = ({ prompt, provider, model, styles }: ImageGeneratio
         throw new Error('Failed to convert image to blob');
       }
       
-      // Generate a unique filename with timestamp and random string
       const timestamp = new Date().getTime();
       const randomString = Math.random().toString(36).substring(7);
       const filename = `${timestamp}-${randomString}.png`;
       
-      // Upload to Supabase Storage with explicit error handling
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('generated-images')
         .upload(filename, blob, {
@@ -54,7 +60,6 @@ const ImageGenerationArea = ({ prompt, provider, model, styles }: ImageGeneratio
         throw new Error('No upload path returned from storage');
       }
 
-      // Get the public URL - fixed the type error by removing error destructuring
       const { data } = supabase.storage
         .from('generated-images')
         .getPublicUrl(uploadData.path);
@@ -83,7 +88,6 @@ const ImageGenerationArea = ({ prompt, provider, model, styles }: ImageGeneratio
     setIsLoading(true);
     setError(null);
     try {
-      // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
@@ -91,7 +95,9 @@ const ImageGenerationArea = ({ prompt, provider, model, styles }: ImageGeneratio
         body: { 
           prompt, 
           provider,
-          model 
+          model,
+          width,
+          height
         }
       });
 
@@ -100,10 +106,8 @@ const ImageGenerationArea = ({ prompt, provider, model, styles }: ImageGeneratio
       const imageUrl = data.url || data.images?.[0]?.url;
       if (!imageUrl) throw new Error("No image URL in response");
 
-      // Upload to Supabase Storage
       const storedImageUrl = await uploadImageToStorage(imageUrl);
 
-      // Save the generated image to the database with user_id
       const { error: dbError } = await supabase
         .from('generated_images')
         .insert({
@@ -112,8 +116,8 @@ const ImageGenerationArea = ({ prompt, provider, model, styles }: ImageGeneratio
           provider,
           model,
           styles,
-          width: data.width || 1024,
-          height: data.height || 1024,
+          width,
+          height,
           format: data.format || 'png',
           cost: data.cost || 0,
           user_id: user.id
@@ -127,8 +131,8 @@ const ImageGenerationArea = ({ prompt, provider, model, styles }: ImageGeneratio
         model,
         provider,
         styles,
-        width: data.width || 1024,
-        height: data.height || 1024,
+        width,
+        height,
         format: data.format || 'png',
         cost: data.cost || 0
       });
@@ -152,22 +156,20 @@ const ImageGenerationArea = ({ prompt, provider, model, styles }: ImageGeneratio
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <Button 
-          onClick={handleGenerate}
-          disabled={isLoading || !prompt || !provider || !model}
-          className="w-full"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Generating...
-            </>
-          ) : (
-            'Generate Image'
-          )}
-        </Button>
-      </div>
+      <Button 
+        onClick={handleGenerate}
+        disabled={isLoading || !prompt || !provider || !model}
+        className="w-full"
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Generating...
+          </>
+        ) : (
+          'Generate Image'
+        )}
+      </Button>
 
       {error && (
         <div className="text-red-500 text-sm p-2 bg-red-50 rounded">

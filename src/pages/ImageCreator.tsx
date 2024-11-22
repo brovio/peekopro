@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import ProviderSelector from "@/components/image-creator/ProviderSelector";
 import StyleOptions from "@/components/image-creator/StyleOptions";
-import PromptList from "@/components/image-creator/PromptList";
-import ImageGenerationArea from "@/components/image-creator/ImageGenerationArea";
+import ImageSettings, { ImageSettings as IImageSettings } from "@/components/image-creator/ImageSettings";
+import EnhancedPromptCard from "@/components/image-creator/EnhancedPromptCard";
 
 const ImageCreator = () => {
   const [prompt, setPrompt] = useState("");
@@ -18,6 +18,12 @@ const ImageCreator = () => {
   const [isGeneratingPrompts, setIsGeneratingPrompts] = useState(false);
   const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
   const [generatedPrompts, setGeneratedPrompts] = useState<string[]>([]);
+  const [imageSettings, setImageSettings] = useState<IImageSettings>({
+    aspectRatio: "1:1",
+    orientation: "square",
+    width: 1024,
+    height: 1024,
+  });
   const { toast } = useToast();
 
   const generatePrompts = async () => {
@@ -64,78 +70,75 @@ const ImageCreator = () => {
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-8">AI Image Creator</h1>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-8">
           <Card className="p-6 space-y-6">
-            <div className="space-y-4">
-              <ProviderSelector
-                provider={provider}
-                model={model}
-                onProviderChange={setProvider}
-                onModelChange={setModel}
-              />
-
-              <StyleOptions
-                selectedStyles={selectedStyles}
-                onStyleChange={setSelectedStyles}
-              />
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Initial Prompt</label>
-                <Textarea
-                  placeholder="Describe your image idea..."
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  className="min-h-[100px]"
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-6">
+                <ProviderSelector
+                  provider={provider}
+                  model={model}
+                  onProviderChange={setProvider}
+                  onModelChange={setModel}
                 />
-              </div>
 
-              <Button 
-                onClick={generatePrompts} 
-                disabled={isGeneratingPrompts || !prompt}
-                variant="secondary"
-                className="w-full"
-              >
-                {isGeneratingPrompts ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating prompts...
-                  </>
-                ) : (
-                  <>
-                    <Wand2 className="mr-2 h-4 w-4" />
-                    Generate 5 Enhanced Prompts
-                  </>
-                )}
-              </Button>
+                <StyleOptions
+                  selectedStyles={selectedStyles}
+                  onStyleChange={setSelectedStyles}
+                />
 
-              {generatedPrompts.length > 0 && (
-                <div className="space-y-4">
-                  <h2 className="text-lg font-semibold">Generated Prompts</h2>
-                  {generatedPrompts.map((enhancedPrompt, index) => (
-                    <Card key={index} className="p-4">
-                      <p className="mb-4">{enhancedPrompt}</p>
-                      <ImageGenerationArea
-                        prompt={enhancedPrompt}
-                        provider={provider}
-                        model={model}
-                        styles={selectedStyles}
-                      />
-                    </Card>
-                  ))}
+                <ImageSettings
+                  settings={imageSettings}
+                  onSettingsChange={setImageSettings}
+                />
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Initial Prompt</label>
+                  <Textarea
+                    placeholder="Describe your image idea..."
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    className="min-h-[100px]"
+                  />
                 </div>
-              )}
+
+                <Button 
+                  onClick={generatePrompts} 
+                  disabled={isGeneratingPrompts || !prompt}
+                  variant="secondary"
+                  className="w-full"
+                >
+                  {isGeneratingPrompts ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating prompts...
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="mr-2 h-4 w-4" />
+                      Generate 5 Enhanced Prompts
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </Card>
 
-          <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Main Generation Area</h2>
-            <ImageGenerationArea
-              prompt={prompt}
-              provider={provider}
-              model={model}
-              styles={selectedStyles}
-            />
-          </Card>
+          {generatedPrompts.length > 0 && (
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold">Generated Prompts</h2>
+              {generatedPrompts.map((enhancedPrompt, index) => (
+                <EnhancedPromptCard
+                  key={index}
+                  prompt={enhancedPrompt}
+                  provider={provider}
+                  model={model}
+                  styles={selectedStyles}
+                  width={imageSettings.width}
+                  height={imageSettings.height}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
