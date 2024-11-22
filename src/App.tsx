@@ -7,6 +7,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Flooko from "./pages/Flooko";
 import Breakdown from "./pages/Breakdown";
+import Subtask from "./pages/Subtask";
 import Notes from "./pages/Notes";
 import Options from "./pages/Options";
 import Journal from "./pages/Journal";
@@ -35,6 +36,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Breakdown />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/subtask"
+                element={
+                  <ProtectedRoute>
+                    <Subtask />
                   </ProtectedRoute>
                 }
               />
