@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
@@ -13,15 +14,48 @@ interface BreakdownSettingsProps {
   onOpenChange: (open: boolean) => void;
 }
 
+const availableModels = {
+  openai: [
+    { id: 'gpt-4o', name: 'GPT-4 Optimized' },
+    { id: 'gpt-4o-mini', name: 'GPT-4 Mini' }
+  ],
+  anthropic: [
+    { id: 'claude-3-opus', name: 'Claude 3 Opus' },
+    { id: 'claude-3-sonnet', name: 'Claude 3 Sonnet' },
+    { id: 'claude-3-haiku', name: 'Claude 3 Haiku' }
+  ],
+  openrouter: [
+    { id: 'openai/gpt-4-turbo', name: 'GPT-4 Turbo' },
+    { id: 'anthropic/claude-3-opus', name: 'Claude 3 Opus' },
+    { id: 'google/gemini-pro', name: 'Gemini Pro' },
+    { id: 'meta-llama/llama-2-70b-chat', name: 'Llama 2 70B' }
+  ],
+  fal: [
+    { id: 'fast-sdxl', name: 'Fast SDXL' },
+    { id: 'flux1.1pro', name: 'FLUX 1.1 Pro' },
+    { id: 'lcm', name: 'LCM' }
+  ],
+  google: [
+    { id: 'gemini-pro', name: 'Gemini Pro' },
+    { id: 'gemini-pro-vision', name: 'Gemini Pro Vision' }
+  ],
+  groq: [
+    { id: 'mixtral-8x7b-32768', name: 'Mixtral 8x7B' },
+    { id: 'llama2-70b-4096', name: 'Llama 2 70B' }
+  ]
+};
+
 const BreakdownSettings = ({ open, onOpenChange }: BreakdownSettingsProps) => {
   const [settings, setSettings] = useState({
     quickBreakdown: {
-      model: "gpt-4o-mini",
+      provider: 'openai',
+      model: 'gpt-4o-mini',
       prompt: "Break down this task into clear, actionable steps:",
       guidelines: "- Keep steps concise\n- Make steps actionable\n- Include any prerequisites",
     },
     guidedBreakdown: {
-      model: "gpt-4o",
+      provider: 'openai',
+      model: 'gpt-4o',
       prompt: "Help me break down this task by asking relevant questions:",
       guidelines: "- Ask clarifying questions\n- Consider dependencies\n- Focus on implementation details",
     },
@@ -35,7 +69,6 @@ const BreakdownSettings = ({ open, onOpenChange }: BreakdownSettingsProps) => {
   const { toast } = useToast();
 
   const handleSave = () => {
-    // Save settings to local storage
     localStorage.setItem('breakdown-settings', JSON.stringify(settings));
     toast({
       title: "Settings saved",
@@ -61,14 +94,47 @@ const BreakdownSettings = ({ open, onOpenChange }: BreakdownSettingsProps) => {
           <TabsContent value="quick" className="space-y-4">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Model</Label>
-                <Input
-                  value={settings.quickBreakdown.model}
-                  onChange={(e) => setSettings(prev => ({
+                <Label>Provider</Label>
+                <Select
+                  value={settings.quickBreakdown.provider}
+                  onValueChange={(value) => setSettings(prev => ({
                     ...prev,
-                    quickBreakdown: { ...prev.quickBreakdown, model: e.target.value }
+                    quickBreakdown: { ...prev.quickBreakdown, provider: value, model: availableModels[value][0].id }
                   }))}
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a provider" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.keys(availableModels).map((provider) => (
+                      <SelectItem key={provider} value={provider}>
+                        {provider.charAt(0).toUpperCase() + provider.slice(1)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Model</Label>
+                <Select
+                  value={settings.quickBreakdown.model}
+                  onValueChange={(value) => setSettings(prev => ({
+                    ...prev,
+                    quickBreakdown: { ...prev.quickBreakdown, model: value }
+                  }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableModels[settings.quickBreakdown.provider].map((model) => (
+                      <SelectItem key={model.id} value={model.id}>
+                        {model.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div className="space-y-2">
@@ -98,14 +164,47 @@ const BreakdownSettings = ({ open, onOpenChange }: BreakdownSettingsProps) => {
           <TabsContent value="guided" className="space-y-4">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Model</Label>
-                <Input
-                  value={settings.guidedBreakdown.model}
-                  onChange={(e) => setSettings(prev => ({
+                <Label>Provider</Label>
+                <Select
+                  value={settings.guidedBreakdown.provider}
+                  onValueChange={(value) => setSettings(prev => ({
                     ...prev,
-                    guidedBreakdown: { ...prev.guidedBreakdown, model: e.target.value }
+                    guidedBreakdown: { ...prev.guidedBreakdown, provider: value, model: availableModels[value][0].id }
                   }))}
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a provider" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.keys(availableModels).map((provider) => (
+                      <SelectItem key={provider} value={provider}>
+                        {provider.charAt(0).toUpperCase() + provider.slice(1)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Model</Label>
+                <Select
+                  value={settings.guidedBreakdown.model}
+                  onValueChange={(value) => setSettings(prev => ({
+                    ...prev,
+                    guidedBreakdown: { ...prev.guidedBreakdown, model: value }
+                  }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableModels[settings.guidedBreakdown.provider].map((model) => (
+                      <SelectItem key={model.id} value={model.id}>
+                        {model.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div className="space-y-2">
