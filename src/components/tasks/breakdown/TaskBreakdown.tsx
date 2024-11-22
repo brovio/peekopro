@@ -2,71 +2,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
-import BreakdownCommentsModal from "./BreakdownCommentsModal";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
-import { useQueryClient } from "@tanstack/react-query";
 
 interface TaskBreakdownProps {
   task: string;
   steps: string[];
   isLoading: boolean;
-  taskId?: string;
   onTaskChange: (value: string) => void;
   onDirectTest: () => void;
   onGuidedTest: () => void;
-  onComplete?: () => void;
 }
 
 const TaskBreakdown = ({ 
   task, 
   steps, 
   isLoading, 
-  taskId,
-  onTaskChange, 
+  onTaskChange,
   onDirectTest, 
   onGuidedTest,
-  onComplete 
 }: TaskBreakdownProps) => {
-  const [showCommentsModal, setShowCommentsModal] = useState(false);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  const handleComplete = async (comments: string) => {
-    if (!taskId) return;
-
-    try {
-      const { error } = await supabase
-        .from('tasks')
-        .update({ 
-          category: 'Complete',
-          breakdown_comments: comments,
-          completed: true 
-        })
-        .eq('id', taskId);
-
-      if (error) throw error;
-
-      await queryClient.invalidateQueries({ queryKey: ['frog-tasks'] });
-      
-      toast({
-        title: "Task completed",
-        description: "Task has been moved to Complete category",
-      });
-
-      if (onComplete) {
-        onComplete();
-      }
-    } catch (error: any) {
-      toast({
-        title: "Error completing task",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
     <Card className="p-4 sm:p-6 bg-[#1A1F2C]">
       <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-gray-100 text-center">
@@ -76,7 +29,7 @@ const TaskBreakdown = ({
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
           <Input
-            placeholder="Enter a task (e.g., Install Notepad++)"
+            placeholder="Enter a task to break down (e.g., Install Notepad++)"
             value={task}
             onChange={(e) => onTaskChange(e.target.value)}
             className="flex-1 bg-[#2A2F3C] border-gray-700 text-gray-100"
@@ -84,7 +37,7 @@ const TaskBreakdown = ({
           <div className="flex gap-2 sm:gap-4">
             <Button 
               onClick={onDirectTest}
-              disabled={isLoading}
+              disabled={isLoading || !task.trim()}
               className="flex-1 sm:flex-none bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
             >
               {isLoading ? (
@@ -95,7 +48,7 @@ const TaskBreakdown = ({
             </Button>
             <Button 
               onClick={onGuidedTest}
-              disabled={isLoading}
+              disabled={isLoading || !task.trim()}
               variant="outline"
               className="flex-1 sm:flex-none border-[#9b87f5] text-[#9b87f5] hover:bg-[#2A2F3C]"
             >
@@ -118,28 +71,9 @@ const TaskBreakdown = ({
                 </li>
               ))}
             </ul>
-            {taskId && onComplete && (
-              <div className="mt-6 flex justify-center sm:justify-end">
-                <Button
-                  onClick={() => setShowCommentsModal(true)}
-                  className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white"
-                >
-                  Done
-                </Button>
-              </div>
-            )}
           </div>
         )}
       </div>
-
-      {taskId && (
-        <BreakdownCommentsModal
-          open={showCommentsModal}
-          onOpenChange={setShowCommentsModal}
-          taskId={taskId}
-          onComplete={handleComplete}
-        />
-      )}
     </Card>
   );
 };
