@@ -8,6 +8,7 @@ import StyleOptions from "@/components/image-creator/StyleOptions";
 import ImageSettings, { ImageSettings as IImageSettings } from "@/components/image-creator/ImageSettings";
 import PromptControls from "@/components/image-creator/PromptControls";
 import EnhancedPromptArea from "@/components/image-creator/EnhancedPromptArea";
+import EnhancedPromptCard from "@/components/image-creator/EnhancedPromptCard";
 
 const ImageCreator = () => {
   const [prompt, setPrompt] = useState("");
@@ -66,9 +67,51 @@ const ImageCreator = () => {
   };
 
   const generateImage = async (selectedPrompt: string) => {
+    if (!provider || !model) {
+      toast({
+        title: "Missing configuration",
+        description: "Please select a provider and model first",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsGeneratingImage(true);
-    // Implement image generation logic here
-    setIsGeneratingImage(false);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
+      const { data, error } = await supabase.functions.invoke('generate-image', {
+        body: { 
+          prompt: selectedPrompt,
+          provider,
+          model,
+          width: imageSettings.width,
+          height: imageSettings.height
+        }
+      });
+
+      if (error) throw error;
+
+      if (!data.imageData) {
+        throw new Error("No image data received from the generation service");
+      }
+
+      toast({
+        title: "Image generated successfully",
+        description: `Cost: $${data.cost}`,
+      });
+
+    } catch (error: any) {
+      console.error('Image generation error:', error);
+      toast({
+        title: "Error generating image",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingImage(false);
+    }
   };
 
   return (
