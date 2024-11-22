@@ -18,6 +18,37 @@ const ImageGenerationArea = ({ prompt, provider, model, styles }: ImageGeneratio
   const [error, setError] = useState<string | null>(null);
   const [metadata, setMetadata] = useState<any>(null);
 
+  const uploadImageToStorage = async (imageUrl: string) => {
+    try {
+      // Fetch the image
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      
+      // Generate a unique filename
+      const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}.png`;
+      
+      // Upload to Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('generated-images')
+        .upload(filename, blob, {
+          contentType: 'image/png',
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get the public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('generated-images')
+        .getPublicUrl(filename);
+
+      return publicUrl;
+    } catch (error: any) {
+      console.error('Error uploading to storage:', error);
+      throw new Error('Failed to upload image to storage');
+    }
+  };
+
   const handleGenerate = async () => {
     if (!prompt || !provider || !model) {
       toast({
@@ -48,11 +79,14 @@ const ImageGenerationArea = ({ prompt, provider, model, styles }: ImageGeneratio
       const imageUrl = data.url || data.images?.[0]?.url;
       if (!imageUrl) throw new Error("No image URL in response");
 
+      // Upload to Supabase Storage
+      const storedImageUrl = await uploadImageToStorage(imageUrl);
+
       // Save the generated image to the database with user_id
       const { error: dbError } = await supabase
         .from('generated_images')
         .insert({
-          url: imageUrl,
+          url: storedImageUrl,
           prompt,
           provider,
           model,
@@ -61,12 +95,12 @@ const ImageGenerationArea = ({ prompt, provider, model, styles }: ImageGeneratio
           height: data.height || 1024,
           format: data.format || 'png',
           cost: data.cost || 0,
-          user_id: user.id // Add the user_id here
+          user_id: user.id
         });
 
       if (dbError) throw dbError;
 
-      setGeneratedImage(imageUrl);
+      setGeneratedImage(storedImageUrl);
       setMetadata({
         prompt,
         model,
