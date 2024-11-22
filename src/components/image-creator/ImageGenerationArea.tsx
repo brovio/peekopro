@@ -4,6 +4,12 @@ import { Loader2 } from "lucide-react";
 import ImagePreview from "./ImagePreview";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ImageGenerationAreaProps {
   prompt: string;
@@ -29,7 +35,6 @@ const ImageGenerationArea = ({
 
   const uploadImageToStorage = async (base64Data: string) => {
     try {
-      // Convert base64 to blob
       const response = await fetch(`data:image/png;base64,${base64Data}`);
       const blob = await response.blob();
       
@@ -151,20 +156,32 @@ const ImageGenerationArea = ({
 
   return (
     <div className="space-y-4">
-      <Button 
-        onClick={handleGenerate}
-        disabled={isLoading || !prompt || !provider || !model}
-        className="w-full"
-      >
-        {isLoading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Generating...
-          </>
-        ) : (
-          'Generate Image'
-        )}
-      </Button>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button 
+              onClick={handleGenerate}
+              disabled={isLoading || !prompt || !provider || !model}
+              className="w-full"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                'Generate Image'
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {isLoading ? 
+              "Please wait while your image is being generated..." :
+              "Click to generate an image from your prompt"
+            }
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
 
       {error && (
         <div className="text-red-500 text-sm p-2 bg-red-50 rounded">

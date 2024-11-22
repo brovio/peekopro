@@ -3,6 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Wand2, Loader2, Sparkles } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface PromptControlsProps {
   prompt: string;
@@ -47,40 +53,64 @@ const PromptControls = ({
         </div>
 
         <div className="flex gap-3">
-          <Button
-            onClick={() => onGeneratePrompts(promptCount)}
-            disabled={isGenerating || !prompt}
-            variant="secondary"
-            className="flex-1"
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generating prompts...
-              </>
-            ) : (
-              <>
-                <Wand2 className="mr-2 h-4 w-4" />
-                Generate Advanced Prompts
-              </>
-            )}
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={() => onGeneratePrompts(promptCount)}
+                  disabled={isGenerating || !prompt}
+                  variant="secondary"
+                  className="flex-1"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating prompts...
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="mr-2 h-4 w-4" />
+                      Generate Advanced Prompts
+                    </>
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {isGenerating ? 
+                  "Please wait while advanced prompts are being generated..." :
+                  "Generate multiple enhanced versions of your prompt"
+                }
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
-          <Button
-            onClick={() => onGeneratePrompts(1)}
-            disabled={isGenerating || !prompt}
-            variant="outline"
-            className="flex-1"
-          >
-            {isGenerating ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <>
-                <Sparkles className="mr-2 h-4 w-4" />
-                Generate Initial Prompt
-              </>
-            )}
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={() => onGeneratePrompts(1)}
+                  disabled={isGenerating || !prompt}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  {isGenerating ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      Generate Initial Prompt
+                    </>
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {isGenerating ? 
+                  "Please wait while your prompt is being enhanced..." :
+                  "Generate an enhanced version of your initial prompt"
+                }
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
     </div>
