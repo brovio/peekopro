@@ -129,7 +129,6 @@ const TaskBreakdown = ({
           </div>
         </div>
 
-        {/* Replace the old steps list with our new StepsList component */}
         <StepsList steps={steps} />
       </div>
     </Card>
