@@ -21,9 +21,9 @@ const filterImages = (
   if (!images) return [];
 
   return images.filter(image => {
-    const providerMatch = !selectedProvider || image.provider === selectedProvider;
-    const modelMatch = !selectedModel || image.model === selectedModel;
-    const styleMatch = !selectedStyle || (image.styles && image.styles.includes(selectedStyle));
+    const providerMatch = selectedProvider === "all" || image.provider === selectedProvider;
+    const modelMatch = selectedModel === "all" || image.model === selectedModel;
+    const styleMatch = selectedStyle === "all" || (image.styles && image.styles.includes(selectedStyle));
     
     return providerMatch && modelMatch && styleMatch;
   });
@@ -39,9 +39,9 @@ const groupImagesByProviderModel = (images: GeneratedImage[]): Record<string, Ge
 };
 
 const Gallery = () => {
-  const [selectedProvider, setSelectedProvider] = useState<string>("");
-  const [selectedModel, setSelectedModel] = useState<string>("");
-  const [selectedStyle, setSelectedStyle] = useState<string>("");
+  const [selectedProvider, setSelectedProvider] = useState<string>("all");
+  const [selectedModel, setSelectedModel] = useState<string>("all");
+  const [selectedStyle, setSelectedStyle] = useState<string>("all");
   const [selectedImage, setSelectedImage] = useState<GeneratedImage | null>(null);
   const [showApiManager, setShowApiManager] = useState(false);
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
@@ -120,14 +120,14 @@ const Gallery = () => {
               value={selectedProvider} 
               onValueChange={(value) => {
                 setSelectedProvider(value);
-                setSelectedModel("");
+                setSelectedModel("all");
               }}
             >
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Filter by Provider" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Providers</SelectItem>
+                <SelectItem value="all">All Providers</SelectItem>
                 {providers.map(provider => (
                   <SelectItem key={provider.id} value={provider.id}>
                     {provider.name}
@@ -137,7 +137,7 @@ const Gallery = () => {
             </Select>
           </div>
 
-          {selectedProvider && (
+          {selectedProvider !== "all" && (
             <div className="w-full sm:w-auto">
               <Select 
                 value={selectedModel} 
@@ -147,7 +147,7 @@ const Gallery = () => {
                   <SelectValue placeholder="Filter by Model" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Models</SelectItem>
+                  <SelectItem value="all">All Models</SelectItem>
                   {providers
                     .find(p => p.id === selectedProvider)
                     ?.models.map(model => (
@@ -169,7 +169,7 @@ const Gallery = () => {
                 <SelectValue placeholder="Filter by Style" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Styles</SelectItem>
+                <SelectItem value="all">All Styles</SelectItem>
                 {styleOptions.map(style => (
                   <SelectItem key={style.id} value={style.id}>
                     {style.label}
