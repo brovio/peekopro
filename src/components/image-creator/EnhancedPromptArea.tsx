@@ -21,7 +21,7 @@ const EnhancedPromptArea = ({
     <div className="space-y-4">
       <div className="flex items-center gap-4">
         <Select value={selectedPrompt} onValueChange={onPromptSelect}>
-          <SelectTrigger className="w-[200px]">
+          <SelectTrigger className="w-[200px] border-2 border-input">
             <SelectValue placeholder="Select a prompt" />
           </SelectTrigger>
           <SelectContent>
@@ -49,10 +49,10 @@ const EnhancedPromptArea = ({
       </div>
       {selectedPrompt && (
         <div className="space-y-4">
-          <div className="bg-card/50 p-4 rounded-lg">
+          <div className="bg-card/50 p-4 rounded-lg w-full">
             <p className="text-sm text-foreground">{selectedPrompt}</p>
           </div>
-          <div className="aspect-[16/9] bg-card/30 rounded-lg flex items-center justify-center">
+          <div className="w-full aspect-[16/9] bg-card/30 rounded-lg flex items-center justify-center">
             <p className="text-sm text-muted-foreground">
               Generated image will appear here
             </p>

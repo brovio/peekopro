@@ -42,7 +42,7 @@ const ImageSettings = ({ settings, onSettingsChange }: ImageSettingsProps) => {
           value={currentDimension}
           onValueChange={handleDimensionChange}
         >
-          <SelectTrigger>
+          <SelectTrigger className="border-2 border-input">
             <SelectValue placeholder="Select dimensions" />
           </SelectTrigger>
           <SelectContent>

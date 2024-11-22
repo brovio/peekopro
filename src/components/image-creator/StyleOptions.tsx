@@ -1,6 +1,7 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { styleOptions } from "./StyleOptionsData";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Card } from "@/components/ui/card";
 
 interface StyleOptionsProps {
   selectedStyles: string[];
@@ -9,7 +10,7 @@ interface StyleOptionsProps {
 
 const StyleOptions = ({ selectedStyles, onStyleChange }: StyleOptionsProps) => {
   return (
-    <div className="bg-card/50 p-4 rounded-lg">
+    <Card className="p-4">
       <label className="block text-sm font-medium mb-3">Style Options</label>
       <ScrollArea className="h-[200px] pr-3">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -39,7 +40,7 @@ const StyleOptions = ({ selectedStyles, onStyleChange }: StyleOptionsProps) => {
           ))}
         </div>
       </ScrollArea>
-    </div>
+    </Card>
   );
 };
 
