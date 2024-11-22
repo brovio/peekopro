@@ -19,10 +19,10 @@ const Menu = () => {
               Home
             </Button>
           </Link>
-          <Link to="/breakdown">
+          <Link to="/subtask">
             <Button variant="ghost" className="w-full justify-start">
               <SplitSquareVertical className="mr-2 h-5 w-5" />
-              Breakdown
+              Subtask It!
             </Button>
           </Link>
           <Link to="/notes">

@@ -6,7 +6,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Flooko from "./pages/Flooko";
-import Breakdown from "./pages/Breakdown";
 import Subtask from "./pages/Subtask";
 import Notes from "./pages/Notes";
 import Options from "./pages/Options";
@@ -28,14 +27,6 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Flooko />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/breakdown"
-                element={
-                  <ProtectedRoute>
-                    <Breakdown />
                   </ProtectedRoute>
                 }
               />
