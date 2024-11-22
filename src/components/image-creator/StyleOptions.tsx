@@ -9,14 +9,14 @@ interface StyleOptionsProps {
 
 const StyleOptions = ({ selectedStyles, onStyleChange }: StyleOptionsProps) => {
   return (
-    <div className="bg-card p-6 rounded-lg border">
-      <label className="block text-lg font-medium mb-4">Style Options</label>
-      <ScrollArea className="h-[300px] pr-4">
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+    <div className="bg-card/50 p-4 rounded-lg">
+      <label className="block text-sm font-medium mb-3">Style Options</label>
+      <ScrollArea className="h-[200px] pr-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
           {styleOptions.map((style) => (
             <div
               key={style.id}
-              className="flex items-center space-x-2 bg-background/50 p-3 rounded-lg hover:bg-background/80 transition-colors"
+              className="flex items-center space-x-2 bg-card/50 p-2 rounded-lg hover:bg-card/80 transition-colors"
             >
               <Checkbox
                 id={style.id}
@@ -31,7 +31,7 @@ const StyleOptions = ({ selectedStyles, onStyleChange }: StyleOptionsProps) => {
               />
               <label
                 htmlFor={style.id}
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
               >
                 {style.label}
               </label>

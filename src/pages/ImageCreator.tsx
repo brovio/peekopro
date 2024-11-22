@@ -6,17 +6,18 @@ import { supabase } from "@/integrations/supabase/client";
 import ProviderSelector from "@/components/image-creator/ProviderSelector";
 import StyleOptions from "@/components/image-creator/StyleOptions";
 import ImageSettings, { ImageSettings as IImageSettings } from "@/components/image-creator/ImageSettings";
-import EnhancedPromptCard from "@/components/image-creator/EnhancedPromptCard";
 import PromptControls from "@/components/image-creator/PromptControls";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import EnhancedPromptArea from "@/components/image-creator/EnhancedPromptArea";
 
 const ImageCreator = () => {
   const [prompt, setPrompt] = useState("");
   const [provider, setProvider] = useState("");
   const [model, setModel] = useState("");
   const [isGeneratingPrompts, setIsGeneratingPrompts] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
   const [generatedPrompts, setGeneratedPrompts] = useState<string[]>([]);
+  const [selectedPrompt, setSelectedPrompt] = useState("");
   const [imageSettings, setImageSettings] = useState<IImageSettings>({
     aspectRatio: "1:1",
     orientation: "square",
@@ -48,6 +49,7 @@ const ImageCreator = () => {
       if (error) throw error;
 
       setGeneratedPrompts(data.prompts);
+      setSelectedPrompt(data.prompts[0]);
       toast({
         title: "Prompts generated",
         description: "Select a prompt to use it for image generation",
@@ -63,16 +65,22 @@ const ImageCreator = () => {
     }
   };
 
+  const generateImage = async (selectedPrompt: string) => {
+    setIsGeneratingImage(true);
+    // Implement image generation logic here
+    setIsGeneratingImage(false);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header onShowApiManager={() => {}} />
-      <div className="container mx-auto p-4 lg:p-8">
-        <h1 className="text-3xl font-bold mb-8">AI Image Creator</h1>
+      <div className="container mx-auto p-4 lg:p-6">
+        <h1 className="text-2xl font-bold mb-6">AI Image Creator</h1>
         
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
           {/* Left Column - Controls */}
-          <div className="xl:col-span-5 space-y-6">
-            <Card className="p-6">
+          <div className="xl:col-span-5 space-y-4">
+            <Card className="p-4">
               <ProviderSelector
                 provider={provider}
                 model={model}
@@ -81,7 +89,7 @@ const ImageCreator = () => {
               />
             </Card>
 
-            <Card className="p-6">
+            <Card className="p-4">
               <ImageSettings
                 settings={imageSettings}
                 onSettingsChange={setImageSettings}
@@ -103,31 +111,15 @@ const ImageCreator = () => {
 
           {/* Right Column - Generated Content */}
           <div className="xl:col-span-7">
-            <Card className="p-6 h-full">
-              <ScrollArea className="h-[calc(100vh-12rem)]">
-                {generatedPrompts.length > 0 ? (
-                  <div className="space-y-6">
-                    <h2 className="text-xl font-semibold sticky top-0 bg-card z-10 pb-4">
-                      Generated Prompts
-                    </h2>
-                    {generatedPrompts.map((enhancedPrompt, index) => (
-                      <EnhancedPromptCard
-                        key={index}
-                        prompt={enhancedPrompt}
-                        provider={provider}
-                        model={model}
-                        styles={selectedStyles}
-                        width={imageSettings.width}
-                        height={imageSettings.height}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center h-full text-muted-foreground">
-                    <p>Generated prompts will appear here</p>
-                  </div>
-                )}
-              </ScrollArea>
+            <Card className="p-4">
+              <h2 className="text-lg font-semibold mb-4">Generated Prompts</h2>
+              <EnhancedPromptArea
+                prompts={generatedPrompts}
+                selectedPrompt={selectedPrompt}
+                onPromptSelect={setSelectedPrompt}
+                onGenerateImage={generateImage}
+                isGenerating={isGeneratingImage}
+              />
             </Card>
           </div>
         </div>
