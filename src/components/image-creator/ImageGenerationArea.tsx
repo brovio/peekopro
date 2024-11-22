@@ -20,32 +20,57 @@ const ImageGenerationArea = ({ prompt, provider, model, styles }: ImageGeneratio
 
   const uploadImageToStorage = async (imageUrl: string) => {
     try {
-      // Fetch the image
+      // Fetch the image with proper error handling
       const response = await fetch(imageUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.statusText}`);
+      }
+      
       const blob = await response.blob();
+      if (!blob) {
+        throw new Error('Failed to convert image to blob');
+      }
       
-      // Generate a unique filename
-      const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}.png`;
+      // Generate a unique filename with timestamp and random string
+      const timestamp = new Date().getTime();
+      const randomString = Math.random().toString(36).substring(7);
+      const filename = `${timestamp}-${randomString}.png`;
       
-      // Upload to Supabase Storage
+      // Upload to Supabase Storage with explicit error handling
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('generated-images')
         .upload(filename, blob, {
           contentType: 'image/png',
+          cacheControl: '3600',
           upsert: false
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        throw new Error(`Storage upload failed: ${uploadError.message}`);
+      }
 
-      // Get the public URL
-      const { data: { publicUrl } } = supabase.storage
+      if (!uploadData?.path) {
+        throw new Error('No upload path returned from storage');
+      }
+
+      // Get the public URL with error handling
+      const { data: { publicUrl }, error: urlError } = supabase.storage
         .from('generated-images')
-        .getPublicUrl(filename);
+        .getPublicUrl(uploadData.path);
+
+      if (urlError) {
+        throw new Error(`Failed to get public URL: ${urlError.message}`);
+      }
+
+      if (!publicUrl) {
+        throw new Error('No public URL returned from storage');
+      }
 
       return publicUrl;
     } catch (error: any) {
-      console.error('Error uploading to storage:', error);
-      throw new Error('Failed to upload image to storage');
+      console.error('Error in uploadImageToStorage:', error);
+      throw new Error(`Failed to upload image: ${error.message}`);
     }
   };
 
