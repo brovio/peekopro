@@ -33,6 +33,34 @@ const ImageGenerationArea = ({
   const [error, setError] = useState<string | null>(null);
   const [metadata, setMetadata] = useState<any>(null);
 
+  const validateInputs = () => {
+    if (!prompt) {
+      toast({
+        title: "Missing prompt",
+        description: "Please provide a prompt for the image generation",
+        variant: "destructive",
+      });
+      return false;
+    }
+    if (!provider) {
+      toast({
+        title: "Missing provider",
+        description: "Please select an AI provider",
+        variant: "destructive",
+      });
+      return false;
+    }
+    if (!model) {
+      toast({
+        title: "Missing model",
+        description: "Please select an AI model",
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
+  };
+
   const uploadImageToStorage = async (base64Data: string) => {
     try {
       const response = await fetch(`data:image/png;base64,${base64Data}`);
@@ -75,14 +103,7 @@ const ImageGenerationArea = ({
   };
 
   const handleGenerate = async () => {
-    if (!prompt || !provider || !model) {
-      toast({
-        title: "Missing information",
-        description: "Please provide a prompt and select a provider and model",
-        variant: "destructive",
-      });
-      return;
-    }
+    if (!validateInputs()) return;
 
     setIsLoading(true);
     setError(null);
@@ -138,7 +159,7 @@ const ImageGenerationArea = ({
       });
       
       toast({
-        title: "Image generated",
+        title: "Image generated successfully",
         description: `Cost: $${data.cost}`,
       });
     } catch (error: any) {
@@ -161,7 +182,7 @@ const ImageGenerationArea = ({
           <TooltipTrigger asChild>
             <Button 
               onClick={handleGenerate}
-              disabled={isLoading || !prompt || !provider || !model}
+              disabled={isLoading}
               className="w-full"
             >
               {isLoading ? (

@@ -14,6 +14,8 @@ interface EnhancedPromptAreaProps {
   onPromptSelect: (prompt: string) => void;
   onGenerateImage: (prompt: string) => Promise<void>;
   isGenerating: boolean;
+  provider: string;
+  model: string;
 }
 
 const EnhancedPromptArea = ({
@@ -22,6 +24,8 @@ const EnhancedPromptArea = ({
   onPromptSelect,
   onGenerateImage,
   isGenerating,
+  provider,
+  model,
 }: EnhancedPromptAreaProps) => {
   const handleGenerateImage = async () => {
     if (selectedPrompt) {
@@ -49,7 +53,7 @@ const EnhancedPromptArea = ({
             <TooltipTrigger asChild>
               <Button
                 onClick={handleGenerateImage}
-                disabled={isGenerating || !selectedPrompt}
+                disabled={isGenerating || !selectedPrompt || !provider || !model}
                 className="ml-auto"
               >
                 {isGenerating ? (
@@ -65,6 +69,9 @@ const EnhancedPromptArea = ({
             <TooltipContent>
               {isGenerating ? 
                 "Please wait while your image is being generated..." :
+                !provider ? "Please select a provider" :
+                !model ? "Please select a model" :
+                !selectedPrompt ? "Please select a prompt" :
                 "Click to generate an image from your prompt"
               }
             </TooltipContent>
