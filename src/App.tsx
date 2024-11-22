@@ -113,14 +113,15 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        <AuthProvider>
-          <SettingsProvider>
-            <NotificationProvider>
-              <RouterProvider router={router} />
-              <Toaster />
-            </NotificationProvider>
-          </SettingsProvider>
-        </AuthProvider>
+        <RouterProvider router={router}>
+          <AuthProvider>
+            <SettingsProvider>
+              <NotificationProvider>
+                <Toaster />
+              </NotificationProvider>
+            </SettingsProvider>
+          </AuthProvider>
+        </RouterProvider>
       </ThemeProvider>
     </QueryClientProvider>
   )
