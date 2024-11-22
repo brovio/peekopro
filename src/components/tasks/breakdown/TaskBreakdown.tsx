@@ -1,7 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Loader2, Wand2 } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
 
 interface TaskBreakdownProps {
   task: string;
@@ -24,6 +28,51 @@ const TaskBreakdown = ({
   onGuidedTest,
   onComplete,
 }: TaskBreakdownProps) => {
+  const [isImproving, setIsImproving] = useState(false);
+  const { toast } = useToast();
+  const { user } = useAuth();
+
+  const handleImprovePrompt = async () => {
+    if (!task.trim() || !user) return;
+    
+    setIsImproving(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('improve-prompt', {
+        body: { prompt: task }
+      });
+
+      if (error) throw error;
+
+      if (data.improvedPrompt) {
+        // Save to database
+        const { error: dbError } = await supabase
+          .from('subtask_breakdowns')
+          .insert({
+            user_id: user.id,
+            original_prompt: task,
+            improved_prompt: data.improvedPrompt,
+          });
+
+        if (dbError) throw dbError;
+
+        onTaskChange(data.improvedPrompt);
+        toast({
+          title: "Prompt improved",
+          description: "Your task prompt has been enhanced for better results",
+        });
+      }
+    } catch (error: any) {
+      console.error('Error improving prompt:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to improve prompt",
+        variant: "destructive",
+      });
+    } finally {
+      setIsImproving(false);
+    }
+  };
+
   return (
     <Card className="p-4 sm:p-6 bg-[#1A1F2C]">
       <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-gray-100 text-center">
@@ -32,12 +81,27 @@ const TaskBreakdown = ({
       
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-          <Input
-            placeholder="Enter a task to break down (e.g., Install Notepad++)"
-            value={task}
-            onChange={(e) => onTaskChange(e.target.value)}
-            className="flex-1 bg-[#2A2F3C] border-gray-700 text-gray-100"
-          />
+          <div className="flex-1 space-y-2">
+            <Input
+              placeholder="Enter a task to break down (e.g., Install Notepad++)"
+              value={task}
+              onChange={(e) => onTaskChange(e.target.value)}
+              className="flex-1 bg-[#2A2F3C] border-gray-700 text-gray-100"
+            />
+            <Button
+              onClick={handleImprovePrompt}
+              disabled={isImproving || !task.trim()}
+              variant="outline"
+              className="w-full sm:w-auto border-[#9b87f5] text-[#9b87f5] hover:bg-[#2A2F3C]"
+            >
+              {isImproving ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Wand2 className="h-4 w-4 mr-2" />
+              )}
+              Improve Prompt
+            </Button>
+          </div>
           <div className="flex gap-2 sm:gap-4">
             <Button 
               onClick={onDirectTest}
