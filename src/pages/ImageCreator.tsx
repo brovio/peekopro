@@ -8,7 +8,8 @@ import StyleOptions from "@/components/image-creator/StyleOptions";
 import ImageSettings, { ImageSettings as IImageSettings } from "@/components/image-creator/ImageSettings";
 import PromptControls from "@/components/image-creator/PromptControls";
 import EnhancedPromptArea from "@/components/image-creator/EnhancedPromptArea";
-import EnhancedPromptCard from "@/components/image-creator/EnhancedPromptCard";
+import GeneratedImagesGrid from "@/components/image-creator/GeneratedImagesGrid";
+import { GeneratedImage } from "@/components/gallery/types";
 
 const ImageCreator = () => {
   const [prompt, setPrompt] = useState("");
@@ -19,7 +20,7 @@ const ImageCreator = () => {
   const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
   const [generatedPrompts, setGeneratedPrompts] = useState<string[]>([]);
   const [selectedPrompt, setSelectedPrompt] = useState("");
-  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+  const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
   const [imageSettings, setImageSettings] = useState<IImageSettings>({
     aspectRatio: "1:1",
     orientation: "square",
@@ -78,7 +79,6 @@ const ImageCreator = () => {
     }
 
     setIsGeneratingImage(true);
-    setGeneratedImageUrl(null);
     
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -100,11 +100,6 @@ const ImageCreator = () => {
         throw new Error("No image data received from the generation service");
       }
 
-      // Convert base64 to URL
-      const imageUrl = `data:image/png;base64,${data.imageData}`;
-      setGeneratedImageUrl(imageUrl);
-
-      // Upload to Supabase Storage
       const timestamp = new Date().getTime();
       const filename = `${timestamp}-${Math.random().toString(36).substring(7)}.png`;
       
@@ -121,7 +116,22 @@ const ImageCreator = () => {
         .from('generated-images')
         .getPublicUrl(uploadData.path);
 
-      // Save to database with user_id
+      const newImage: GeneratedImage = {
+        id: timestamp.toString(),
+        url: publicUrl,
+        prompt: selectedPrompt,
+        provider,
+        model,
+        styles: selectedStyles,
+        width: imageSettings.width,
+        height: imageSettings.height,
+        format: 'png',
+        cost: data.cost,
+        created_at: new Date().toISOString()
+      };
+
+      setGeneratedImages(prev => [...prev, newImage]);
+
       const { error: dbError } = await supabase
         .from('generated_images')
         .insert({
@@ -134,7 +144,7 @@ const ImageCreator = () => {
           height: imageSettings.height,
           format: 'png',
           cost: data.cost,
-          user_id: user.id  // Add the user_id here
+          user_id: user.id
         });
 
       if (dbError) throw dbError;
@@ -153,6 +163,14 @@ const ImageCreator = () => {
       });
     } finally {
       setIsGeneratingImage(false);
+    }
+  };
+
+  const generateAllPrompts = async () => {
+    if (!generatedPrompts.length) return;
+    
+    for (const prompt of generatedPrompts) {
+      await generateImage(prompt);
     }
   };
 
@@ -213,23 +231,13 @@ const ImageCreator = () => {
                 selectedPrompt={selectedPrompt}
                 onPromptSelect={setSelectedPrompt}
                 onGenerateImage={generateImage}
+                onGenerateAll={generateAllPrompts}
                 isGenerating={isGeneratingImage}
                 provider={provider}
                 model={model}
               />
-              {generatedImageUrl && (
-                <div className="mt-4">
-                  <EnhancedPromptCard
-                    prompt={selectedPrompt}
-                    provider={provider}
-                    model={model}
-                    styles={selectedStyles}
-                    width={imageSettings.width}
-                    height={imageSettings.height}
-                    imageUrl={generatedImageUrl}
-                  />
-                </div>
-              )}
+              
+              <GeneratedImagesGrid images={generatedImages} />
             </Card>
           </div>
         </div>

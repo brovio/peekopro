@@ -7,15 +7,18 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { GeneratedImage } from "@/components/gallery/types";
 
 interface EnhancedPromptAreaProps {
   prompts: string[];
   selectedPrompt: string;
   onPromptSelect: (prompt: string) => void;
   onGenerateImage: (prompt: string) => Promise<void>;
+  onGenerateAll?: () => Promise<void>;
   isGenerating: boolean;
   provider: string;
   model: string;
+  generatedImages?: GeneratedImage[];
 }
 
 const EnhancedPromptArea = ({
@@ -23,6 +26,7 @@ const EnhancedPromptArea = ({
   selectedPrompt,
   onPromptSelect,
   onGenerateImage,
+  onGenerateAll,
   isGenerating,
   provider,
   model,
@@ -37,10 +41,10 @@ const EnhancedPromptArea = ({
     <div className="space-y-4">
       <div className="flex items-center gap-4">
         <Select value={selectedPrompt} onValueChange={onPromptSelect}>
-          <SelectTrigger className="w-[200px] border border-input bg-navy-800 hover:bg-navy-900">
+          <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Select a prompt" />
           </SelectTrigger>
-          <SelectContent className="bg-navy-800 border border-input">
+          <SelectContent>
             {prompts.map((prompt, index) => (
               <SelectItem key={index} value={prompt}>
                 Prompt {index + 1}
@@ -48,13 +52,13 @@ const EnhancedPromptArea = ({
             ))}
           </SelectContent>
         </Select>
+        
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 onClick={handleGenerateImage}
                 disabled={isGenerating || !selectedPrompt || !provider || !model}
-                className="ml-auto"
               >
                 {isGenerating ? (
                   <>
@@ -77,16 +81,22 @@ const EnhancedPromptArea = ({
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
+
+        {prompts.length > 1 && onGenerateAll && (
+          <Button
+            variant="secondary"
+            onClick={onGenerateAll}
+            disabled={isGenerating || !provider || !model}
+          >
+            Generate All
+          </Button>
+        )}
       </div>
+
       {selectedPrompt && (
         <div className="space-y-4">
-          <div className="bg-card/50 p-4 rounded-lg w-full">
+          <div className="bg-card/50 p-4 rounded-lg">
             <p className="text-sm text-foreground">{selectedPrompt}</p>
-          </div>
-          <div className="w-full aspect-[16/9] bg-card/30 rounded-lg flex items-center justify-center">
-            <p className="text-sm text-muted-foreground">
-              Generated image will appear here
-            </p>
           </div>
         </div>
       )}
