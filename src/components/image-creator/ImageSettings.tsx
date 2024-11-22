@@ -42,10 +42,10 @@ const ImageSettings = ({ settings, onSettingsChange }: ImageSettingsProps) => {
           value={currentDimension}
           onValueChange={handleDimensionChange}
         >
-          <SelectTrigger className="border border-input bg-background">
+          <SelectTrigger className="border border-input bg-navy-800 hover:bg-navy-900">
             <SelectValue placeholder="Select dimensions" />
           </SelectTrigger>
-          <SelectContent className="bg-background border border-input">
+          <SelectContent className="bg-navy-800 border border-input">
             {DALLE_DIMENSIONS.map((dim) => (
               <SelectItem 
                 key={`${dim.width}x${dim.height}`} 

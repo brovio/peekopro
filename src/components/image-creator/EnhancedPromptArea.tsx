@@ -21,10 +21,10 @@ const EnhancedPromptArea = ({
     <div className="space-y-4">
       <div className="flex items-center gap-4">
         <Select value={selectedPrompt} onValueChange={onPromptSelect}>
-          <SelectTrigger className="w-[200px] border border-input bg-background">
+          <SelectTrigger className="w-[200px] border border-input bg-navy-800 hover:bg-navy-900">
             <SelectValue placeholder="Select a prompt" />
           </SelectTrigger>
-          <SelectContent className="bg-background border border-input">
+          <SelectContent className="bg-navy-800 border border-input">
             {prompts.map((prompt, index) => (
               <SelectItem key={index} value={prompt}>
                 Prompt {index + 1}
