@@ -10,21 +10,26 @@ interface ImageRequest {
   prompt: string;
   provider: string;
   model: string;
+  width?: number;
+  height?: number;
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const { prompt, provider, model } = await req.json() as ImageRequest
+    const { prompt, provider, model, width = 1024, height = 1024 } = await req.json() as ImageRequest;
     let response;
     let cost = 0;
     let imageUrl;
+    let format = 'png';
 
     console.log(`Generating image with provider: ${provider}, model: ${model}`);
     console.log(`Prompt: ${prompt}`);
+    console.log(`Dimensions: ${width}x${height}`);
 
     switch (provider) {
       case 'openai':
@@ -38,16 +43,17 @@ serve(async (req) => {
             model: "dall-e-3",
             prompt,
             n: 1,
-            size: "1024x1024"
+            size: `${width}x${height}`,
+            response_format: 'url'
           })
         });
-        const openaiData = await response.json();
-        console.log('OpenAI response:', openaiData);
         
         if (!response.ok) {
-          throw new Error(`OpenAI error: ${openaiData.error?.message || 'Unknown error'}`);
+          const error = await response.json();
+          throw new Error(`OpenAI error: ${error.error?.message || 'Unknown error'}`);
         }
         
+        const openaiData = await response.json();
         imageUrl = openaiData.data?.[0]?.url;
         cost = 0.040;
         break;
@@ -73,20 +79,19 @@ serve(async (req) => {
           },
           body: JSON.stringify({
             prompt,
-            height: 1024,
-            width: 1024,
+            height,
+            width,
             scheduler: "K_EULER",
             num_inference_steps: 50
           })
         });
         
-        const falData = await response.json();
-        console.log('Fal.ai response:', falData);
-        
         if (!response.ok) {
-          const errorMessage = falData.error?.message || falData.detail || falData.error || 'Unknown error';
-          throw new Error(`Fal.ai error: ${errorMessage}`);
+          const error = await response.json();
+          throw new Error(`Fal.ai error: ${error.error?.message || error.detail || 'Unknown error'}`);
         }
+        
+        const falData = await response.json();
         
         // Handle different response formats from Fal.ai
         if (Array.isArray(falData)) {
@@ -98,31 +103,6 @@ serve(async (req) => {
         }
         
         cost = model === 'flux1.1pro' ? 0.008 : model === 'lcm' ? 0.003 : 0.005;
-        break;
-
-      case 'openrouter':
-        response = await fetch('https://openrouter.ai/api/v1/images/generations', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${Deno.env.get('OPENROUTER_API_KEY')}`,
-            'Content-Type': 'application/json',
-            'HTTP-Referer': 'http://localhost:5173',
-            'X-Title': 'Lovable Image Generator'
-          },
-          body: JSON.stringify({
-            model,
-            prompt,
-          })
-        });
-        const openrouterData = await response.json();
-        console.log('OpenRouter response:', openrouterData);
-        
-        if (!response.ok) {
-          throw new Error(`OpenRouter error: ${openrouterData.error?.message || 'Unknown error'}`);
-        }
-        
-        imageUrl = openrouterData.data?.[0]?.url;
-        cost = model === 'dall-e-3' ? 0.040 : 0.008;
         break;
 
       default:
@@ -138,21 +118,32 @@ serve(async (req) => {
       JSON.stringify({ 
         url: imageUrl,
         cost,
+        format,
         provider,
         model,
+        width,
+        height,
         timestamp: new Date().toISOString()
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        } 
+      }
     )
   } catch (error) {
     console.error('Error generating image:', error);
     return new Response(
       JSON.stringify({ 
-        error: error.message,
+        error: error.message || 'An unexpected error occurred',
         details: error.toString()
       }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        }, 
         status: 500 
       }
     )
