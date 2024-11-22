@@ -13,7 +13,7 @@ interface ImagePreviewProps {
 
 const ImagePreview = ({ generatedImage, metadata }: ImagePreviewProps) => {
   return (
-    <Card className="p-6">
+    <Card className="p-4 w-full">
       <div className="aspect-square w-full bg-muted rounded-lg overflow-hidden mb-4">
         {generatedImage ? (
           <img

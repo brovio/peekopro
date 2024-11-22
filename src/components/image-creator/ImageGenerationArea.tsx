@@ -29,7 +29,6 @@ const ImageGenerationArea = ({
 
   const uploadImageToStorage = async (base64Data: string) => {
     try {
-      // Convert base64 to blob
       const response = await fetch(`data:image/png;base64,${base64Data}`);
       const blob = await response.blob();
       
@@ -150,11 +149,11 @@ const ImageGenerationArea = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <Button 
         onClick={handleGenerate}
         disabled={isLoading || !prompt || !provider || !model}
-        className="w-full"
+        className="w-full bg-primary hover:bg-primary/90"
       >
         {isLoading ? (
           <>
