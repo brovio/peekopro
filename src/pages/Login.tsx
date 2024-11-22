@@ -18,8 +18,8 @@ const Login = () => {
         <div className="text-center mb-8 space-y-4">
           <div className="flex justify-center">
             <img 
-              src="/lovable-uploads/3fcd2b3e-6c2e-4e5e-a2ce-3c8528cf39b3.png"
-              alt="Brov.io Logo"
+              src="/lovable-uploads/ca194906-3c7b-4034-87d0-54be86279b74.png"
+              alt="Peekopro Logo"
               className="w-[300px] object-contain"
             />
           </div>

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import Menu from "./Menu";
+import { Link } from "react-router-dom";
 
 interface HeaderProps {
   onShowApiManager: () => void;
@@ -83,11 +84,13 @@ const Header = ({ onShowApiManager }: HeaderProps) => {
       <Menu />
       
       <div className="flex-1 flex justify-center px-2 sm:px-4">
-        <img 
-          src="/lovable-uploads/3fcd2b3e-6c2e-4e5e-a2ce-3c8528cf39b3.png"
-          alt="Flooko Logo"
-          className="w-[150px] sm:w-[300px] object-contain my-[1px]"
-        />
+        <Link to="/">
+          <img 
+            src="/lovable-uploads/ca194906-3c7b-4034-87d0-54be86279b74.png"
+            alt="Peekopro Logo"
+            className="w-[150px] sm:w-[300px] object-contain my-[1px]"
+          />
+        </Link>
       </div>
       
       <Button 
