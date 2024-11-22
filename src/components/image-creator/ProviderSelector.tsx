@@ -55,10 +55,10 @@ const ProviderSelector = ({
       <div>
         <label className="block text-sm font-medium mb-2">Provider</label>
         <Select onValueChange={onProviderChange} value={provider}>
-          <SelectTrigger className="border border-input">
+          <SelectTrigger className="border border-input bg-background">
             <SelectValue placeholder="Select a provider" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-background border border-input">
             {providers.map((p) => (
               <SelectItem key={p.id} value={p.id}>
                 {p.name}
@@ -72,10 +72,10 @@ const ProviderSelector = ({
         <div>
           <label className="block text-sm font-medium mb-2">Model</label>
           <Select onValueChange={onModelChange} value={model}>
-            <SelectTrigger className="border border-input">
+            <SelectTrigger className="border border-input bg-background">
               <SelectValue placeholder="Select a model" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-background border border-input">
               {selectedProvider?.models.map((m) => (
                 <SelectItem key={m.id} value={m.id}>
                   {m.name} ({m.cost})
