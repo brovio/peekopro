@@ -121,7 +121,7 @@ const ImageCreator = () => {
         .from('generated-images')
         .getPublicUrl(uploadData.path);
 
-      // Save to database
+      // Save to database with user_id
       const { error: dbError } = await supabase
         .from('generated_images')
         .insert({
@@ -133,7 +133,8 @@ const ImageCreator = () => {
           width: imageSettings.width,
           height: imageSettings.height,
           format: 'png',
-          cost: data.cost
+          cost: data.cost,
+          user_id: user.id  // Add the user_id here
         });
 
       if (dbError) throw dbError;
