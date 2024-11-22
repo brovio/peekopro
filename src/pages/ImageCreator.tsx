@@ -19,6 +19,7 @@ const ImageCreator = () => {
   const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
   const [generatedPrompts, setGeneratedPrompts] = useState<string[]>([]);
   const [selectedPrompt, setSelectedPrompt] = useState("");
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [imageSettings, setImageSettings] = useState<IImageSettings>({
     aspectRatio: "1:1",
     orientation: "square",
@@ -77,6 +78,8 @@ const ImageCreator = () => {
     }
 
     setIsGeneratingImage(true);
+    setGeneratedImageUrl(null);
+    
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
@@ -97,6 +100,44 @@ const ImageCreator = () => {
         throw new Error("No image data received from the generation service");
       }
 
+      // Convert base64 to URL
+      const imageUrl = `data:image/png;base64,${data.imageData}`;
+      setGeneratedImageUrl(imageUrl);
+
+      // Upload to Supabase Storage
+      const timestamp = new Date().getTime();
+      const filename = `${timestamp}-${Math.random().toString(36).substring(7)}.png`;
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('generated-images')
+        .upload(filename, decode(data.imageData), {
+          contentType: 'image/png',
+          cacheControl: '3600'
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('generated-images')
+        .getPublicUrl(uploadData.path);
+
+      // Save to database
+      const { error: dbError } = await supabase
+        .from('generated_images')
+        .insert({
+          url: publicUrl,
+          prompt: selectedPrompt,
+          provider,
+          model,
+          styles: selectedStyles,
+          width: imageSettings.width,
+          height: imageSettings.height,
+          format: 'png',
+          cost: data.cost
+        });
+
+      if (dbError) throw dbError;
+
       toast({
         title: "Image generated successfully",
         description: `Cost: $${data.cost}`,
@@ -112,6 +153,16 @@ const ImageCreator = () => {
     } finally {
       setIsGeneratingImage(false);
     }
+  };
+
+  // Helper function to decode base64
+  const decode = (base64: string) => {
+    const binaryString = atob(base64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes;
   };
 
   return (
@@ -165,6 +216,19 @@ const ImageCreator = () => {
                 provider={provider}
                 model={model}
               />
+              {generatedImageUrl && (
+                <div className="mt-4">
+                  <EnhancedPromptCard
+                    prompt={selectedPrompt}
+                    provider={provider}
+                    model={model}
+                    styles={selectedStyles}
+                    width={imageSettings.width}
+                    height={imageSettings.height}
+                    imageUrl={generatedImageUrl}
+                  />
+                </div>
+              )}
             </Card>
           </div>
         </div>

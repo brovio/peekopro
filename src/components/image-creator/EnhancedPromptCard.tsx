@@ -1,5 +1,4 @@
 import { Card } from "@/components/ui/card";
-import ImageGenerationArea from "./ImageGenerationArea";
 
 interface EnhancedPromptCardProps {
   prompt: string;
@@ -8,6 +7,7 @@ interface EnhancedPromptCardProps {
   styles: string[];
   width: number;
   height: number;
+  imageUrl: string;
 }
 
 const EnhancedPromptCard = ({ 
@@ -16,24 +16,33 @@ const EnhancedPromptCard = ({
   model, 
   styles,
   width,
-  height
+  height,
+  imageUrl
 }: EnhancedPromptCardProps) => {
   return (
     <Card className="p-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="space-y-6">
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Enhanced Prompt</h3>
-          <p className="text-sm text-muted-foreground">{prompt}</p>
+          <h3 className="text-lg font-semibold">Generated Image</h3>
+          <div className="aspect-square w-full relative bg-muted rounded-lg overflow-hidden">
+            <img
+              src={imageUrl}
+              alt={prompt}
+              className="w-full h-full object-cover"
+            />
+          </div>
         </div>
-        <div>
-          <ImageGenerationArea
-            prompt={prompt}
-            provider={provider}
-            model={model}
-            styles={styles}
-            width={width}
-            height={height}
-          />
+        <div className="space-y-2">
+          <h4 className="font-medium">Generation Details</h4>
+          <p className="text-sm text-muted-foreground">{prompt}</p>
+          <div className="text-sm text-muted-foreground">
+            <p>Provider: {provider}</p>
+            <p>Model: {model}</p>
+            <p>Size: {width}x{height}</p>
+            {styles.length > 0 && (
+              <p>Styles: {styles.join(', ')}</p>
+            )}
+          </div>
         </div>
       </div>
     </Card>
