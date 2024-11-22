@@ -27,17 +27,11 @@ const ImageGenerationArea = ({
   const [error, setError] = useState<string | null>(null);
   const [metadata, setMetadata] = useState<any>(null);
 
-  const uploadImageToStorage = async (imageUrl: string) => {
+  const uploadImageToStorage = async (base64Data: string) => {
     try {
-      const response = await fetch(imageUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch image: ${response.statusText}`);
-      }
-      
+      // Convert base64 to blob
+      const response = await fetch(`data:image/png;base64,${base64Data}`);
       const blob = await response.blob();
-      if (!blob) {
-        throw new Error('Failed to convert image to blob');
-      }
       
       const timestamp = new Date().getTime();
       const randomString = Math.random().toString(36).substring(7);
@@ -103,10 +97,11 @@ const ImageGenerationArea = ({
 
       if (error) throw error;
 
-      const imageUrl = data.url || data.images?.[0]?.url;
-      if (!imageUrl) throw new Error("No image URL in response");
+      if (!data.imageData) {
+        throw new Error("No image data in response");
+      }
 
-      const storedImageUrl = await uploadImageToStorage(imageUrl);
+      const storedImageUrl = await uploadImageToStorage(data.imageData);
 
       const { error: dbError } = await supabase
         .from('generated_images')
