@@ -84,7 +84,7 @@ const Header = ({ onShowApiManager }: HeaderProps) => {
       
       <div className="flex-1 flex justify-center px-2 sm:px-4">
         <img 
-          src="/lovable-uploads/75ee1ca8-26a3-48f0-9f3e-f8467a26d18a.png"
+          src="/lovable-uploads/d6cae13f-62a5-4f3a-92c8-a89b6b20d71d.png"
           alt="Peekopro Logo"
           className="w-[150px] sm:w-[300px] object-contain my-[1px]"
         />
