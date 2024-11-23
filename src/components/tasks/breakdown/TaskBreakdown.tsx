@@ -39,33 +39,27 @@ const TaskBreakdown = ({
     setIsImproving(true);
     try {
       const { data, error } = await supabase.functions.invoke('improve-prompt', {
-        body: { prompt: task }
+        body: { 
+          prompt: task,
+          type: 'task-name', // Specify that we only want to improve the task name
+          maxExtraWords: 5 // Limit additional words
+        }
       });
 
       if (error) throw error;
 
       if (data.improvedPrompt) {
-        const { error: dbError } = await supabase
-          .from('subtask_breakdowns')
-          .insert({
-            user_id: user.id,
-            original_prompt: task,
-            improved_prompt: data.improvedPrompt,
-          });
-
-        if (dbError) throw dbError;
-
         onTaskChange(data.improvedPrompt);
         toast({
-          title: "Prompt improved",
-          description: "Your task prompt has been enhanced for better results",
+          title: "Task name enhanced",
+          description: "Your task name has been improved for better results",
         });
       }
     } catch (error: any) {
-      console.error('Error improving prompt:', error);
+      console.error('Error improving task name:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to improve prompt",
+        description: error.message || "Failed to improve task name",
         variant: "destructive",
       });
     } finally {
@@ -92,12 +86,12 @@ const TaskBreakdown = ({
               onClick={handleImprovePrompt}
               disabled={isImproving || !task.trim()}
               variant="outline"
-              className="w-full sm:w-auto border-[#9b87f5] text-[#9b87f5] hover:bg-[#2A2F3C]"
+              className="w-full sm:w-auto bg-[#2A2F3C] hover:bg-[#343B4D] border-[#9b87f5] text-[#9b87f5] hover:text-[#b5a6f7] transition-colors"
             >
               {isImproving ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <Loader2 className="h-4 w-4 animate-spin mr-2 text-[#9b87f5]" />
               ) : (
-                <Wand2 className="h-4 w-4 mr-2" />
+                <Wand2 className="h-4 w-4 mr-2 text-[#9b87f5]" />
               )}
               Level Up Task Name
             </Button>
@@ -129,7 +123,7 @@ const TaskBreakdown = ({
           </div>
         </div>
 
-        <StepsList steps={steps} />
+        {steps.length > 0 && <StepsList steps={steps} />}
       </div>
     </Card>
   );
