@@ -13,8 +13,8 @@ const Menu = () => {
     queryKey: ['profile', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
-
-      const { data: profile, error } = await supabase
+      
+      const { data, error } = await supabase
         .from('profiles')
         .select('is_admin')
         .eq('id', user.id)
@@ -24,8 +24,8 @@ const Menu = () => {
         console.error('Profile fetch error:', error);
         return null;
       }
-
-      return profile;
+      
+      return data;
     },
     enabled: !!user?.id,
     retry: false,
