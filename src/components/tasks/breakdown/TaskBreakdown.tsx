@@ -99,7 +99,7 @@ const TaskBreakdown = ({
               ) : (
                 <Wand2 className="h-4 w-4 mr-2" />
               )}
-              Improve Prompt
+              Level Up Task Name
             </Button>
           </div>
           <div className="flex gap-2 sm:gap-4">
