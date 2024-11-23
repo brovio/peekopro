@@ -39,11 +39,7 @@ const TaskBreakdown = ({
     setIsImproving(true);
     try {
       const { data, error } = await supabase.functions.invoke('improve-prompt', {
-        body: { 
-          prompt: task,
-          type: 'task-name',
-          maxExtraWords: 5
-        }
+        body: { prompt: task }
       });
 
       if (error) throw error;
@@ -51,15 +47,15 @@ const TaskBreakdown = ({
       if (data.improvedPrompt) {
         onTaskChange(data.improvedPrompt);
         toast({
-          title: "Task name enhanced",
-          description: "Your task name has been improved for better results",
+          title: "Text cleaned up",
+          description: "Spelling and grammar have been improved",
         });
       }
     } catch (error: any) {
-      console.error('Error improving task name:', error);
+      console.error('Error improving text:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to improve task name",
+        description: error.message || "Failed to improve text",
         variant: "destructive",
       });
     } finally {
@@ -86,14 +82,14 @@ const TaskBreakdown = ({
               onClick={handleImprovePrompt}
               disabled={isImproving || !task.trim()}
               variant="outline"
-              className="w-full sm:w-auto bg-gradient-to-r from-[#9b87f5] to-[#b5a6f7] hover:from-[#b5a6f7] hover:to-[#9b87f5] text-white border-none shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
+              className="w-full sm:w-auto bg-gradient-to-r from-[#33C3F0] to-[#0EA5E9] hover:from-[#0EA5E9] hover:to-[#33C3F0] text-white border-none shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
             >
               {isImproving ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2 text-white" />
               ) : (
                 <Wand2 className="h-4 w-4 mr-2 text-white" />
               )}
-              Level Up Task Name
+              Fix Spelling & Grammar
             </Button>
           </div>
           <div className="flex gap-2 sm:gap-4">

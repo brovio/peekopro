@@ -25,11 +25,26 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are an expert at improving task breakdown prompts. Your goal is to make prompts more specific, actionable, and clear.'
+            content: `You are a grammar and spelling correction assistant. Your task is to:
+1. Fix any spelling mistakes
+2. Correct grammar issues
+3. Improve sentence structure if needed
+4. You may add up to 5 new words (excluding articles and prepositions) if it helps clarify the meaning
+5. Maintain the original intent and meaning of the text
+6. Do not break down or expand the task, just clean up the language
+
+Example:
+Input: "instll notepad++ on my computr"
+Output: "Install Notepad++ on my computer"
+
+Input: "setup docker for development enviroment local"
+Output: "Set up Docker for local development environment"
+
+Always return just the corrected text, nothing else.`
           },
           {
             role: 'user',
-            content: `Please improve this task breakdown prompt by making it more specific and actionable: "${prompt}"`
+            content: prompt
           }
         ],
       }),
