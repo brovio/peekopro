@@ -7,21 +7,30 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 const Menu = () => {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
+      if (!user?.id || !session) {
+        throw new Error('User not authenticated');
+      }
+
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user?.id)
+        .eq('id', user.id)
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Profile fetch error:', error);
+        return null;
+      }
+
       return data;
     },
-    enabled: !!user?.id
+    enabled: !!user?.id && !!session,
+    retry: false
   });
 
   return (
