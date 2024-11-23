@@ -200,25 +200,31 @@ export type Database = {
       }
       profiles: {
         Row: {
+          approved: boolean | null
           company: string | null
           created_at: string
           email: string | null
           full_name: string | null
           id: string
+          is_admin: boolean | null
         }
         Insert: {
+          approved?: boolean | null
           company?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id: string
+          is_admin?: boolean | null
         }
         Update: {
+          approved?: boolean | null
           company?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
+          is_admin?: boolean | null
         }
         Relationships: []
       }
