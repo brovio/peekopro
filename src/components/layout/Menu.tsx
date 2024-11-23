@@ -12,27 +12,20 @@ const Menu = () => {
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
-      if (!user?.id) {
-        return null;
-      }
+      if (!user?.id) return null;
 
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        return null;
-      }
-
-      const { data, error } = await supabase
+      const { data: profile, error } = await supabase
         .from('profiles')
         .select('is_admin')
         .eq('id', user.id)
-        .maybeSingle();
+        .single();
       
       if (error) {
         console.error('Profile fetch error:', error);
         return null;
       }
 
-      return data;
+      return profile;
     },
     enabled: !!user?.id,
     retry: false
