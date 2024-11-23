@@ -4,6 +4,8 @@ import Header from "@/components/layout/Header";
 import { Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import BreakdownSettings from "@/components/tasks/breakdown/BreakdownSettings";
+import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Subtask = () => {
   const [showApiManager, setShowApiManager] = useState(false);
@@ -11,11 +13,48 @@ const Subtask = () => {
   const [task, setTask] = useState("");
   const [steps, setSteps] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleDirectTest = async () => {
+    if (!task.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a task first",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
-    // Implementation for direct test will go here
-    setIsLoading(false);
+    try {
+      const { data: { data: steps }, error } = await supabase.functions.invoke('break-down-task', {
+        body: { 
+          content: task,
+          skipQuestions: true
+        }
+      });
+
+      if (error) throw error;
+
+      if (!steps || !Array.isArray(steps)) {
+        throw new Error('Invalid response format from AI service');
+      }
+
+      setSteps(steps.map(step => step.text));
+      toast({
+        title: "Success",
+        description: "Task has been broken down successfully",
+      });
+    } catch (error: any) {
+      console.error('Error in quick breakdown:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to break down task",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleGuidedTest = async () => {
