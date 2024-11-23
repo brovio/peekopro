@@ -18,12 +18,9 @@ const Menu = () => {
         .from('profiles')
         .select('is_admin')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
       
       if (error) {
-        if (error.code === 'PGRST116') {
-          return null; // Profile not found
-        }
         console.error('Profile fetch error:', error);
         return null;
       }
