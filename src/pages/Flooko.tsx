@@ -14,15 +14,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
 import ApiKeyManager from "@/components/ui/ApiKeyManager";
 import { Task } from "@/types/task";
-import MindDump from "@/components/tasks/MindDump";
 
 type CategorizedTask = Pick<Task, 'id' | 'content' | 'category'>;
 
-interface ExtendedTask extends Task {
-  breakdown_comments?: string;
-}
-
-const Flooko = () => {
+const Test = () => {
   const [task, setTask] = useState("");
   const [frogTask, setFrogTask] = useState("");
   const [steps, setSteps] = useState<string[]>([]);
@@ -42,12 +37,12 @@ const Flooko = () => {
     queryKey: ['frog-tasks', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-
+      
       const { data, error } = await supabase
         .from('tasks')
         .select('*')
         .eq('user_id', user.id);
-        
+      
       if (error) {
         toast({
           title: "Error fetching tasks",
@@ -60,15 +55,8 @@ const Flooko = () => {
       return data.map(task => ({
         id: task.id,
         content: task.content,
-        category: task.category || "Uncategorized",
-        confidence: task.confidence || 0,
-        completed: task.completed || false,
-        created_at: task.created_at,
-        user_id: task.user_id,
-        subtasks: task.subtasks || [],
-        attachments: task.attachments || [],
-        breakdown_comments: task.breakdown_comments
-      })) as ExtendedTask[];
+        category: task.category || "Uncategorized"
+      })) as CategorizedTask[];
     },
     enabled: !!user?.id
   });
@@ -216,7 +204,7 @@ const Flooko = () => {
   const handleFrogSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!frogTask.trim() || !user?.id) return;
-
+    
     try {
       const { data: newTask, error } = await supabase
         .from('tasks')
@@ -232,7 +220,7 @@ const Flooko = () => {
 
       queryClient.invalidateQueries({ queryKey: ['frog-tasks'] });
       setFrogTask("");
-
+      
       if (frogInputRef.current) {
         frogInputRef.current.focus();
       }
@@ -263,7 +251,7 @@ const Flooko = () => {
       if (error) throw error;
 
       queryClient.invalidateQueries({ queryKey: ['frog-tasks'] });
-
+      
       toast({
         title: "Task updated",
         description: `Task category changed to ${category}`,
@@ -298,17 +286,36 @@ const Flooko = () => {
               
               <form onSubmit={handleFrogSubmit} className="space-y-4">
                 <div className="flex gap-4">
-                  <MindDump
-                    tasks={categorizedTasks.filter(task => task.category === "Uncategorized")}
-                    onTasksChange={(newTasks) => {
-                      queryClient.invalidateQueries({ queryKey: ['frog-tasks'] });
-                    }}
-                    onBreakdownStart={(content, taskId) => handleStartBreakdown(content, taskId || '')}
+                  <Input
+                    ref={frogInputRef}
+                    placeholder={placeholder}
+                    value={frogTask}
+                    onChange={(e) => setFrogTask(e.target.value)}
+                    className="flex-1 bg-[#2A2F3C] border-gray-700 text-gray-100"
                   />
+                  <Button 
+                    type="submit"
+                    className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
+                  >
+                    Dump
+                  </Button>
                 </div>
 
                 {categorizedTasks.length > 0 && (
                   <div className="space-y-8">
+                    <div className="space-y-2">
+                      {categorizedTasks
+                        .filter(task => task.category === "Uncategorized")
+                        .map((task, index) => (
+                          <FrogTaskItem
+                            key={task.id}
+                            task={task.content}
+                            index={index}
+                            onCategorySelect={(category) => handleCategorySelect(task.id, category)}
+                          />
+                        ))}
+                    </div>
+
                     <FrogTaskGrid 
                       tasks={categorizedTasks.filter(task => task.category !== "Uncategorized")}
                       onBreakdownStart={handleStartBreakdown}
@@ -348,4 +355,5 @@ const Flooko = () => {
   );
 };
 
-export default Flooko;
+export default Test;
+
