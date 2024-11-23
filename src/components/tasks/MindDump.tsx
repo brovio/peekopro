@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowRight, FileText, HelpCircle, Play } from "lucide-react";
+import { ArrowRight, FileText, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useClassifyTask } from "@/hooks/useClassifyTask";
 import { Task } from "@/types/task";
@@ -10,15 +10,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { createTask } from "@/services/taskService";
-import { Button } from "@/components/ui/button";
 
 interface MindDumpProps {
   tasks: Task[];
   onTasksChange: (tasks: Task[]) => void;
-  onBreakdownStart?: (content: string) => void;
 }
 
-const MindDump = ({ tasks, onTasksChange, onBreakdownStart }: MindDumpProps) => {
+const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
   const [inputValue, setInputValue] = useState("");
   const { toast } = useToast();
   const { classifyTask } = useClassifyTask();
@@ -79,9 +77,39 @@ const MindDump = ({ tasks, onTasksChange, onBreakdownStart }: MindDumpProps) => 
     }
   };
 
-  const handleBreakdown = () => {
-    if (inputValue.trim() && onBreakdownStart) {
-      onBreakdownStart(inputValue.trim());
+  const handleManualClassification = async (taskId: string, category: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({
+          category: category.toLowerCase(),
+          confidence: 1
+        })
+        .eq('id', taskId);
+
+      if (error) throw error;
+
+      const updatedTasks = tasks.map(task => 
+        task.id === taskId 
+          ? { ...task, category: category.toLowerCase(), confidence: 1 }
+          : task
+      );
+      onTasksChange(updatedTasks);
+      
+      toast({
+        title: "Task classified",
+        description: `Manually classified as ${category}`,
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    } catch (error: any) {
+      toast({
+        title: "Failed to update task",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -90,7 +118,7 @@ const MindDump = ({ tasks, onTasksChange, onBreakdownStart }: MindDumpProps) => 
 
   return (
     <div className="space-y-6">
-      <div className="relative flex gap-2">
+      <div className="relative">
         <Input
           placeholder="Empty your monkey mind..."
           className="h-12 bg-[#6a94ff] text-white border-none placeholder:text-white/70 pr-10"
@@ -98,15 +126,6 @@ const MindDump = ({ tasks, onTasksChange, onBreakdownStart }: MindDumpProps) => 
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
         />
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-12 w-12 bg-[#6a94ff] hover:bg-[#5a84ff] text-white"
-          onClick={handleBreakdown}
-          disabled={!inputValue.trim()}
-        >
-          <Play className="h-5 w-5" />
-        </Button>
         <ArrowRight className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/70" />
       </div>
 

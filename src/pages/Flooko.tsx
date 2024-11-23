@@ -87,11 +87,6 @@ const Test = () => {
     setShowOnlyBreakdown(true);
   };
 
-  const handleMindDumpBreakdown = (content: string) => {
-    setTask(content);
-    setShowOnlyBreakdown(true);
-  };
-
   const handleDirectTest = async () => {
     if (!task.trim()) {
       toast({
@@ -323,7 +318,7 @@ const Test = () => {
 
                     <FrogTaskGrid 
                       tasks={categorizedTasks.filter(task => task.category !== "Uncategorized")}
-                      onBreakdownStart={handleMindDumpBreakdown}
+                      onBreakdownStart={handleStartBreakdown}
                     />
                   </div>
                 )}
@@ -361,3 +356,4 @@ const Test = () => {
 };
 
 export default Test;
+

@@ -111,9 +111,9 @@ const FrogTaskGrid = ({ tasks, onBreakdownStart }: FrogTaskGridProps) => {
 
   return (
     <div className="grid gap-6 animate-fade-in">
-      {/* #1 Priority Section - Full width */}
+      {/* #1 Section - Full width */}
       <TaskCard
-        category="#1 Priority"
+        category="#1"
         icon={Trophy}
         color="bg-[#9b87f5]"
         borderColor="border-[#9b87f5]"
