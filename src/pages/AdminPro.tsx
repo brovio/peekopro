@@ -14,16 +14,23 @@ const AdminPro = () => {
   const { data: profile, isLoading } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
+      if (!user?.id) throw new Error('No user ID');
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user?.id)
+        .eq('id', user.id)
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Profile query error:', error);
+        throw error;
+      }
+      
       return data;
     },
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    retry: false
   });
 
   useEffect(() => {
