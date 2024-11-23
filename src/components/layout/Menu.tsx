@@ -16,6 +16,11 @@ const Menu = () => {
         return null;
       }
 
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        return null;
+      }
+
       const { data, error } = await supabase
         .from('profiles')
         .select('is_admin')
