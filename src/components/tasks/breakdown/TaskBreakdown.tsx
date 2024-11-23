@@ -13,6 +13,8 @@ interface TaskBreakdownProps {
   steps: string[];
   isLoading: boolean;
   taskId?: string | undefined;
+  provider?: string;
+  model?: string;
   onTaskChange: (value: string) => void;
   onDirectTest: () => void;
   onGuidedTest: () => void;
@@ -24,6 +26,8 @@ const TaskBreakdown = ({
   steps, 
   isLoading, 
   taskId,
+  provider = 'openai',
+  model = 'gpt-4o-mini',
   onTaskChange,
   onDirectTest, 
   onGuidedTest,
@@ -39,7 +43,11 @@ const TaskBreakdown = ({
     setIsImproving(true);
     try {
       const { data, error } = await supabase.functions.invoke('improve-prompt', {
-        body: { prompt: task }
+        body: { 
+          prompt: task,
+          provider,
+          model
+        }
       });
 
       if (error) throw error;

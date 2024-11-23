@@ -14,10 +14,12 @@ serve(async (req) => {
   }
 
   try {
-    const { content, skipQuestions = false, answers = {} } = await req.json();
+    const { content, skipQuestions = false, answers = {}, provider = 'openai', model = 'gpt-4o-mini' } = await req.json();
     console.log('Processing task content:', content);
     console.log('Skip questions:', skipQuestions);
     console.log('User answers:', answers);
+    console.log('Using provider:', provider);
+    console.log('Using model:', model);
 
     // First, get the questions if needed
     if (!skipQuestions) {
@@ -28,7 +30,7 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
+          model,
           messages: [
             {
               role: 'system',
@@ -129,7 +131,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model,
         messages: [
           {
             role: 'system',

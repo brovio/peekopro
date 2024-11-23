@@ -14,6 +14,20 @@ const Subtask = () => {
   const [steps, setSteps] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const [settings, setSettings] = useState(() => {
+    const saved = localStorage.getItem('breakdown-settings');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return {
+        provider: parsed.quickBreakdown?.provider || 'openai',
+        model: parsed.quickBreakdown?.model || 'gpt-4o-mini'
+      };
+    }
+    return {
+      provider: 'openai',
+      model: 'gpt-4o-mini'
+    };
+  });
 
   const handleDirectTest = async () => {
     if (!task.trim()) {
@@ -30,7 +44,9 @@ const Subtask = () => {
       const { data: { data: steps }, error } = await supabase.functions.invoke('break-down-task', {
         body: { 
           content: task,
-          skipQuestions: true
+          skipQuestions: true,
+          provider: settings.provider,
+          model: settings.model
         }
       });
 
@@ -83,6 +99,8 @@ const Subtask = () => {
           task={task}
           steps={steps}
           isLoading={isLoading}
+          provider={settings.provider}
+          model={settings.model}
           onTaskChange={setTask}
           onDirectTest={handleDirectTest}
           onGuidedTest={handleGuidedTest}
