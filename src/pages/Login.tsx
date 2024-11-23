@@ -55,6 +55,8 @@ const Login = () => {
             }
           }}
           providers={[]}
+          view="sign_in"
+          showLinks={false}
         />
       </Card>
     </div>
