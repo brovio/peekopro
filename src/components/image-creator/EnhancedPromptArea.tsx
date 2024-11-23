@@ -39,9 +39,9 @@ const EnhancedPromptArea = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
         <Select value={selectedPrompt} onValueChange={onPromptSelect}>
-          <SelectTrigger className="w-[200px]">
+          <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="Select a prompt" />
           </SelectTrigger>
           <SelectContent>
@@ -53,50 +53,54 @@ const EnhancedPromptArea = ({
           </SelectContent>
         </Select>
         
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                onClick={handleGenerateImage}
-                disabled={isGenerating || !selectedPrompt || !provider || !model}
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  "Generate Image"
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              {isGenerating ? 
-                "Please wait while your image is being generated..." :
-                !provider ? "Please select a provider" :
-                !model ? "Please select a model" :
-                !selectedPrompt ? "Please select a prompt" :
-                "Click to generate an image from your prompt"
-              }
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={handleGenerateImage}
+                  disabled={isGenerating || !selectedPrompt || !provider || !model}
+                  className="w-full sm:w-auto"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    "Generate Image"
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {isGenerating ? 
+                  "Please wait while your image is being generated..." :
+                  !provider ? "Please select a provider" :
+                  !model ? "Please select a model" :
+                  !selectedPrompt ? "Please select a prompt" :
+                  "Click to generate an image from your prompt"
+                }
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
-        {prompts.length > 1 && onGenerateAll && (
-          <Button
-            variant="secondary"
-            onClick={onGenerateAll}
-            disabled={isGenerating || !provider || !model}
-          >
-            Generate All
-          </Button>
-        )}
+          {prompts.length > 1 && onGenerateAll && (
+            <Button
+              variant="secondary"
+              onClick={onGenerateAll}
+              disabled={isGenerating || !provider || !model}
+              className="w-full sm:w-auto"
+            >
+              Generate All
+            </Button>
+          )}
+        </div>
       </div>
 
       {selectedPrompt && (
         <div className="space-y-4">
           <div className="bg-card/50 p-4 rounded-lg">
-            <p className="text-sm text-foreground">{selectedPrompt}</p>
+            <p className="text-sm text-foreground break-words">{selectedPrompt}</p>
           </div>
         </div>
       )}

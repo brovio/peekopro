@@ -21,10 +21,10 @@ const PromptList = ({
       <label className="block text-sm font-medium">Enhanced Prompts</label>
       <div className="space-y-2">
         {prompts.map((enhancedPrompt, index) => (
-          <div key={index} className="flex gap-2">
+          <div key={index} className="flex flex-col sm:flex-row gap-2">
             <Button
               variant="outline"
-              className="flex-1 justify-start h-auto whitespace-normal text-left"
+              className="flex-1 justify-start h-auto whitespace-normal text-left min-h-[44px]"
               onClick={() => onSelectPrompt(enhancedPrompt)}
             >
               {enhancedPrompt}
@@ -33,6 +33,7 @@ const PromptList = ({
               variant="secondary"
               onClick={() => onGenerateImage(enhancedPrompt)}
               disabled={isGenerating}
+              className="w-full sm:w-auto"
             >
               {isGenerating && generatingPromptId === enhancedPrompt ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
