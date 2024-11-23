@@ -54,7 +54,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           timestamp: new Date(n.created_at),
           read: n.read || false,
           link: n.link,
-          data: n.data
+          data: typeof n.data === 'string' ? JSON.parse(n.data) : n.data as Record<string, any>
         }))
       );
     };
@@ -82,7 +82,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                 timestamp: new Date(payload.new.created_at),
                 read: payload.new.read || false,
                 link: payload.new.link,
-                data: payload.new.data,
+                data: typeof payload.new.data === 'string' 
+                  ? JSON.parse(payload.new.data) 
+                  : payload.new.data as Record<string, any>
               },
               ...prev,
             ]);
@@ -127,7 +129,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         timestamp: new Date(data.created_at),
         read: data.read || false,
         link: data.link,
-        data: data.data,
+        data: typeof data.data === 'string' 
+          ? JSON.parse(data.data) 
+          : data.data as Record<string, any>
       },
       ...prev,
     ]);
