@@ -1,71 +1,118 @@
-# Welcome to your GPT Engineer project
+# Monkey Mind Task Manager
 
-## Project info
+## Overview
+Monkey Mind Task Manager is a sophisticated task management application designed to help users organize their thoughts, break down complex tasks, and manage their daily activities effectively. The application combines traditional task management with AI-powered task breakdown capabilities, making it ideal for professionals, project managers, and anyone looking to improve their productivity.
 
-**URL**: https://run.gptengineer.app/projects/b9d29ff4-f579-42c0-bbb1-ccaf300a58e6/improve
+## Features
 
-## How can I edit this code?
+### 1. Task Management
+- **Mind Dump**: Quickly capture thoughts and tasks without worrying about organization
+- **Automatic Task Classification**: AI-powered categorization of tasks
+- **Priority Management**: Special "#1 Priority" section for most important tasks
+- **Task Categories**: Organize tasks into Work, Fitness, Habit, and Journal categories
 
-There are several ways of editing your application.
+### 2. Task Breakdown
+- **AI-Powered Breakdown**: Break complex tasks into manageable subtasks
+- **Guided Breakdown**: Interactive Q&A process for detailed task analysis
+- **Quick Breakdown**: Instant task decomposition for simpler tasks
 
-**Use GPT Engineer**
+### 3. Note Taking
+- **Color-coded Notes**: Create and organize notes with custom colors
+- **Rich Text Support**: Add formatted text and descriptions
+- **Export/Import**: Share and backup your notes
 
-Simply visit the GPT Engineer project at [GPT Engineer](https://gptengineer.app/projects/b9d29ff4-f579-42c0-bbb1-ccaf300a58e6/improve) and start prompting.
+### 4. Journal Entries
+- **Mood Tracking**: Record daily moods and emotions
+- **Gratitude Journal**: Document things you're grateful for
+- **Goal Setting**: Track personal and professional goals
 
-Changes made via gptengineer.app will be committed automatically to this repo.
+## Pages and Features
 
-**Use your preferred IDE**
+### Flooko Page
+The main task management interface where users can:
+- Quickly input tasks (Mind Dump)
+- View and manage task categories
+- Access the "#1 Priority" section
+- Break down complex tasks
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in the GPT Engineer UI.
+### Notes Page
+A dedicated space for note-taking where users can:
+- Create color-coded notes
+- Organize thoughts and ideas
+- Export and import notes
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Journal Page
+Personal journaling interface featuring:
+- Daily mood tracking
+- Gratitude journaling
+- Goal setting and tracking
 
-Follow these steps:
+## Installation
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Prerequisites
+- Node.js (v16 or higher)
+- npm or yarn package manager
+- Supabase account (for backend services)
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Setup Steps
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd monkey-mind-task-manager
+   ```
 
-# Step 3: Install the necessary dependencies.
-npm i
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+3. Configure environment variables:
+   Create a `.env` file with the following:
+   ```
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
 
-**Edit a file directly in GitHub**
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Usage Guide
 
-**Use GitHub Codespaces**
+### Getting Started
+1. Sign up or log in to your account
+2. Use the Mind Dump feature to quickly capture tasks
+3. Let the AI categorize your tasks or manually assign categories
+4. Use the breakdown feature for complex tasks
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Breaking Down Tasks
+1. Select a task you want to break down
+2. Choose between Quick Breakdown or Guided Breakdown
+3. Follow the prompts to create detailed subtasks
 
-## What technologies are used for this project?
+### Managing Notes
+1. Click the "+" button to create a new note
+2. Choose a color for your note
+3. Add title and description
+4. Save and organize your notes
 
-This project is built with .
+## Known Limitations
+- Currently supports English language only
+- Limited to text-based notes (no image attachments)
+- Maximum of 100 tasks per category
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Future Development Plans
+- Mobile application development
+- Multi-language support
+- Advanced task analytics
+- Team collaboration features
+- File attachment support
 
-## How can I deploy this project?
+## Support and Contact
+For support or contributions, please contact:
+- Email: support@monkeymind.app
+- GitHub Issues: [Create an issue](https://github.com/your-repo/issues)
 
-All GPT Engineer projects can be deployed directly via the GPT Engineer app.
-
-Simply visit your project at [GPT Engineer](https://gptengineer.app/projects/b9d29ff4-f579-42c0-bbb1-ccaf300a58e6/improve) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.gptengineer.app/tips-tricks/custom-domain/)
+## License
+This project is licensed under the MIT License - see the LICENSE.md file for details.
