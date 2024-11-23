@@ -23,7 +23,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
 
   useEffect(() => {
-    // Initialize session
+    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setIsAuthenticated(!!session);
@@ -31,16 +31,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(false);
     });
 
-    // Listen for auth changes
+    // Set up auth state listener
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setIsAuthenticated(!!session);
       setUser(session?.user ?? null);
 
-      // If session is lost, redirect to login
       if (!session) {
+        // Clear any local state
+        localStorage.removeItem('supabase.auth.token');
         navigate("/login");
       }
     });
@@ -73,10 +74,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
-      // Clear local session state
+      // Clear session state
       setSession(null);
       setIsAuthenticated(false);
       setUser(null);
+      
+      // Clear local storage
+      localStorage.removeItem('supabase.auth.token');
       
       navigate("/login");
     } catch (error: any) {
