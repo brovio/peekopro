@@ -18,6 +18,10 @@ import MindDump from "@/components/tasks/MindDump";
 
 type CategorizedTask = Pick<Task, 'id' | 'content' | 'category'>;
 
+interface ExtendedTask extends Task {
+  breakdown_comments?: string;
+}
+
 const Flooko = () => {
   const [task, setTask] = useState("");
   const [frogTask, setFrogTask] = useState("");
@@ -56,8 +60,15 @@ const Flooko = () => {
       return data.map(task => ({
         id: task.id,
         content: task.content,
-        category: task.category || "Uncategorized"
-      })) as CategorizedTask[];
+        category: task.category || "Uncategorized",
+        confidence: task.confidence || 0,
+        completed: task.completed || false,
+        created_at: task.created_at,
+        user_id: task.user_id,
+        subtasks: task.subtasks || [],
+        attachments: task.attachments || [],
+        breakdown_comments: task.breakdown_comments
+      })) as ExtendedTask[];
     },
     enabled: !!user?.id
   });
@@ -292,7 +303,7 @@ const Flooko = () => {
                     onTasksChange={(newTasks) => {
                       queryClient.invalidateQueries({ queryKey: ['frog-tasks'] });
                     }}
-                    onBreakdownStart={handleStartBreakdown}
+                    onBreakdownStart={(content, taskId) => handleStartBreakdown(content, taskId || '')}
                   />
                 </div>
 

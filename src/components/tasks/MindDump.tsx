@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 interface MindDumpProps {
   tasks: Task[];
   onTasksChange: (tasks: Task[]) => void;
-  onBreakdownStart?: (content: string) => void;
+  onBreakdownStart?: (content: string, taskId?: string) => void;
 }
 
 const MindDump = ({ tasks, onTasksChange, onBreakdownStart }: MindDumpProps) => {
