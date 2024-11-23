@@ -1,9 +1,29 @@
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu as MenuIcon, Home, FileText, SplitSquareVertical, Settings, BookOpen, Image, GalleryHorizontal } from "lucide-react";
+import { Menu as MenuIcon, Home, FileText, SplitSquareVertical, Settings, BookOpen, Image, GalleryHorizontal, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const Menu = () => {
+  const { user } = useAuth();
+
+  const { data: profile } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user?.id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id
+  });
+
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -49,6 +69,14 @@ const Menu = () => {
               Gallery
             </Button>
           </Link>
+          {profile?.is_admin && (
+            <Link to="/admin">
+              <Button variant="ghost" className="w-full justify-start">
+                <Shield className="mr-2 h-5 w-5" />
+                Admin Pro
+              </Button>
+            </Link>
+          )}
           <Link to="/options">
             <Button variant="ghost" className="w-full justify-start">
               <Settings className="mr-2 h-5 w-5" />

@@ -12,6 +12,7 @@ import Options from "./pages/Options";
 import Journal from "./pages/Journal";
 import ImageCreator from "./pages/ImageCreator";
 import Gallery from "./pages/Gallery";
+import AdminPro from "./pages/AdminPro";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
@@ -66,6 +67,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Gallery />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminPro />
                 </ProtectedRoute>
               }
             />
