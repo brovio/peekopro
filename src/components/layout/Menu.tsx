@@ -16,6 +16,11 @@ const Menu = () => {
         throw new Error('User not authenticated');
       }
 
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      if (!currentSession) {
+        throw new Error('No active session');
+      }
+
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
