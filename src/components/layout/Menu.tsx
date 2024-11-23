@@ -21,6 +21,9 @@ const Menu = () => {
         .single();
       
       if (error) {
+        if (error.code === 'PGRST116') {
+          return null; // Profile not found
+        }
         console.error('Profile fetch error:', error);
         return null;
       }
@@ -28,7 +31,8 @@ const Menu = () => {
       return profile;
     },
     enabled: !!user?.id,
-    retry: false
+    retry: false,
+    staleTime: 1000 * 60 * 5 // Cache for 5 minutes
   });
 
   return (
