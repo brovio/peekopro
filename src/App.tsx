@@ -17,73 +17,71 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <AuthProvider>
-        <NotificationProvider>
-          <SettingsProvider>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <Flooko />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/subtask"
-                element={
-                  <ProtectedRoute>
-                    <Subtask />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/notes"
-                element={
-                  <ProtectedRoute>
-                    <Notes />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/journal"
-                element={
-                  <ProtectedRoute>
-                    <Journal />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/images"
-                element={
-                  <ProtectedRoute>
-                    <ImageCreator />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/gallery"
-                element={
-                  <ProtectedRoute>
-                    <Gallery />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/options"
-                element={
-                  <ProtectedRoute>
-                    <Options />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-            <Toaster />
-          </SettingsProvider>
-        </NotificationProvider>
-      </AuthProvider>
+      <NotificationProvider>
+        <SettingsProvider>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Flooko />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/subtask"
+              element={
+                <ProtectedRoute>
+                  <Subtask />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/notes"
+              element={
+                <ProtectedRoute>
+                  <Notes />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/journal"
+              element={
+                <ProtectedRoute>
+                  <Journal />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/images"
+              element={
+                <ProtectedRoute>
+                  <ImageCreator />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/gallery"
+              element={
+                <ProtectedRoute>
+                  <Gallery />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/options"
+              element={
+                <ProtectedRoute>
+                  <Options />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+          <Toaster />
+        </SettingsProvider>
+      </NotificationProvider>
     </ThemeProvider>
   );
 }

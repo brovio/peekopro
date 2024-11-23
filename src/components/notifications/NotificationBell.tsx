@@ -11,15 +11,19 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 
 export function NotificationBell() {
-  const { notifications, clearNotification, clearAllNotifications } = useNotifications();
-  const hasNotifications = notifications.length > 0;
+  const { notifications, clearNotification, clearAllNotifications, markAsRead } = useNotifications();
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const handleNotificationClick = async (id: string) => {
+    await markAsRead(id);
+  };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="w-5 h-5 text-foreground" />
-          {hasNotifications && (
+          {unreadCount > 0 && (
             <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
           )}
         </Button>
@@ -27,7 +31,7 @@ export function NotificationBell() {
       <DropdownMenuContent align="end" className="w-[400px]">
         <div className="flex items-center justify-between px-4 py-2 border-b">
           <span className="font-semibold">Notifications</span>
-          {hasNotifications && (
+          {notifications.length > 0 && (
             <Button
               variant="ghost"
               size="sm"
@@ -48,6 +52,7 @@ export function NotificationBell() {
               <DropdownMenuItem
                 key={notification.id}
                 className="px-4 py-3 focus:bg-accent cursor-default"
+                onClick={() => handleNotificationClick(notification.id)}
               >
                 <div className="flex flex-col gap-1 w-full">
                   <div className="flex items-center justify-between">
@@ -64,7 +69,7 @@ export function NotificationBell() {
                       ×
                     </Button>
                   </div>
-                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  <p className="text-sm text-muted-foreground">
                     {notification.message}
                   </p>
                   <span className="text-xs text-muted-foreground">
