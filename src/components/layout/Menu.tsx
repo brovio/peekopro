@@ -7,18 +7,18 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 const Menu = () => {
-  const { user, session } = useAuth();
+  const { user } = useAuth();
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
-      if (!user?.id || !session) {
-        throw new Error('User not authenticated');
+      if (!user?.id) {
+        return null;
       }
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('is_admin')
         .eq('id', user.id)
         .maybeSingle();
       
@@ -29,7 +29,7 @@ const Menu = () => {
 
       return data;
     },
-    enabled: !!user?.id && !!session,
+    enabled: !!user?.id,
     retry: false
   });
 
