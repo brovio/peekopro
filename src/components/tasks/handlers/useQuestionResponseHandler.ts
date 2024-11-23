@@ -60,7 +60,8 @@ export const useQuestionResponseHandler = (taskId: string) => {
       addNotification({
         title: 'Task Breakdown Error',
         message: errorMessage,
-        type: 'error'
+        type: "error",
+        read: false
       });
       toast({
         title: "Error",

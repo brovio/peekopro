@@ -1,12 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./AuthContext";
+import { Json } from "@/integrations/supabase/types";
+
+export type NotificationType = "error" | "warning" | "info" | "success" | "signup";
 
 export interface Notification {
   id: string;
   title: string;
   message: string;
-  type: "error" | "warning" | "info" | "success" | "signup";
+  type: NotificationType;
   timestamp: Date;
   read: boolean;
   link?: string;
@@ -47,9 +50,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           id: n.id,
           title: n.title,
           message: n.message,
-          type: n.type,
+          type: n.type as NotificationType,
           timestamp: new Date(n.created_at),
-          read: n.read,
+          read: n.read || false,
           link: n.link,
           data: n.data
         }))
@@ -58,7 +61,6 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
     fetchNotifications();
 
-    // Subscribe to new notifications
     const subscription = supabase
       .channel("notifications")
       .on(
@@ -76,9 +78,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                 id: payload.new.id,
                 title: payload.new.title,
                 message: payload.new.message,
-                type: payload.new.type,
+                type: payload.new.type as NotificationType,
                 timestamp: new Date(payload.new.created_at),
-                read: payload.new.read,
+                read: payload.new.read || false,
                 link: payload.new.link,
                 data: payload.new.data,
               },
@@ -106,6 +108,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         type: notification.type,
         link: notification.link,
         data: notification.data,
+        read: notification.read,
       })
       .select()
       .single();
@@ -120,9 +123,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         id: data.id,
         title: data.title,
         message: data.message,
-        type: data.type,
+        type: data.type as NotificationType,
         timestamp: new Date(data.created_at),
-        read: data.read,
+        read: data.read || false,
         link: data.link,
         data: data.data,
       },

@@ -49,7 +49,8 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
       addNotification({
         title: 'AI Breakdown Error',
         message: errorMessage,
-        type: 'error'
+        type: "error",
+        read: false
       });
       toast({
         title: "Error",
