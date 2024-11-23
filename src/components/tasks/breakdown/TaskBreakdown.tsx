@@ -41,8 +41,8 @@ const TaskBreakdown = ({
       const { data, error } = await supabase.functions.invoke('improve-prompt', {
         body: { 
           prompt: task,
-          type: 'task-name', // Specify that we only want to improve the task name
-          maxExtraWords: 5 // Limit additional words
+          type: 'task-name',
+          maxExtraWords: 5
         }
       });
 
@@ -86,12 +86,12 @@ const TaskBreakdown = ({
               onClick={handleImprovePrompt}
               disabled={isImproving || !task.trim()}
               variant="outline"
-              className="w-full sm:w-auto bg-[#2A2F3C] hover:bg-[#343B4D] border-[#9b87f5] text-[#9b87f5] hover:text-[#b5a6f7] transition-colors"
+              className="w-full sm:w-auto bg-gradient-to-r from-[#9b87f5] to-[#b5a6f7] hover:from-[#b5a6f7] hover:to-[#9b87f5] text-white border-none shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
             >
               {isImproving ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2 text-[#9b87f5]" />
+                <Loader2 className="h-4 w-4 animate-spin mr-2 text-white" />
               ) : (
-                <Wand2 className="h-4 w-4 mr-2 text-[#9b87f5]" />
+                <Wand2 className="h-4 w-4 mr-2 text-white" />
               )}
               Level Up Task Name
             </Button>
