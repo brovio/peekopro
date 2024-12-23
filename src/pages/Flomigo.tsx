@@ -51,8 +51,16 @@ const Flomigo = () => {
         completed: task.completed || false,
         created_at: task.created_at,
         user_id: task.user_id,
-        subtasks: (task.subtasks as SubTask[]) || [],
-        attachments: (task.attachments as string[]) || [],
+        subtasks: Array.isArray(task.subtasks) 
+          ? (task.subtasks as any[]).map(st => ({
+              id: st.id || '',
+              content: st.content || '',
+              completed: st.completed || false
+            })) as SubTask[]
+          : [],
+        attachments: Array.isArray(task.attachments) 
+          ? task.attachments.map(a => String(a))
+          : [],
         breakdown_comments: task.breakdown_comments
       })) as Task[];
     },
