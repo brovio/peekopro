@@ -1,25 +1,20 @@
-import { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
+import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import TaskQuestionsDialog from "@/components/tasks/questions/TaskQuestionsDialog";
-import TaskBreakdown from "@/components/tasks/breakdown/TaskBreakdown";
-import FrogTaskItem from "@/components/tasks/frog/FrogTaskItem";
-import FrogTaskGrid from "@/components/tasks/frog/FrogTaskGrid";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
 import ApiKeyManager from "@/components/ui/ApiKeyManager";
 import { Task } from "@/types/task";
+import TaskGridContainer from "@/components/tasks/frog/TaskGridContainer";
+import TaskBreakdownSection from "@/components/tasks/frog/TaskBreakdownSection";
 
 type CategorizedTask = Pick<Task, 'id' | 'content' | 'category'>;
 
-const Test = () => {
+const Flomigo = () => {
   const [task, setTask] = useState("");
-  const [frogTask, setFrogTask] = useState("");
   const [steps, setSteps] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showQuestions, setShowQuestions] = useState(false);
@@ -28,8 +23,6 @@ const Test = () => {
   const [showOnlyBreakdown, setShowOnlyBreakdown] = useState(false);
   const [showApiManager, setShowApiManager] = useState(false);
   const { toast } = useToast();
-  const frogInputRef = useRef<HTMLInputElement>(null);
-  const [placeholder, setPlaceholder] = useState("Monkey Minding Much?");
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -60,14 +53,6 @@ const Test = () => {
     },
     enabled: !!user?.id
   });
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setPlaceholder("come on now, THINK");
-    }, 5000);
-
-    return () => clearTimeout(timer);
-  }, []);
 
   const handleShowApiManager = () => {
     setShowApiManager(true);
@@ -201,43 +186,6 @@ const Test = () => {
     }
   };
 
-  const handleFrogSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!frogTask.trim() || !user?.id) return;
-    
-    try {
-      const { data: newTask, error } = await supabase
-        .from('tasks')
-        .insert({
-          content: frogTask,
-          category: "Uncategorized",
-          user_id: user.id
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      queryClient.invalidateQueries({ queryKey: ['frog-tasks'] });
-      setFrogTask("");
-      
-      if (frogInputRef.current) {
-        frogInputRef.current.focus();
-      }
-
-      toast({
-        title: "Task added",
-        description: "New task has been created successfully",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error adding task",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleCategorySelect = async (taskId: string, category: string) => {
     if (!user?.id) return;
 
@@ -278,59 +226,17 @@ const Test = () => {
       <Header onShowApiManager={handleShowApiManager} />
       <div className="container mx-auto px-0.5 sm:px-8 py-2 sm:py-8 space-y-4 sm:space-y-8">
         {!showOnlyBreakdown ? (
-          <>
-            <Card className="p-3 sm:p-6 bg-[#1A1F2C]">
-              <h1 className="text-lg sm:text-2xl font-bold mb-3 sm:mb-6 text-gray-100 text-center sm:text-left">
-                Find The Frog 🐸 Getting Shit Done
-              </h1>
-              
-              <form onSubmit={handleFrogSubmit} className="space-y-4">
-                <div className="flex gap-4">
-                  <Input
-                    ref={frogInputRef}
-                    placeholder={placeholder}
-                    value={frogTask}
-                    onChange={(e) => setFrogTask(e.target.value)}
-                    className="flex-1 bg-[#2A2F3C] border-gray-700 text-gray-100"
-                  />
-                  <Button 
-                    type="submit"
-                    className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
-                  >
-                    Dump
-                  </Button>
-                </div>
-
-                {categorizedTasks.length > 0 && (
-                  <div className="space-y-8">
-                    <div className="space-y-2">
-                      {categorizedTasks
-                        .filter(task => task.category === "Uncategorized")
-                        .map((task, index) => (
-                          <FrogTaskItem
-                            key={task.id}
-                            task={task.content}
-                            index={index}
-                            onCategorySelect={(category) => handleCategorySelect(task.id, category)}
-                          />
-                        ))}
-                    </div>
-
-                    <FrogTaskGrid 
-                      tasks={categorizedTasks.filter(task => task.category !== "Uncategorized")}
-                      onBreakdownStart={handleStartBreakdown}
-                    />
-                  </div>
-                )}
-              </form>
-            </Card>
-          </>
+          <TaskGridContainer
+            tasks={categorizedTasks}
+            onCategorySelect={handleCategorySelect}
+            onBreakdownStart={handleStartBreakdown}
+          />
         ) : (
-          <TaskBreakdown
+          <TaskBreakdownSection
             task={task}
             steps={steps}
             isLoading={isLoading}
-            taskId={breakdownTaskId || undefined}
+            breakdownTaskId={breakdownTaskId}
             onTaskChange={(value) => setTask(value)}
             onDirectTest={handleDirectTest}
             onGuidedTest={handleGuidedTest}
@@ -355,5 +261,4 @@ const Test = () => {
   );
 };
 
-export default Test;
-
+export default Flomigo;

@@ -1,140 +1,81 @@
-import { Card } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-import { BookOpen, Briefcase, Dumbbell, Play, MoreVertical } from "lucide-react";
-import { useState } from "react";
-import TaskActionButtons from "./TaskActionButtons";
-import TaskNotes from "./TaskNotes";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Task } from "@/types/task";
+import { FileText, Timer, Users, MessageCircle, Home, User2, Lightbulb, AppWindow, Briefcase, Calendar, RefreshCw, AlertTriangle, CheckCircle2 } from "lucide-react";
+import TaskItem from "../TaskItem";
+import WorkDayTaskItem from "../WorkDayTaskItem";
 
 interface TaskCardProps {
   category: string;
-  icon: any;
-  color: string;
-  borderColor: string;
-  tasks: Array<{
-    id: string;
-    content: string;
-    category: string;
-    completed?: boolean;
-    breakdown_comments?: string;
-  }>;
-  onEdit: (taskId: string, newContent: string) => void;
-  onDelete: (taskId: string) => void;
-  onComplete: (taskId: string) => void;
-  onBreakdown?: (taskId: string, content: string) => void;
+  tasks: Task[];
+  onBreakdown?: (content: string, taskId: string) => void;
   showBreakdownButton?: boolean;
 }
 
-const TaskCard = ({ 
-  category, 
-  icon: Icon, 
-  color, 
-  borderColor, 
-  tasks,
-  onEdit,
-  onDelete,
-  onComplete,
-  onBreakdown,
-  showBreakdownButton
-}: TaskCardProps) => {
-  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
-
-  const handleEditTask = (taskId: string, newContent: string) => {
-    onEdit(taskId, newContent);
-    setEditingTaskId(null);
+const TaskCard = ({ category, tasks, onBreakdown, showBreakdownButton }: TaskCardProps) => {
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case "Work Day":
+        return <Timer className="h-4 w-4 text-gray-300" />;
+      case "Delegate":
+        return <Users className="h-4 w-4 text-gray-300" />;
+      case "Discuss":
+        return <MessageCircle className="h-4 w-4 text-gray-300" />;
+      case "Family":
+        return <Home className="h-4 w-4 text-gray-300" />;
+      case "Personal":
+        return <User2 className="h-4 w-4 text-gray-300" />;
+      case "Ideas":
+        return <Lightbulb className="h-4 w-4 text-gray-300" />;
+      case "App Ideas":
+        return <AppWindow className="h-4 w-4 text-gray-300" />;
+      case "Project Ideas":
+        return <Briefcase className="h-4 w-4 text-gray-300" />;
+      case "Meetings":
+        return <Calendar className="h-4 w-4 text-gray-300" />;
+      case "Follow-Up":
+        return <RefreshCw className="h-4 w-4 text-gray-300" />;
+      case "Urgent":
+        return <AlertTriangle className="h-4 w-4 text-gray-300" />;
+      case "Complete":
+        return <CheckCircle2 className="h-4 w-4 text-gray-300" />;
+      default:
+        return <FileText className="h-4 w-4 text-gray-300" />;
+    }
   };
 
   return (
-    <Card className={cn(
-      "p-3 sm:p-6 transition-all duration-300",
-      "bg-[#1A1F2C] hover:bg-[#242938]",
-      `border-2 ${borderColor}`
-    )}>
-      <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
-        <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${color.replace('bg-', 'text-')}`} />
-        <h2 className="text-base sm:text-xl font-semibold text-gray-100 truncate sm:text-clip">{category}</h2>
-      </div>
-      <div className="space-y-1.5 sm:space-y-2">
-        {tasks.map(task => (
-          <div key={task.id} className="group relative p-2 sm:p-3 bg-[#2A2F3C] rounded-md text-gray-200">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
-                {category === "#1" && showBreakdownButton && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 sm:h-8 sm:w-8 p-0 flex-shrink-0"
-                    onClick={() => onBreakdown?.(task.id, task.content)}
-                  >
-                    <Play className="h-3 w-3 sm:h-4 sm:w-4 text-[#9b87f5]" />
-                  </Button>
-                )}
-                {editingTaskId === task.id ? (
-                  <input
-                    type="text"
-                    defaultValue={task.content}
-                    className="w-full bg-[#1A1F2C] p-1.5 sm:p-2 rounded text-gray-200 text-sm sm:text-base"
-                    onBlur={(e) => handleEditTask(task.id, e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handleEditTask(task.id, e.currentTarget.value);
-                      }
-                    }}
-                    autoFocus
-                  />
-                ) : (
-                  <span className="text-sm sm:text-base break-words whitespace-normal w-full">{task.content}</span>
-                )}
-              </div>
-              <div className="flex-shrink-0">
-                {/* Desktop view actions */}
-                <div className="hidden sm:flex gap-0.5 items-center invisible group-hover:visible">
-                  {task.breakdown_comments && (
-                    <TaskNotes taskId={task.id} notes={task.breakdown_comments} />
-                  )}
-                  <TaskActionButtons
-                    onEdit={() => setEditingTaskId(task.id)}
-                    onDelete={() => onDelete(task.id)}
-                    onComplete={() => onComplete(task.id)}
-                  />
-                </div>
-                {/* Mobile view dropdown */}
-                <div className="sm:hidden">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-32 bg-[#2A2F3C] border-gray-700">
-                      <DropdownMenuItem onClick={() => setEditingTaskId(task.id)} className="text-gray-200">
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onDelete(task.id)} className="text-gray-200">
-                        Delete
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onComplete(task.id)} className="text-gray-200">
-                        Complete
-                      </DropdownMenuItem>
-                      {task.breakdown_comments && (
-                        <DropdownMenuItem onClick={() => {}} className="text-gray-200">
-                          View Notes
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+    <Card className="bg-[#141e38] border-gray-700 w-full mb-6">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg font-medium text-gray-100 flex items-center gap-2">
+          {getCategoryIcon(category)}
+          {category}
+          <span className="text-gray-400">({tasks.length})</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {tasks.length === 0 ? (
+          <div className="text-sm text-gray-400 italic">No tasks in this category</div>
+        ) : (
+          tasks.map((task) => (
+            category === "Work Day" ? (
+              <WorkDayTaskItem
+                key={task.id}
+                task={task}
+                onAddSubtask={() => {}}
+                onDelete={() => {}}
+                onMove={() => {}}
+              />
+            ) : (
+              <TaskItem
+                key={task.id}
+                task={task}
+                onDelete={() => {}}
+                onMove={() => {}}
+              />
+            )
+          ))
+        )}
+      </CardContent>
     </Card>
   );
 };
