@@ -9,7 +9,7 @@ const navItems = [
   { icon: Users, label: "Delegation", path: "/delegation" },
   { icon: Lightbulb, label: "Project Ideas", path: "/projects" },
   { icon: AppWindow, label: "App Ideas", path: "/apps" },
-  { icon: Workflow, label: "Flomigo", path: "/flomigo" },
+  { icon: Workflow, label: "Flooko", path: "/flooko" },
 ];
 
 const Sidebar = ({ onShowApiManager }: { onShowApiManager: () => void }) => {

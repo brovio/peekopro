@@ -5,7 +5,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { Toaster } from "@/components/ui/toaster";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
-import Flomigo from "./pages/Flomigo";
+import Flooko from "./pages/Flooko";
 import Subtask from "./pages/Subtask";
 import Notes from "./pages/Notes";
 import Options from "./pages/Options";
@@ -26,7 +26,7 @@ function App() {
                 path="/"
                 element={
                   <ProtectedRoute>
-                    <Flomigo />
+                    <Flooko />
                   </ProtectedRoute>
                 }
               />
