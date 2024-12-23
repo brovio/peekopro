@@ -3,7 +3,7 @@ import { Task, SubTask } from "@/types/task";
 import { 
   FileText, Timer, Users, MessageCircle, Home, User2, 
   Lightbulb, AppWindow, Briefcase, Calendar, RefreshCw, 
-  AlertTriangle, CheckCircle2, FolderPlus 
+  AlertTriangle, CheckCircle2, FolderPlus, Gift, Palmtree 
 } from "lucide-react";
 import TaskProgress from "./TaskProgress";
 import { useToast } from "@/components/ui/use-toast";
@@ -81,6 +81,8 @@ export const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTa
       "Follow-Up": RefreshCw,
       "Urgent": AlertTriangle,
       "Complete": CheckCircle2,
+      "Christmas": Gift,
+      "Holiday": Palmtree
     };
 
     // Return the icon component for default categories
@@ -132,3 +134,5 @@ export const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTa
     </Card>
   );
 };
+
+export default CategoryListBox;
