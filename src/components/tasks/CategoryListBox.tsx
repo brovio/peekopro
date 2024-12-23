@@ -1,6 +1,10 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Task, SubTask } from "@/types/task";
-import { FileText, Timer, Users, MessageCircle, Home, User2, Lightbulb, AppWindow, Briefcase, Calendar, RefreshCw, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { 
+  FileText, Timer, Users, MessageCircle, Home, User2, 
+  Lightbulb, AppWindow, Briefcase, Calendar, RefreshCw, 
+  AlertTriangle, CheckCircle2, FolderPlus 
+} from "lucide-react";
 import TaskProgress from "./TaskProgress";
 import { useToast } from "@/components/ui/use-toast";
 import { useSettings } from "@/contexts/SettingsContext";
@@ -64,34 +68,29 @@ export const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTa
   };
 
   const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case "Work Day":
-        return <Timer className="h-4 w-4 text-gray-300" />;
-      case "Delegate":
-        return <Users className="h-4 w-4 text-gray-300" />;
-      case "Discuss":
-        return <MessageCircle className="h-4 w-4 text-gray-300" />;
-      case "Family":
-        return <Home className="h-4 w-4 text-gray-300" />;
-      case "Personal":
-        return <User2 className="h-4 w-4 text-gray-300" />;
-      case "Ideas":
-        return <Lightbulb className="h-4 w-4 text-gray-300" />;
-      case "App Ideas":
-        return <AppWindow className="h-4 w-4 text-gray-300" />;
-      case "Project Ideas":
-        return <Briefcase className="h-4 w-4 text-gray-300" />;
-      case "Meetings":
-        return <Calendar className="h-4 w-4 text-gray-300" />;
-      case "Follow-Up":
-        return <RefreshCw className="h-4 w-4 text-gray-300" />;
-      case "Urgent":
-        return <AlertTriangle className="h-4 w-4 text-gray-300" />;
-      case "Complete":
-        return <CheckCircle2 className="h-4 w-4 text-gray-300" />;
-      default:
-        return <FileText className="h-4 w-4 text-gray-300" />;
+    const defaultCategories: { [key: string]: any } = {
+      "Work Day": Timer,
+      "Delegate": Users,
+      "Discuss": MessageCircle,
+      "Family": Home,
+      "Personal": User2,
+      "Ideas": Lightbulb,
+      "App Ideas": AppWindow,
+      "Project Ideas": Briefcase,
+      "Meetings": Calendar,
+      "Follow-Up": RefreshCw,
+      "Urgent": AlertTriangle,
+      "Complete": CheckCircle2,
+    };
+
+    // Return the icon component for default categories
+    const IconComponent = defaultCategories[category];
+    if (IconComponent) {
+      return <IconComponent className="h-4 w-4 text-gray-300" />;
     }
+
+    // For new categories, use FolderPlus icon
+    return <FolderPlus className="h-4 w-4 text-gray-300" />;
   };
 
   return (
