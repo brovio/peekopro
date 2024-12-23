@@ -11,8 +11,6 @@ import { Task } from "@/types/task";
 import TaskGridContainer from "@/components/tasks/frog/TaskGridContainer";
 import TaskBreakdownSection from "@/components/tasks/frog/TaskBreakdownSection";
 
-type CategorizedTask = Pick<Task, 'id' | 'content' | 'category'>;
-
 const Flomigo = () => {
   const [task, setTask] = useState("");
   const [steps, setSteps] = useState<string[]>([]);
@@ -26,7 +24,7 @@ const Flomigo = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data: categorizedTasks = [], isLoading: isLoadingTasks } = useQuery({
+  const { data: tasks = [], isLoading: isLoadingTasks } = useQuery({
     queryKey: ['frog-tasks', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
@@ -48,8 +46,15 @@ const Flomigo = () => {
       return data.map(task => ({
         id: task.id,
         content: task.content,
-        category: task.category || "Uncategorized"
-      })) as CategorizedTask[];
+        category: task.category || "Uncategorized",
+        confidence: task.confidence || 0,
+        completed: task.completed || false,
+        created_at: task.created_at,
+        user_id: task.user_id,
+        subtasks: task.subtasks || [],
+        attachments: task.attachments || [],
+        breakdown_comments: task.breakdown_comments
+      })) as Task[];
     },
     enabled: !!user?.id
   });
@@ -227,7 +232,7 @@ const Flomigo = () => {
       <div className="container mx-auto px-0.5 sm:px-8 py-2 sm:py-8 space-y-4 sm:space-y-8">
         {!showOnlyBreakdown ? (
           <TaskGridContainer
-            tasks={categorizedTasks}
+            tasks={tasks}
             onCategorySelect={handleCategorySelect}
             onBreakdownStart={handleStartBreakdown}
           />
