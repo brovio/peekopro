@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
 import ApiKeyManager from "@/components/ui/ApiKeyManager";
-import { Task } from "@/types/task";
+import { Task, SubTask } from "@/types/task";
 import TaskGridContainer from "@/components/tasks/frog/TaskGridContainer";
 import TaskBreakdownSection from "@/components/tasks/frog/TaskBreakdownSection";
 
@@ -51,8 +51,8 @@ const Flomigo = () => {
         completed: task.completed || false,
         created_at: task.created_at,
         user_id: task.user_id,
-        subtasks: task.subtasks || [],
-        attachments: task.attachments || [],
+        subtasks: (task.subtasks as SubTask[]) || [],
+        attachments: (task.attachments as string[]) || [],
         breakdown_comments: task.breakdown_comments
       })) as Task[];
     },
