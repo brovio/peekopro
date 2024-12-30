@@ -26,14 +26,17 @@ interface NotificationContextType {
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second
+
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const { user } = useAuth();
 
-  useEffect(() => {
+  const fetchNotificationsWithRetry = async (retryCount = 0) => {
     if (!user?.id) return;
 
-    const fetchNotifications = async () => {
+    try {
       const { data, error } = await supabase
         .from("notifications")
         .select("*")
@@ -42,6 +45,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
       if (error) {
         console.error("Error fetching notifications:", error);
+        if (retryCount < MAX_RETRIES) {
+          console.log(`Retrying fetch notifications (attempt ${retryCount + 1})`);
+          setTimeout(() => fetchNotificationsWithRetry(retryCount + 1), RETRY_DELAY);
+        }
         return;
       }
 
@@ -57,9 +64,21 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           data: typeof n.data === 'string' ? JSON.parse(n.data) : n.data as Record<string, any>
         }))
       );
-    };
+    } catch (err) {
+      console.error("Error in fetchNotifications:", err);
+      if (retryCount < MAX_RETRIES) {
+        setTimeout(() => fetchNotificationsWithRetry(retryCount + 1), RETRY_DELAY);
+      }
+    }
+  };
 
-    fetchNotifications();
+  useEffect(() => {
+    if (!user?.id) {
+      setNotifications([]); // Clear notifications when user is not authenticated
+      return;
+    }
+
+    fetchNotificationsWithRetry();
 
     const subscription = supabase
       .channel("notifications")
@@ -101,59 +120,67 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const addNotification = async (notification: Omit<Notification, "id" | "timestamp">) => {
     if (!user?.id) return;
 
-    const { data, error } = await supabase
-      .from("notifications")
-      .insert({
-        user_id: user.id,
-        title: notification.title,
-        message: notification.message,
-        type: notification.type,
-        link: notification.link,
-        data: notification.data,
-        read: notification.read,
-      })
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from("notifications")
+        .insert({
+          user_id: user.id,
+          title: notification.title,
+          message: notification.message,
+          type: notification.type,
+          link: notification.link,
+          data: notification.data,
+          read: notification.read,
+        })
+        .select()
+        .single();
 
-    if (error) {
-      console.error("Error adding notification:", error);
-      return;
+      if (error) {
+        console.error("Error adding notification:", error);
+        return;
+      }
+
+      setNotifications((prev) => [
+        {
+          id: data.id,
+          title: data.title,
+          message: data.message,
+          type: data.type as NotificationType,
+          timestamp: new Date(data.created_at),
+          read: data.read || false,
+          link: data.link,
+          data: typeof data.data === 'string' 
+            ? JSON.parse(data.data) 
+            : data.data as Record<string, any>
+        },
+        ...prev,
+      ]);
+    } catch (err) {
+      console.error("Error in addNotification:", err);
     }
-
-    setNotifications((prev) => [
-      {
-        id: data.id,
-        title: data.title,
-        message: data.message,
-        type: data.type as NotificationType,
-        timestamp: new Date(data.created_at),
-        read: data.read || false,
-        link: data.link,
-        data: typeof data.data === 'string' 
-          ? JSON.parse(data.data) 
-          : data.data as Record<string, any>
-      },
-      ...prev,
-    ]);
   };
 
   const markAsRead = async (id: string) => {
     if (!user?.id) return;
 
-    const { error } = await supabase
-      .from("notifications")
-      .update({ read: true })
-      .eq("id", id)
-      .eq("user_id", user.id);
+    try {
+      const { error } = await supabase
+        .from("notifications")
+        .update({ read: true })
+        .eq("id", id)
+        .eq("user_id", user.id);
 
-    if (error) {
-      console.error("Error marking notification as read:", error);
-      return;
+      if (error) {
+        console.error("Error marking notification as read:", error);
+        return;
+      }
+
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+      );
+    } catch (err) {
+      console.error("Error in markAsRead:", err);
     }
-
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
   };
 
   const clearNotification = (id: string) => {
