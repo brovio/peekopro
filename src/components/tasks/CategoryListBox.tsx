@@ -1,11 +1,6 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Task, SubTask } from "@/types/task";
-import { 
-  FileText, Timer, Users, MessageCircle, Home, User2, 
-  Lightbulb, AppWindow, Briefcase, Calendar, RefreshCw, 
-  AlertTriangle, CheckCircle2, FolderPlus, Gift, Palmtree,
-  Edit, Trash2, Move
-} from "lucide-react";
+import { Task } from "@/types/task";
+import { Edit } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,15 +8,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import TaskProgress from "./TaskProgress";
 import { useToast } from "@/components/ui/use-toast";
 import { useSettings } from "@/contexts/SettingsContext";
@@ -30,8 +16,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import TaskItem from "./TaskItem";
 import WorkDayTaskItem from "./WorkDayTaskItem";
-import { Json } from "@/integrations/supabase/types";
 import { useState } from "react";
+import { getCategoryIcon } from "./utils/categoryIcons";
+import EditCategoryDialog from "./dialogs/EditCategoryDialog";
+import DeleteCategoryDialog from "./dialogs/DeleteCategoryDialog";
+import MoveCategoryDialog from "./dialogs/MoveCategoryDialog";
 
 export interface CategoryListBoxProps {
   title: string;
@@ -41,7 +30,13 @@ export interface CategoryListBoxProps {
   onTaskMove?: (taskId: string, category: string) => void;
 }
 
-export const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTaskMove }: CategoryListBoxProps) => {
+export const CategoryListBox = ({ 
+  title, 
+  tasks, 
+  onTaskUpdate, 
+  onTaskDelete, 
+  onTaskMove 
+}: CategoryListBoxProps) => {
   const completedTasks = tasks.filter(task => task.completed).length;
   const { toast } = useToast();
   const { categorySettings } = useSettings();
@@ -58,18 +53,18 @@ export const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTa
 
     const task = tasks.find(t => t.id === taskId);
     if (task) {
-      const newSubtask: SubTask = {
-        id: crypto.randomUUID(),
-        content: "New subtask",
-        completed: false
-      };
-
       try {
+        const newSubtask = {
+          id: crypto.randomUUID(),
+          content: "New subtask",
+          completed: false
+        };
+
         const updatedSubtasks = [...(task.subtasks || []), newSubtask];
         const { error } = await supabase
           .from('tasks')
           .update({
-            subtasks: updatedSubtasks as unknown as Json
+            subtasks: updatedSubtasks
           })
           .eq('id', taskId);
 
@@ -90,37 +85,10 @@ export const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTa
     }
   };
 
-  const getCategoryIcon = (category: string) => {
-    const defaultCategories: { [key: string]: any } = {
-      "Work Day": Timer,
-      "Delegate": Users,
-      "Discuss": MessageCircle,
-      "Family": Home,
-      "Personal": User2,
-      "Ideas": Lightbulb,
-      "App Ideas": AppWindow,
-      "Project Ideas": Briefcase,
-      "Meetings": Calendar,
-      "Follow-Up": RefreshCw,
-      "Urgent": AlertTriangle,
-      "Complete": CheckCircle2,
-      "Christmas": Gift,
-      "Holiday": Palmtree
-    };
-
-    const IconComponent = defaultCategories[category];
-    if (IconComponent) {
-      return <IconComponent className="h-4 w-4 text-gray-300" />;
-    }
-
-    return <FolderPlus className="h-4 w-4 text-gray-300" />;
-  };
-
   const handleRename = async () => {
     if (!user) return;
 
     try {
-      // Update all tasks in this category to the new category name
       const { error } = await supabase
         .from('tasks')
         .update({ category: newCategoryName })
@@ -149,7 +117,6 @@ export const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTa
     if (!user || tasks.length > 0) return;
 
     try {
-      // Delete all tasks in this category
       const { error } = await supabase
         .from('tasks')
         .delete()
@@ -178,7 +145,6 @@ export const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTa
     if (!user || !selectedCategory) return;
 
     try {
-      // Move all tasks to the selected category
       const { error } = await supabase
         .from('tasks')
         .update({ category: selectedCategory })
@@ -209,12 +175,14 @@ export const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTa
     "Urgent", "Complete", "Christmas", "Holiday"
   ].filter(cat => cat !== title);
 
+  const Icon = getCategoryIcon(title);
+
   return (
     <Card className="bg-[#141e38] border-gray-700 w-full mb-6">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-medium text-gray-100 flex items-center gap-2">
-            {getCategoryIcon(title)}
+            <Icon className="h-4 w-4 text-gray-300" />
             {title}
             <span className="text-gray-400">({tasks.length})</span>
           </CardTitle>
@@ -271,83 +239,29 @@ export const CategoryListBox = ({ title, tasks, onTaskUpdate, onTaskDelete, onTa
         )}
       </CardContent>
 
-      {/* Rename Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="bg-[#1A1F2C] border-gray-700">
-          <DialogHeader>
-            <DialogTitle className="text-gray-100">Rename Category</DialogTitle>
-            <DialogDescription className="text-gray-400">
-              Enter a new name for this category
-            </DialogDescription>
-          </DialogHeader>
-          <Input
-            value={newCategoryName}
-            onChange={(e) => setNewCategoryName(e.target.value)}
-            className="bg-[#141e38] border-gray-700 text-gray-100"
-          />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleRename}>
-              Save
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <EditCategoryDialog
+        isOpen={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        title={title}
+        newCategoryName={newCategoryName}
+        onNewCategoryNameChange={setNewCategoryName}
+        onSave={handleRename}
+      />
 
-      {/* Delete Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="bg-[#1A1F2C] border-gray-700">
-          <DialogHeader>
-            <DialogTitle className="text-gray-100">Delete Category</DialogTitle>
-            <DialogDescription className="text-gray-400">
-              Are you sure you want to delete this category? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteCategoryDialog
+        isOpen={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onDelete={handleDelete}
+      />
 
-      {/* Move Dialog */}
-      <Dialog open={isMoveDialogOpen} onOpenChange={setIsMoveDialogOpen}>
-        <DialogContent className="bg-[#1A1F2C] border-gray-700">
-          <DialogHeader>
-            <DialogTitle className="text-gray-100">Move Tasks</DialogTitle>
-            <DialogDescription className="text-gray-400">
-              Select a category to move all tasks to
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-2">
-            {availableCategories.map((category) => (
-              <Button
-                key={category}
-                variant={selectedCategory === category ? "default" : "outline"}
-                onClick={() => setSelectedCategory(category)}
-                className="justify-start"
-              >
-                {getCategoryIcon(category)}
-                <span className="ml-2">{category}</span>
-              </Button>
-            ))}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsMoveDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleMove} disabled={!selectedCategory}>
-              Move
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <MoveCategoryDialog
+        isOpen={isMoveDialogOpen}
+        onOpenChange={setIsMoveDialogOpen}
+        availableCategories={availableCategories}
+        selectedCategory={selectedCategory}
+        onCategorySelect={setSelectedCategory}
+        onMove={handleMove}
+      />
     </Card>
   );
 };
