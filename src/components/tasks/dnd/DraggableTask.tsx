@@ -1,0 +1,49 @@
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { Task } from "@/types/task";
+import TaskItem from "../TaskItem";
+import WorkDayTaskItem from "../WorkDayTaskItem";
+
+interface DraggableTaskProps {
+  task: Task;
+  category: string;
+  onAddSubtask?: (taskId: string) => void;
+  onDelete?: (taskId: string) => void;
+  onMove?: (taskId: string, category: string) => void;
+}
+
+const DraggableTask = ({ task, category, onAddSubtask, onDelete, onMove }: DraggableTaskProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: task.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      {category === "Work Day" ? (
+        <WorkDayTaskItem
+          task={task}
+          onAddSubtask={onAddSubtask}
+          onDelete={onDelete}
+          onMove={onMove}
+        />
+      ) : (
+        <TaskItem
+          task={task}
+          onDelete={onDelete}
+          onMove={onMove}
+        />
+      )}
+    </div>
+  );
+};
+
+export default DraggableTask;

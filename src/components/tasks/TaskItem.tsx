@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Task } from "@/types/task";
-import { FileText, Trash2, ArrowRight, User, Check, RefreshCw } from "lucide-react";
+import { FileText, Trash2, ArrowRight, RefreshCw } from "lucide-react";
 import TaskClassificationButtons from "./TaskClassificationButtons";
 
 interface TaskItemProps {
@@ -17,6 +17,9 @@ const TaskItem = ({ task, onDelete, onMove }: TaskItemProps) => {
     <div className="group relative p-2 bg-[#2A2F3C] rounded-md text-gray-200">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 flex-1 min-w-0">
+          <div className="cursor-move touch-manipulation">
+            <FileText className="h-4 w-4 text-gray-400" />
+          </div>
           <span className="break-words whitespace-normal w-full">{task.content}</span>
         </div>
         <div className="flex gap-0.5 items-center invisible group-hover:visible">
@@ -25,7 +28,7 @@ const TaskItem = ({ task, onDelete, onMove }: TaskItemProps) => {
             size="icon" 
             className="h-7 w-7 text-gray-300 hover:text-gray-100"
             onClick={() => setShowReclassify(true)}
-            title="Reclassify"
+            title="Move Task"
           >
             <RefreshCw className="h-4 w-4" />
           </Button>
