@@ -15,7 +15,7 @@ import Header from "@/components/layout/Header";
 import ApiKeyManager from "@/components/ui/ApiKeyManager";
 import { Task } from "@/types/task";
 
-type CategorizedTask = Pick<Task, 'id' | 'content' | 'category'>;
+type CategorizedTask = Pick<Task, 'id' | 'content' | 'category' | 'completed' | 'breakdown_comments'>;
 
 const Test = () => {
   const [task, setTask] = useState("");

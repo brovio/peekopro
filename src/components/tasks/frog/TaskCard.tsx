@@ -22,7 +22,7 @@ interface TaskCardProps {
     content: string;
     category: string;
     completed?: boolean;
-    breakdown_comments?: string;
+    breakdown_comments?: string | null;
   }>;
   onEdit: (taskId: string, newContent: string) => void;
   onDelete: (taskId: string) => void;
@@ -50,14 +50,17 @@ const TaskCard = ({
     setEditingTaskId(null);
   };
 
+  // Safely handle color class
+  const iconColorClass = color?.replace('bg-', 'text-') || 'text-gray-400';
+
   return (
     <Card className={cn(
       "p-3 sm:p-6 transition-all duration-300",
       "bg-[#1A1F2C] hover:bg-[#242938]",
-      `border-2 ${borderColor}`
+      `border-2 ${borderColor || 'border-gray-700'}`
     )}>
       <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
-        <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${color.replace('bg-', 'text-')}`} />
+        <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${iconColorClass}`} />
         <h2 className="text-base sm:text-xl font-semibold text-gray-100 truncate sm:text-clip">{category}</h2>
       </div>
       <div className="space-y-1.5 sm:space-y-2">

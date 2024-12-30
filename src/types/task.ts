@@ -19,7 +19,7 @@ export interface Task {
   id: string;
   content: string;
   category: string | null;
-  confidence: number;
+  confidence?: number;  // Made optional
   completed?: boolean;
   created_at?: string;
   user_id?: string;
