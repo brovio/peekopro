@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Task } from "@/types/task";
-import { FileText, Trash2, ArrowRight, User, Check, RefreshCw } from "lucide-react";
+import { FileText, Trash2, ArrowRight, User, Check, Edit } from "lucide-react";
 import TaskClassificationButtons from "./TaskClassificationButtons";
 
 interface TaskItemProps {
@@ -39,9 +39,9 @@ const TaskItem = ({ task, onDelete, onMove }: TaskItemProps) => {
               size="icon" 
               className="h-7 w-7 text-gray-300 hover:text-gray-100"
               onClick={() => setShowReclassify(true)}
-              title="Reclassify"
+              title="Edit"
             >
-              <RefreshCw className="h-4 w-4" />
+              <Edit className="h-4 w-4" />
             </Button>
             <Button 
               variant="ghost" 
