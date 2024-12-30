@@ -45,7 +45,7 @@ const DraggableTask = ({ task, category, onAddSubtask, onDelete, onMove }: Dragg
       {...listeners}
       aria-label="Drag task"
     >
-      <GripVertical className="h-5 w-5 text-gray-400 hover:text-gray-200" />
+      <GripVertical className="h-5 w-5 text-gray-400" />
     </div>
   );
 
