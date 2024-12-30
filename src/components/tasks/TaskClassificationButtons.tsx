@@ -4,8 +4,8 @@ import { Timer, Users, MessageCircle, Home, User2, Lightbulb, AppWindow, Briefca
 
 interface TaskClassificationButtonsProps {
   taskId: string;
-  onClassify: (taskId: string, category: string) => void;
-  onClose?: () => void;  // Added this optional prop
+  onMove: (taskId: string, category: string) => void;
+  onClose?: () => void;
 }
 
 const categories = [
@@ -22,10 +22,10 @@ const categories = [
   { name: "Urgent", icon: AlertTriangle },
 ];
 
-const TaskClassificationButtons = ({ taskId, onClassify, onClose }: TaskClassificationButtonsProps) => {
+const TaskClassificationButtons = ({ taskId, onMove, onClose }: TaskClassificationButtonsProps) => {
   const handleClassify = (category: string) => {
-    onClassify(taskId, category);
-    onClose?.();  // Call onClose if it exists
+    onMove(taskId, category);
+    onClose?.();
   };
 
   return (
