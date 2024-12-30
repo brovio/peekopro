@@ -37,11 +37,11 @@ const TaskItem = ({ task, onDelete, onMove, dragHandle }: TaskItemProps) => {
     <div className="group relative p-2 bg-[#2A2F3C] rounded-md text-gray-200">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <div className="touch-none">
-            {dragHandle || (
-              <GripVertical className="h-5 w-5 text-gray-400 hover:text-gray-200 cursor-grab active:cursor-grabbing" />
-            )}
-          </div>
+          {dragHandle || (
+            <div className="touch-none cursor-grab active:cursor-grabbing p-1">
+              <GripVertical className="h-5 w-5 text-gray-400 hover:text-gray-200" />
+            </div>
+          )}
           <FileText className="h-4 w-4 text-gray-400" />
           <span className="break-words whitespace-normal w-full">{task.content}</span>
         </div>
