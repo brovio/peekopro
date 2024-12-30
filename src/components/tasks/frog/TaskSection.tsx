@@ -1,54 +1,56 @@
-import { Task } from "@/types/task";
 import { Card } from "@/components/ui/card";
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { Task } from "@/types/task";
 import TaskItem from "./TaskItem";
 import TaskHeader from "./TaskHeader";
 
 interface TaskSectionProps {
   category: string;
   icon: any;
-  color: string;
-  borderColor: string;
   tasks: Task[];
-  onBreakdownStart?: (content: string, taskId: string) => void;
   availableCategories: string[];
-  onRenameCategory?: (oldCategory: string, newCategory: string) => void;
-  onMoveTasksToCategory?: (fromCategory: string, toCategory: string) => void;
-  onDeleteCategory?: (category: string) => void;
+  onRename?: (oldCategory: string, newCategory: string) => void;
+  onMove?: (fromCategory: string, toCategory: string) => void;
+  onDelete?: (category: string) => void;
+  color?: string;
+  borderColor?: string;
 }
 
 const TaskSection = ({
   category,
-  icon: Icon,
-  color,
-  borderColor,
+  icon,
   tasks,
-  onBreakdownStart,
   availableCategories,
-  onRenameCategory,
-  onMoveTasksToCategory,
-  onDeleteCategory,
+  onRename,
+  onMove,
+  onDelete,
+  color = "bg-[#1A1F2C]",
+  borderColor = "border-gray-700"
 }: TaskSectionProps) => {
   const { setNodeRef, isOver } = useDroppable({
     id: category,
+    data: {
+      type: 'category',
+      category
+    }
   });
 
   return (
     <Card 
       ref={setNodeRef}
-      className={`${color} relative overflow-hidden transition-transform ${
+      className={`${color} relative overflow-hidden transition-all duration-200 ${
         isOver ? 'scale-[1.02] ring-2 ring-white' : ''
-      }`}
+      } ${borderColor}`}
     >
       <div className="p-4">
         <TaskHeader
           category={category}
-          icon={Icon}
+          icon={icon}
           availableCategories={availableCategories}
-          onRename={onRenameCategory}
-          onMove={onMoveTasksToCategory}
-          onDelete={onDeleteCategory}
+          onRename={onRename}
+          onMove={onMove}
+          onDelete={onDelete}
         />
         
         <SortableContext 
@@ -56,13 +58,16 @@ const TaskSection = ({
           strategy={verticalListSortingStrategy}
         >
           <div className="space-y-2 mt-4">
-            {tasks.map((task) => (
-              <TaskItem
-                key={task.id}
-                task={task}
-                onBreakdown={onBreakdownStart}
-              />
-            ))}
+            {tasks.length === 0 ? (
+              <div className="text-sm text-gray-400 italic">No tasks in this category</div>
+            ) : (
+              tasks.map((task) => (
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                />
+              ))
+            )}
           </div>
         </SortableContext>
       </div>
