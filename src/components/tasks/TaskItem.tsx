@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Task } from "@/types/task";
 import { FileText, Trash2, RefreshCw } from "lucide-react";
 import TaskClassificationButtons from "./TaskClassificationButtons";
+import { useCategoryContext } from "./context/CategoryContext";
 
 interface TaskItemProps {
   task: Task;
@@ -13,6 +14,24 @@ interface TaskItemProps {
 
 const TaskItem = ({ task, onDelete, onMove, dragHandle }: TaskItemProps) => {
   const [showReclassify, setShowReclassify] = useState(false);
+  const context = useCategoryContext();
+
+  const handleDelete = () => {
+    if (context.onTaskDelete) {
+      context.onTaskDelete(task.id);
+    } else if (onDelete) {
+      onDelete(task.id);
+    }
+  };
+
+  const handleMove = (category: string) => {
+    if (context.onTaskMove) {
+      context.onTaskMove(task.id, category);
+    } else if (onMove) {
+      onMove(task.id, category);
+    }
+    setShowReclassify(false);
+  };
 
   return (
     <div className="group relative p-2 bg-[#2A2F3C] rounded-md text-gray-200">
@@ -36,7 +55,7 @@ const TaskItem = ({ task, onDelete, onMove, dragHandle }: TaskItemProps) => {
             variant="ghost" 
             size="icon"
             className="h-7 w-7 text-gray-300 hover:text-gray-100"
-            onClick={() => onDelete?.(task.id)}
+            onClick={handleDelete}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -46,8 +65,8 @@ const TaskItem = ({ task, onDelete, onMove, dragHandle }: TaskItemProps) => {
       {showReclassify && (
         <TaskClassificationButtons
           taskId={task.id}
+          onMove={handleMove}
           onClose={() => setShowReclassify(false)}
-          onMove={onMove}
         />
       )}
     </div>
