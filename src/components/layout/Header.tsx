@@ -67,7 +67,7 @@ const Header = ({ onShowApiManager }: HeaderProps) => {
       <div className="flex-1 flex justify-center px-2 sm:px-4">
         <Link to="/">
           <img 
-            src="/lovable-uploads/flomigo-logo.png"
+            src="/lovable-uploads/flomogo.PNG"
             alt="Flomigo Logo"
             className="w-[150px] sm:w-[300px] object-contain my-[1px]"
           />
