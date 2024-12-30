@@ -3,6 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Task } from "@/types/task";
 import TaskItem from "../TaskItem";
 import WorkDayTaskItem from "../WorkDayTaskItem";
+import { GripVertical } from "lucide-react";
 
 interface DraggableTaskProps {
   task: Task;
@@ -36,11 +37,19 @@ const DraggableTask = ({ task, category, onAddSubtask, onDelete, onMove }: Dragg
     zIndex: isDragging ? 999 : 'auto',
   };
 
+  const dragHandle = (
+    <div 
+      className="touch-none cursor-grab active:cursor-grabbing hover:text-gray-300 transition-colors"
+      {...attributes}
+      {...listeners}
+    >
+      <GripVertical className="h-5 w-5 text-gray-400" />
+    </div>
+  );
+
   return (
     <div 
       ref={setNodeRef} 
-      {...attributes} 
-      {...listeners}
       style={style as React.CSSProperties}
       className="touch-manipulation"
     >
@@ -50,12 +59,14 @@ const DraggableTask = ({ task, category, onAddSubtask, onDelete, onMove }: Dragg
           onAddSubtask={onAddSubtask}
           onDelete={onDelete}
           onMove={onMove}
+          dragHandle={dragHandle}
         />
       ) : (
         <TaskItem
           task={task}
           onDelete={onDelete}
           onMove={onMove}
+          dragHandle={dragHandle}
         />
       )}
     </div>
