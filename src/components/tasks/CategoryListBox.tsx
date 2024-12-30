@@ -31,7 +31,7 @@ export const CategoryListBox = ({
 }: CategoryListBoxProps) => {
   const completedTasks = tasks.filter(task => task.completed).length;
   const { toast } = useToast();
-  const { categorySettings } = useSettings();
+  const { categorySettings, visibleCategories } = useSettings();
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -60,6 +60,9 @@ export const CategoryListBox = ({
   };
 
   const activeTask = activeId ? tasks.find(task => task.id === activeId) : null;
+
+  // Filter out the current category from available categories
+  const availableCategories = visibleCategories.filter(category => category !== title);
 
   return (
     <CategoryProvider value={{ onTaskUpdate, onTaskDelete, onTaskMove }}>
@@ -159,6 +162,7 @@ export const CategoryListBox = ({
         <MoveCategoryDialog
           isOpen={isMoveDialogOpen}
           onOpenChange={setIsMoveDialogOpen}
+          availableCategories={availableCategories}
           selectedCategory={selectedCategory}
           onCategorySelect={setSelectedCategory}
           onMove={async () => {
