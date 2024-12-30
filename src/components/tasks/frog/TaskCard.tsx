@@ -4,6 +4,8 @@ import { GripVertical, Edit, Trash2, Brain } from "lucide-react";
 import TaskActionButtons from "./TaskActionButtons";
 import TaskNotes from "./TaskNotes";
 import { cn } from "@/lib/utils";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface TaskCardProps {
   category: string;
@@ -62,50 +64,98 @@ const TaskCard = ({
 
         <div className="space-y-2">
           {tasks.map((task) => (
-            <div
+            <DraggableTask
               key={task.id}
-              className={cn(
-                "flex items-center gap-2 p-2 rounded-md bg-black/20",
-                "cursor-grab active:cursor-grabbing touch-none",
-                "border border-white/10"
-              )}
-            >
-              <GripVertical className="h-5 w-5 text-white/50" />
-              <span className="flex-1 text-white">{task.content}</span>
-              <div className="flex items-center gap-1">
-                {showBreakdownButton && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => onBreakdown?.(task.content, task.id)}
-                  >
-                    <Brain className="h-4 w-4 text-white/70" />
-                  </Button>
-                )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={() => onComplete?.(task.id)}
-                >
-                  <Edit className="h-4 w-4 text-white/70" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={() => onDelete?.(task.id)}
-                >
-                  <Trash2 className="h-4 w-4 text-white/70" />
-                </Button>
-              </div>
-            </div>
+              task={task}
+              onBreakdown={onBreakdown}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              showBreakdownButton={showBreakdownButton}
+            />
           ))}
         </div>
       </div>
       <TaskNotes category={category} />
     </Card>
+  );
+};
+
+interface DraggableTaskProps {
+  task: {
+    id: string;
+    content: string;
+    category: string;
+  };
+  onBreakdown?: (content: string, taskId: string) => void;
+  onEdit?: (taskId: string, newContent: string) => void;
+  onDelete?: (taskId: string) => void;
+  showBreakdownButton?: boolean;
+}
+
+const DraggableTask = ({
+  task,
+  onBreakdown,
+  onEdit,
+  onDelete,
+  showBreakdownButton,
+}: DraggableTaskProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: task.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      className={cn(
+        "flex items-center gap-2 p-2 rounded-md bg-black/20",
+        "cursor-grab active:cursor-grabbing touch-none",
+        "border border-white/10"
+      )}
+    >
+      <div {...listeners}>
+        <GripVertical className="h-5 w-5 text-white/50" />
+      </div>
+      <span className="flex-1 text-white">{task.content}</span>
+      <div className="flex items-center gap-1">
+        {showBreakdownButton && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            onClick={() => onBreakdown?.(task.content, task.id)}
+          >
+            <Brain className="h-4 w-4 text-white/70" />
+          </Button>
+        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+          onClick={() => onEdit?.(task.id, task.content)}
+        >
+          <Edit className="h-4 w-4 text-white/70" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+          onClick={() => onDelete?.(task.id)}
+        >
+          <Trash2 className="h-4 w-4 text-white/70" />
+        </Button>
+      </div>
+    </div>
   );
 };
 
