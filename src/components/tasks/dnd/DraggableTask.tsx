@@ -19,15 +19,25 @@ const DraggableTask = ({ task, category, onAddSubtask, onDelete, onMove }: Dragg
     setNodeRef,
     transform,
     transition,
+    isDragging
   } = useSortable({ id: task.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+    opacity: isDragging ? 0.5 : 1,
+    position: isDragging ? 'relative' : 'static',
+    zIndex: isDragging ? 999 : 'auto',
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div 
+      ref={setNodeRef} 
+      {...attributes} 
+      {...listeners}
+      style={style as React.CSSProperties}
+      className="touch-manipulation"
+    >
       {category === "Work Day" ? (
         <WorkDayTaskItem
           task={task}

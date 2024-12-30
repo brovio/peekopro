@@ -24,14 +24,19 @@ const DroppableCategory = ({
   onRename,
   onDelete,
 }: DroppableCategoryProps) => {
-  const { setNodeRef } = useDroppable({
+  const { setNodeRef, isOver } = useDroppable({
     id: category,
   });
 
   const Icon = getCategoryIcon(category);
 
   return (
-    <Card className="bg-[#141e38] border-gray-700 w-full mb-6" ref={setNodeRef}>
+    <Card 
+      className={`bg-[#141e38] border-gray-700 w-full mb-6 transition-colors ${
+        isOver ? 'border-2 border-blue-500 bg-[#1a2544]' : ''
+      }`} 
+      ref={setNodeRef}
+    >
       <CardHeader className="pb-3">
         <CategoryHeader
           title={category}
