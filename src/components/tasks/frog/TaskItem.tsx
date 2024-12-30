@@ -1,18 +1,13 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Task } from "@/types/task";
-import { Button } from "@/components/ui/button";
-import { FileText, Trash2, RefreshCw, GripVertical } from "lucide-react";
-import TaskClassificationButtons from "../TaskClassificationButtons";
-import { useState } from "react";
 
 interface TaskItemProps {
   task: Task;
+  onBreakdownStart?: (content: string, taskId: string) => void;
 }
 
-const TaskItem = ({ task }: TaskItemProps) => {
-  const [showReclassify, setShowReclassify] = useState(false);
-  
+const TaskItem = ({ task, onBreakdownStart }: TaskItemProps) => {
   const {
     attributes,
     listeners,
@@ -21,11 +16,7 @@ const TaskItem = ({ task }: TaskItemProps) => {
     transition,
     isDragging
   } = useSortable({
-    id: task.id,
-    data: {
-      type: 'task',
-      task
-    }
+    id: task.id
   });
 
   const style = {
@@ -34,48 +25,24 @@ const TaskItem = ({ task }: TaskItemProps) => {
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const handleBreakdown = () => {
+    if (onBreakdownStart) {
+      onBreakdownStart(task.content, task.id);
+    }
+  };
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       {...attributes}
-      className={`group relative p-2 bg-black/20 rounded-md text-white
-        cursor-grab active:cursor-grabbing touch-none ${isDragging ? 'z-50' : ''}`}
+      {...listeners}
+      className={`p-3 bg-[#2A2F3C] rounded-lg cursor-move transition-all duration-200 ${
+        isDragging ? 'ring-2 ring-white' : ''
+      }`}
+      onClick={handleBreakdown}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          <div {...listeners} className="touch-none">
-            <GripVertical className="h-5 w-5 text-white/50" />
-          </div>
-          <FileText className="h-4 w-4 text-white/70" />
-          <span className="break-words whitespace-normal w-full">{task.content}</span>
-        </div>
-        <div className="flex gap-0.5 items-center">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-7 w-7 text-white/70"
-            onClick={() => setShowReclassify(true)}
-          >
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            className="h-7 w-7 text-white/70"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-      
-      {showReclassify && (
-        <TaskClassificationButtons
-          taskId={task.id}
-          onMove={() => {}}
-          onClose={() => setShowReclassify(false)}
-        />
-      )}
+      <p className="text-sm text-gray-200">{task.content}</p>
     </div>
   );
 };

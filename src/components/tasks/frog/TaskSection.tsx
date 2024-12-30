@@ -10,6 +10,7 @@ interface TaskSectionProps {
   icon: any;
   tasks: Task[];
   availableCategories: string[];
+  onBreakdownStart?: (content: string, taskId: string) => void;
   onRename?: (oldCategory: string, newCategory: string) => void;
   onMove?: (fromCategory: string, toCategory: string) => void;
   onDelete?: (category: string) => void;
@@ -22,6 +23,7 @@ const TaskSection = ({
   icon,
   tasks,
   availableCategories,
+  onBreakdownStart,
   onRename,
   onMove,
   onDelete,
@@ -65,6 +67,7 @@ const TaskSection = ({
                 <TaskItem
                   key={task.id}
                   task={task}
+                  onBreakdownStart={onBreakdownStart}
                 />
               ))
             )}
