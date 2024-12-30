@@ -39,11 +39,12 @@ const DraggableTask = ({ task, category, onAddSubtask, onDelete, onMove }: Dragg
 
   const dragHandle = (
     <button 
-      className="touch-none cursor-grab active:cursor-grabbing hover:text-gray-300 transition-colors"
+      className="touch-none p-1 cursor-grab active:cursor-grabbing group-hover:opacity-100 opacity-0 transition-all duration-200"
       {...attributes}
       {...listeners}
+      aria-label="Drag task"
     >
-      <GripVertical className="h-5 w-5 text-gray-400" />
+      <GripVertical className="h-5 w-5 text-gray-400 hover:text-gray-200" />
     </button>
   );
 
@@ -51,7 +52,7 @@ const DraggableTask = ({ task, category, onAddSubtask, onDelete, onMove }: Dragg
     <div 
       ref={setNodeRef} 
       style={style as React.CSSProperties}
-      className="touch-manipulation"
+      className="touch-manipulation mb-2"
     >
       {category === "Work Day" ? (
         <WorkDayTaskItem

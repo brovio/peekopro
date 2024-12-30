@@ -36,8 +36,8 @@ const DroppableCategory = ({
 
   return (
     <Card 
-      className={`bg-[#141e38] border-gray-700 w-full mb-6 transition-colors ${
-        isOver ? 'border-2 border-blue-500 bg-[#1a2544]' : ''
+      className={`bg-[#141e38] border-gray-700 w-full mb-6 transition-all duration-200 ${
+        isOver ? 'border-2 border-blue-500 bg-[#1a2544] scale-[1.02]' : ''
       }`} 
       ref={setNodeRef}
     >
