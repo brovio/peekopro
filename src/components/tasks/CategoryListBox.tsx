@@ -41,6 +41,9 @@ export const CategoryListBox = ({
   const [newCategoryName, setNewCategoryName] = useState(title);
   const [selectedCategory, setSelectedCategory] = useState("");
 
+  // Filter out the current category from available categories
+  const availableCategories = visibleCategories.filter(category => category !== title);
+
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
   };
@@ -60,9 +63,6 @@ export const CategoryListBox = ({
   };
 
   const activeTask = activeId ? tasks.find(task => task.id === activeId) : null;
-
-  // Filter out the current category from available categories
-  const availableCategories = visibleCategories.filter(category => category !== title);
 
   return (
     <CategoryProvider value={{ onTaskUpdate, onTaskDelete, onTaskMove }}>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Task } from "@/types/task";
-import { FileText, Trash2, RefreshCw } from "lucide-react";
+import { FileText, Trash2, RefreshCw, GripVertical } from "lucide-react";
 import TaskClassificationButtons from "./TaskClassificationButtons";
 import { useCategoryContext } from "./context/CategoryContext";
 
@@ -37,7 +37,9 @@ const TaskItem = ({ task, onDelete, onMove, dragHandle }: TaskItemProps) => {
     <div className="group relative p-2 bg-[#2A2F3C] rounded-md text-gray-200">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          {dragHandle}
+          {dragHandle || (
+            <GripVertical className="h-5 w-5 text-gray-400 hover:text-gray-200 cursor-grab active:cursor-grabbing" />
+          )}
           <FileText className="h-4 w-4 text-gray-400" />
           <span className="break-words whitespace-normal w-full">{task.content}</span>
         </div>

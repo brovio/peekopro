@@ -6,6 +6,7 @@ import { Session } from '@supabase/supabase-js';
 
 interface AuthContextType {
   isAuthenticated: boolean;
+  isLoading: boolean;  // Added this line
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   user: any | null;
