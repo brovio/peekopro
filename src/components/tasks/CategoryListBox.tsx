@@ -21,6 +21,7 @@ import { getCategoryIcon } from "./utils/categoryIcons";
 import EditCategoryDialog from "./dialogs/EditCategoryDialog";
 import DeleteCategoryDialog from "./dialogs/DeleteCategoryDialog";
 import MoveCategoryDialog from "./dialogs/MoveCategoryDialog";
+import { Json } from "@/integrations/supabase/types";
 
 export interface CategoryListBoxProps {
   title: string;
@@ -61,10 +62,14 @@ export const CategoryListBox = ({
         };
 
         const updatedSubtasks = [...(task.subtasks || []), newSubtask];
+        
+        // Convert the subtasks array to a JSON-compatible format
+        const subtasksJson = JSON.parse(JSON.stringify(updatedSubtasks)) as Json;
+
         const { error } = await supabase
           .from('tasks')
           .update({
-            subtasks: updatedSubtasks
+            subtasks: subtasksJson
           })
           .eq('id', taskId);
 
@@ -257,7 +262,11 @@ export const CategoryListBox = ({
       <MoveCategoryDialog
         isOpen={isMoveDialogOpen}
         onOpenChange={setIsMoveDialogOpen}
-        availableCategories={availableCategories}
+        availableCategories={[
+          "Work Day", "Delegate", "Discuss", "Family", "Personal",
+          "Ideas", "App Ideas", "Project Ideas", "Meetings", "Follow-Up",
+          "Urgent", "Complete", "Christmas", "Holiday"
+        ].filter(cat => cat !== title)}
         selectedCategory={selectedCategory}
         onCategorySelect={setSelectedCategory}
         onMove={handleMove}
