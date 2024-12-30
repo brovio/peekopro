@@ -11,9 +11,9 @@ interface TaskSectionProps {
   tasks: Task[];
   availableCategories: string[];
   onBreakdownStart?: (content: string, taskId: string) => void;
-  onRename?: (oldCategory: string, newCategory: string) => void;
-  onMove?: (fromCategory: string, toCategory: string) => void;
-  onDelete?: (category: string) => void;
+  onRenameCategory?: (oldCategory: string, newCategory: string) => void;
+  onMoveTasksToCategory?: (fromCategory: string, toCategory: string) => void;
+  onDeleteCategory?: (category: string) => void;
   color?: string;
   borderColor?: string;
 }
@@ -24,9 +24,9 @@ const TaskSection = ({
   tasks,
   availableCategories,
   onBreakdownStart,
-  onRename,
-  onMove,
-  onDelete,
+  onRenameCategory,
+  onMoveTasksToCategory,
+  onDeleteCategory,
   color = "bg-[#1A1F2C]",
   borderColor = "border-gray-700"
 }: TaskSectionProps) => {
@@ -50,9 +50,9 @@ const TaskSection = ({
           category={category}
           icon={icon}
           availableCategories={availableCategories}
-          onRename={onRename}
-          onMove={onMove}
-          onDelete={onDelete}
+          onRename={onRenameCategory}
+          onMove={onMoveTasksToCategory}
+          onDelete={onDeleteCategory}
         />
         
         <SortableContext 
