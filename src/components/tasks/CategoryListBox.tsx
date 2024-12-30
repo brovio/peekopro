@@ -87,6 +87,7 @@ export const CategoryListBox = ({
               category={title}
               onDelete={onTaskDelete}
               onMove={onTaskMove}
+              onAddSubtask={onTaskUpdate ? (taskId) => onTaskUpdate(taskId, {}) : undefined}
             />
           ))}
         </SortableContext>

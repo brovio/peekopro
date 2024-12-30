@@ -38,13 +38,13 @@ const DraggableTask = ({ task, category, onAddSubtask, onDelete, onMove }: Dragg
   };
 
   const dragHandle = (
-    <div 
+    <button 
       className="touch-none cursor-grab active:cursor-grabbing hover:text-gray-300 transition-colors"
       {...attributes}
       {...listeners}
     >
       <GripVertical className="h-5 w-5 text-gray-400" />
-    </div>
+    </button>
   );
 
   return (
