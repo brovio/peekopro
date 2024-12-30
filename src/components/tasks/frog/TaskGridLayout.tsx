@@ -1,25 +1,26 @@
-import { DndContext, DragEndEvent, closestCenter } from "@dnd-kit/core";
+import { DndContext, DragEndEvent, DragOverEvent, closestCenter } from "@dnd-kit/core";
+import { SortableContext, arrayMove } from "@dnd-kit/sortable";
 import { Task } from "@/types/task";
-import { Trophy, Briefcase, Dumbbell, Repeat, BookOpen, FileText } from "lucide-react";
 import TaskSection from "./TaskSection";
-import CompletedTasksSection from "./CompletedTasksSection";
+import { categoryIcons } from "../utils/categoryIcons";
+import { useCallback } from "react";
 
 interface TaskGridLayoutProps {
   tasks: Task[];
+  onMoveTasksToCategory: (fromCategory: string, toCategory: string) => void;
+  onDeleteCategory: (category: string) => void;
   onBreakdownStart?: (content: string, taskId: string) => void;
-  onRenameCategory?: (oldCategory: string, newCategory: string) => void;
-  onMoveTasksToCategory?: (fromCategory: string, toCategory: string) => void;
-  onDeleteCategory?: (category: string) => void;
+  onRenameCategory?: (oldName: string, newName: string) => void;
 }
 
-const TaskGridLayout = ({
-  tasks,
-  onBreakdownStart,
-  onRenameCategory,
+const TaskGridLayout = ({ 
+  tasks, 
   onMoveTasksToCategory,
   onDeleteCategory,
+  onBreakdownStart,
+  onRenameCategory
 }: TaskGridLayoutProps) => {
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     
     if (over && active.id !== over.id) {
@@ -31,97 +32,79 @@ const TaskGridLayout = ({
         onMoveTasksToCategory(task.category || "", newCategory);
       }
     }
-  };
+  }, [tasks, onMoveTasksToCategory]);
 
-  const getTasksByCategory = (category: string) => 
-    tasks.filter(task => task.category === category && !task.completed);
-
-  const completedTasks = tasks.filter(task => task.category === 'Complete' || task.completed);
-
-  // Get unique categories from tasks, excluding special categories
-  const uniqueCategories = [...new Set(tasks.map(task => task.category))]
-    .filter(category => category && !['#1', 'Work', 'Fitness', 'Habit', 'Journal', 'Complete', 'Uncategorized'].includes(category));
-
-  // Get all unique categories for the select dropdown
-  const allCategories = [...new Set(tasks.map(task => task.category))];
+  // Group tasks by category
+  const tasksByCategory = tasks.reduce((acc, task) => {
+    const category = task.category || "Uncategorized";
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+    acc[category].push(task);
+    return acc;
+  }, {} as Record<string, Task[]>);
 
   return (
-    <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <div className="grid gap-6 animate-fade-in">
-        {/* #1 Section - Full width */}
+    <DndContext 
+      onDragEnd={handleDragEnd}
+      collisionDetection={closestCenter}
+    >
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+        {/* Important Tasks Section */}
         <TaskSection
-          category="#1"
-          icon={Trophy}
-          color="bg-[#9b87f5]"
-          borderColor="border-[#9b87f5]"
-          tasks={getTasksByCategory("#1")}
-          onBreakdownStart={onBreakdownStart}
-          availableCategories={allCategories}
-          onRenameCategory={onRenameCategory}
-          onMoveTasksToCategory={onMoveTasksToCategory}
+          category="Important"
+          icon={categoryIcons["Important"]}
+          tasks={tasksByCategory["Important"] || []}
+          color="bg-red-900/20"
+          borderColor="border-red-500/20"
           onDeleteCategory={onDeleteCategory}
+          onBreakdownStart={onBreakdownStart}
+          onRenameCategory={onRenameCategory}
         />
 
-        {/* Work Section - Full width */}
+        {/* Urgent Tasks Section */}
         <TaskSection
-          category="Work"
-          icon={Briefcase}
-          color="bg-[#0EA5E9]"
-          borderColor="border-[#0EA5E9]"
-          tasks={getTasksByCategory("Work")}
-          onBreakdownStart={onBreakdownStart}
-          availableCategories={allCategories}
-          onRenameCategory={onRenameCategory}
-          onMoveTasksToCategory={onMoveTasksToCategory}
+          category="Urgent"
+          icon={categoryIcons["Urgent"]}
+          tasks={tasksByCategory["Urgent"] || []}
+          color="bg-yellow-900/20"
+          borderColor="border-yellow-500/20"
           onDeleteCategory={onDeleteCategory}
+          onBreakdownStart={onBreakdownStart}
+          onRenameCategory={onRenameCategory}
         />
 
-        {/* Fitness, Habit, Journal Grid - Responsive */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            { category: "Fitness", icon: Dumbbell },
-            { category: "Habit", icon: Repeat },
-            { category: "Journal", icon: BookOpen }
-          ].map(({ category, icon }) => (
+        {/* Other Categories */}
+        {Object.entries(tasksByCategory)
+          .filter(([category]) => !["Important", "Urgent", "Uncategorized"].includes(category))
+          .map(([category, categoryTasks]) => (
             <TaskSection
               key={category}
               category={category}
-              icon={icon}
-              color="bg-[#F97316]"
-              borderColor="border-[#F97316]"
-              tasks={getTasksByCategory(category)}
-              onBreakdownStart={onBreakdownStart}
-              availableCategories={allCategories}
-              onRenameCategory={onRenameCategory}
-              onMoveTasksToCategory={onMoveTasksToCategory}
+              icon={categoryIcons[category] || categoryIcons["Default"]}
+              tasks={categoryTasks}
+              color="bg-blue-900/20"
+              borderColor="border-blue-500/20"
               onDeleteCategory={onDeleteCategory}
+              onBreakdownStart={onBreakdownStart}
+              onRenameCategory={onRenameCategory}
             />
           ))}
-        </div>
 
-        {/* Custom Categories Grid - Responsive */}
-        {uniqueCategories.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {uniqueCategories.map(category => (
-              <TaskSection
-                key={category}
-                category={category}
-                icon={FileText}
-                color="bg-[#6366F1]"
-                borderColor="border-[#6366F1]"
-                tasks={getTasksByCategory(category)}
-                onBreakdownStart={onBreakdownStart}
-                availableCategories={allCategories}
-                onRenameCategory={onRenameCategory}
-                onMoveTasksToCategory={onMoveTasksToCategory}
-                onDeleteCategory={onDeleteCategory}
-              />
-            ))}
-          </div>
+        {/* Uncategorized Tasks Section */}
+        {tasksByCategory["Uncategorized"] && tasksByCategory["Uncategorized"].length > 0 && (
+          <TaskSection
+            key="Uncategorized"
+            category="Uncategorized"
+            icon={categoryIcons["Uncategorized"]}
+            tasks={tasksByCategory["Uncategorized"]}
+            color="bg-gray-900/20"
+            borderColor="border-gray-500/20"
+            onDeleteCategory={onDeleteCategory}
+            onBreakdownStart={onBreakdownStart}
+            onRenameCategory={onRenameCategory}
+          />
         )}
-
-        {/* Complete Section */}
-        <CompletedTasksSection tasks={completedTasks} />
       </div>
     </DndContext>
   );
