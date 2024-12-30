@@ -1,5 +1,5 @@
 import { Task } from "@/types/task";
-import { Clock } from "lucide-react";
+import { Clock, GripVertical } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -106,6 +106,9 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
     <>
       <div className="flex items-center justify-between p-2 rounded-lg bg-gray-800 mb-2">
         <div className="flex items-center gap-2">
+          <div className="touch-none cursor-grab active:cursor-grabbing hover:text-gray-300 transition-colors">
+            <GripVertical className="h-5 w-5 text-gray-400" />
+          </div>
           <Clock className="h-4 w-4 text-gray-400" />
           <span className="text-sm text-gray-100">{task.content}</span>
           {task.subtasks && task.subtasks.length > 0 && (
