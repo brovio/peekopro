@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Timer, Users, MessageCircle, Home, User2, Lightbulb, AppWindow, Briefcase, Calendar, RefreshCw, AlertTriangle } from "lucide-react";
+import { availableCategories } from "./utils/categoryUtils";
 
 interface TaskClassificationButtonsProps {
   taskId: string;
