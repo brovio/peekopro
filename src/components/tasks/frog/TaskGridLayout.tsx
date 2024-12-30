@@ -24,13 +24,11 @@ const TaskGridLayout = ({
     
     if (over && active.id !== over.id) {
       const taskId = active.id.toString();
+      const task = tasks.find(t => t.id === taskId);
       const newCategory = over.id.toString();
       
-      if (onMoveTasksToCategory) {
-        const task = tasks.find(t => t.id === taskId);
-        if (task) {
-          onMoveTasksToCategory(task.category, newCategory);
-        }
+      if (task && onMoveTasksToCategory && task.category !== newCategory) {
+        onMoveTasksToCategory(task.category || "", newCategory);
       }
     }
   };

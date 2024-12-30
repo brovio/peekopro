@@ -1,9 +1,10 @@
-import { Card } from "@/components/ui/card";
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Task } from "@/types/task";
 import TaskItem from "./TaskItem";
 import TaskHeader from "./TaskHeader";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface TaskSectionProps {
   category: string;
@@ -41,9 +42,12 @@ const TaskSection = ({
   return (
     <Card 
       ref={setNodeRef}
-      className={`${color} relative overflow-hidden transition-all duration-200 ${
-        isOver ? 'scale-[1.02] ring-2 ring-white' : ''
-      } ${borderColor}`}
+      className={cn(
+        color,
+        "relative overflow-hidden transition-all duration-200",
+        isOver && "ring-2 ring-white scale-[1.02] bg-opacity-90",
+        !isOver && "hover:ring-1 hover:ring-gray-500"
+      )}
     >
       <div className="p-4">
         <TaskHeader
@@ -55,13 +59,15 @@ const TaskSection = ({
           onDelete={onDeleteCategory}
         />
         
-        <SortableContext 
+        <SortableContext
           items={tasks.map(task => task.id)}
           strategy={verticalListSortingStrategy}
         >
           <div className="space-y-2 mt-4">
             {tasks.length === 0 ? (
-              <div className="text-sm text-gray-400 italic">No tasks in this category</div>
+              <div className="text-sm text-gray-400 italic">
+                No tasks in this category
+              </div>
             ) : (
               tasks.map((task) => (
                 <TaskItem
