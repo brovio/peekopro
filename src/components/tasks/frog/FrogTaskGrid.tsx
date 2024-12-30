@@ -1,5 +1,8 @@
 import { Task } from "@/types/task";
 import TaskGridLayout from "./TaskGridLayout";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 interface FrogTaskGridProps {
   tasks: Task[];
@@ -7,6 +10,9 @@ interface FrogTaskGridProps {
 }
 
 const FrogTaskGrid = ({ tasks, onBreakdownStart }: FrogTaskGridProps) => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
   const handleRenameCategory = async (oldCategory: string, newCategory: string) => {
     try {
       const { error } = await supabase
