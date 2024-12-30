@@ -22,7 +22,7 @@ const TaskItem = ({ task, onDelete, onMove, dragHandle }: TaskItemProps) => {
           <FileText className="h-4 w-4 text-gray-400" />
           <span className="break-words whitespace-normal w-full">{task.content}</span>
         </div>
-        <div className="flex gap-0.5 items-center invisible group-hover:visible">
+        <div className="flex gap-0.5 items-center">
           <Button 
             variant="ghost" 
             size="icon" 

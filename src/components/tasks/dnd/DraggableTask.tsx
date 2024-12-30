@@ -39,7 +39,7 @@ const DraggableTask = ({ task, category, onAddSubtask, onDelete, onMove }: Dragg
 
   const dragHandle = (
     <button 
-      className="touch-none p-1 cursor-grab active:cursor-grabbing group-hover:opacity-100 opacity-0 transition-all duration-200"
+      className="touch-none p-1 cursor-grab active:cursor-grabbing opacity-100 transition-all duration-200"
       {...attributes}
       {...listeners}
       aria-label="Drag task"
