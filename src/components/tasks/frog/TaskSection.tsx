@@ -5,10 +5,11 @@ import TaskItem from "./TaskItem";
 import TaskHeader from "./TaskHeader";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { LucideIcon } from "lucide-react";
 
 interface TaskSectionProps {
   category: string;
-  icon: any;
+  icon: LucideIcon;
   tasks: Task[];
   availableCategories: string[];
   onBreakdownStart?: (content: string, taskId: string) => void;

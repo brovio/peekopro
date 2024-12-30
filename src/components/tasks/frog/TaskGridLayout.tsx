@@ -1,9 +1,10 @@
-import { DndContext, DragEndEvent, DragOverEvent, closestCenter } from "@dnd-kit/core";
+import { DndContext, DragEndEvent, closestCenter } from "@dnd-kit/core";
 import { SortableContext, arrayMove } from "@dnd-kit/sortable";
 import { Task } from "@/types/task";
 import TaskSection from "./TaskSection";
-import { categoryIcons } from "../utils/categoryIcons";
+import { getCategoryIcon } from "../utils/categoryIcons";
 import { useCallback } from "react";
+import { availableCategories } from "../utils/categoryUtils";
 
 interface TaskGridLayoutProps {
   tasks: Task[];
@@ -53,25 +54,27 @@ const TaskGridLayout = ({
         {/* Important Tasks Section */}
         <TaskSection
           category="Important"
-          icon={categoryIcons["Important"]}
+          icon={getCategoryIcon("Important")}
           tasks={tasksByCategory["Important"] || []}
           color="bg-red-900/20"
           borderColor="border-red-500/20"
           onDeleteCategory={onDeleteCategory}
           onBreakdownStart={onBreakdownStart}
           onRenameCategory={onRenameCategory}
+          availableCategories={availableCategories}
         />
 
         {/* Urgent Tasks Section */}
         <TaskSection
           category="Urgent"
-          icon={categoryIcons["Urgent"]}
+          icon={getCategoryIcon("Urgent")}
           tasks={tasksByCategory["Urgent"] || []}
           color="bg-yellow-900/20"
           borderColor="border-yellow-500/20"
           onDeleteCategory={onDeleteCategory}
           onBreakdownStart={onBreakdownStart}
           onRenameCategory={onRenameCategory}
+          availableCategories={availableCategories}
         />
 
         {/* Other Categories */}
@@ -81,13 +84,14 @@ const TaskGridLayout = ({
             <TaskSection
               key={category}
               category={category}
-              icon={categoryIcons[category] || categoryIcons["Default"]}
+              icon={getCategoryIcon(category)}
               tasks={categoryTasks}
               color="bg-blue-900/20"
               borderColor="border-blue-500/20"
               onDeleteCategory={onDeleteCategory}
               onBreakdownStart={onBreakdownStart}
               onRenameCategory={onRenameCategory}
+              availableCategories={availableCategories}
             />
           ))}
 
@@ -96,13 +100,14 @@ const TaskGridLayout = ({
           <TaskSection
             key="Uncategorized"
             category="Uncategorized"
-            icon={categoryIcons["Uncategorized"]}
+            icon={getCategoryIcon("Uncategorized")}
             tasks={tasksByCategory["Uncategorized"]}
             color="bg-gray-900/20"
             borderColor="border-gray-500/20"
             onDeleteCategory={onDeleteCategory}
             onBreakdownStart={onBreakdownStart}
             onRenameCategory={onRenameCategory}
+            availableCategories={availableCategories}
           />
         )}
       </div>
