@@ -1,15 +1,6 @@
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Task } from "@/types/task";
-import { Edit } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import TaskProgress from "./TaskProgress";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useSettings } from "@/contexts/SettingsContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -22,6 +13,9 @@ import EditCategoryDialog from "./dialogs/EditCategoryDialog";
 import DeleteCategoryDialog from "./dialogs/DeleteCategoryDialog";
 import MoveCategoryDialog from "./dialogs/MoveCategoryDialog";
 import { Json } from "@/integrations/supabase/types";
+import CategoryHeader from "./CategoryHeader";
+import TaskProgress from "./TaskProgress";
+import { availableCategories } from "./utils/categoryUtils";
 
 export interface CategoryListBoxProps {
   title: string;
@@ -174,47 +168,20 @@ export const CategoryListBox = ({
     }
   };
 
-  const availableCategories = [
-    "Work Day", "Delegate", "Discuss", "Family", "Personal",
-    "Ideas", "App Ideas", "Project Ideas", "Meetings", "Follow-Up",
-    "Urgent", "Complete", "Christmas", "Holiday"
-  ].filter(cat => cat !== title);
-
   const Icon = getCategoryIcon(title);
 
   return (
     <Card className="bg-[#141e38] border-gray-700 w-full mb-6">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-medium text-gray-100 flex items-center gap-2">
-            <Icon className="h-4 w-4 text-gray-300" />
-            {title}
-            <span className="text-gray-400">({tasks.length})</span>
-          </CardTitle>
-          {title !== "#1" && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <Edit className="h-4 w-4 text-gray-300" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 bg-[#1A1F2C] border-gray-700">
-                <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)} className="text-gray-200">
-                  Rename Category
-                </DropdownMenuItem>
-                {tasks.length > 0 ? (
-                  <DropdownMenuItem onClick={() => setIsMoveDialogOpen(true)} className="text-gray-200">
-                    Move Tasks
-                  </DropdownMenuItem>
-                ) : (
-                  <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-gray-200">
-                    Delete Category
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        </div>
+        <CategoryHeader
+          title={title}
+          taskCount={tasks.length}
+          icon={Icon}
+          onRename={() => setIsEditDialogOpen(true)}
+          onDelete={() => setIsDeleteDialogOpen(true)}
+          onMove={() => setIsMoveDialogOpen(true)}
+          hasItems={tasks.length > 0}
+        />
         {categorySettings[title]?.showProgress && (
           <TaskProgress completed={completedTasks} total={tasks.length} />
         )}
@@ -262,11 +229,7 @@ export const CategoryListBox = ({
       <MoveCategoryDialog
         isOpen={isMoveDialogOpen}
         onOpenChange={setIsMoveDialogOpen}
-        availableCategories={[
-          "Work Day", "Delegate", "Discuss", "Family", "Personal",
-          "Ideas", "App Ideas", "Project Ideas", "Meetings", "Follow-Up",
-          "Urgent", "Complete", "Christmas", "Holiday"
-        ].filter(cat => cat !== title)}
+        availableCategories={availableCategories.filter(cat => cat !== title)}
         selectedCategory={selectedCategory}
         onCategorySelect={setSelectedCategory}
         onMove={handleMove}
