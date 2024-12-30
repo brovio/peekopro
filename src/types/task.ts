@@ -26,6 +26,7 @@ export interface Task {
   subtasks?: SubTask[];
   workDayAttributes?: WorkDayTaskAttributes;
   attachments?: string[];
+  breakdown_comments?: string | null;  // Added this property
 }
 
 export interface TaskInput {
