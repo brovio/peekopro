@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Edit } from "lucide-react";
+import { MoreVertical, Edit, Trash2, MoveRight } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,19 +37,22 @@ const CategoryHeader = ({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Edit className="h-4 w-4 text-gray-300" />
+              <MoreVertical className="h-4 w-4 text-gray-300" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48 bg-[#1A1F2C] border-gray-700">
             <DropdownMenuItem onClick={onRename} className="text-gray-200">
+              <Edit className="mr-2 h-4 w-4" />
               Rename Category
             </DropdownMenuItem>
             {hasItems ? (
               <DropdownMenuItem onClick={onMove} className="text-gray-200">
+                <MoveRight className="mr-2 h-4 w-4" />
                 Move Tasks
               </DropdownMenuItem>
             ) : (
               <DropdownMenuItem onClick={onDelete} className="text-gray-200">
+                <Trash2 className="mr-2 h-4 w-4" />
                 Delete Category
               </DropdownMenuItem>
             )}
