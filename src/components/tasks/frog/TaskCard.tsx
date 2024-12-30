@@ -1,137 +1,59 @@
 import { Card } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-import { BookOpen, Briefcase, Dumbbell, Play, MoreVertical } from "lucide-react";
-import { useState } from "react";
-import TaskActionButtons from "./TaskActionButtons";
-import TaskNotes from "./TaskNotes";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import CategoryHeader from "../CategoryHeader";
+import { Timer, Users, MessageCircle, Home, User2, Lightbulb, AppWindow, Briefcase, Calendar, RefreshCw, AlertTriangle } from "lucide-react";
+
+const categoryIcons: { [key: string]: any } = {
+  "Work Day": Timer,
+  "Delegate": Users,
+  "Discuss": MessageCircle,
+  "Family": Home,
+  "Personal": User2,
+  "Ideas": Lightbulb,
+  "App Ideas": AppWindow,
+  "Project Ideas": Briefcase,
+  "Meetings": Calendar,
+  "Follow-Up": RefreshCw,
+  "Urgent": AlertTriangle,
+};
 
 interface TaskCardProps {
   category: string;
-  icon: any;
-  color: string;
-  borderColor: string;
-  tasks: Array<{
-    id: string;
-    content: string;
-    category: string;
-    completed?: boolean;
-    breakdown_comments?: string;
-  }>;
-  onEdit: (taskId: string, newContent: string) => void;
-  onDelete: (taskId: string) => void;
-  onComplete: (taskId: string) => void;
-  onBreakdown?: (taskId: string, content: string) => void;
-  showBreakdownButton?: boolean;
+  tasks: { id: string; content: string }[];
+  onBreakdownStart?: (content: string, taskId: string) => void;
+  onRenameCategory?: (category: string) => void;
+  onDeleteCategory?: (category: string) => void;
+  onMoveCategory?: (category: string) => void;
 }
 
 const TaskCard = ({ 
   category, 
-  icon: Icon, 
-  color, 
-  borderColor, 
-  tasks,
-  onEdit,
-  onDelete,
-  onComplete,
-  onBreakdown,
-  showBreakdownButton
+  tasks, 
+  onBreakdownStart,
+  onRenameCategory,
+  onDeleteCategory,
+  onMoveCategory
 }: TaskCardProps) => {
-  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
-
-  const handleEditTask = (taskId: string, newContent: string) => {
-    onEdit(taskId, newContent);
-    setEditingTaskId(null);
-  };
+  const Icon = categoryIcons[category] || Timer;
 
   return (
-    <Card className={cn(
-      "p-3 sm:p-6 transition-all duration-300",
-      "bg-[#1A1F2C] hover:bg-[#242938]",
-      `border-2 ${borderColor}`
-    )}>
-      <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
-        <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${color.replace('bg-', 'text-')}`} />
-        <h2 className="text-base sm:text-xl font-semibold text-gray-100 truncate sm:text-clip">{category}</h2>
-      </div>
-      <div className="space-y-1.5 sm:space-y-2">
-        {tasks.map(task => (
-          <div key={task.id} className="group relative p-2 sm:p-3 bg-[#2A2F3C] rounded-md text-gray-200">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
-                {category === "#1" && showBreakdownButton && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 sm:h-8 sm:w-8 p-0 flex-shrink-0"
-                    onClick={() => onBreakdown?.(task.id, task.content)}
-                  >
-                    <Play className="h-3 w-3 sm:h-4 sm:w-4 text-[#9b87f5]" />
-                  </Button>
-                )}
-                {editingTaskId === task.id ? (
-                  <input
-                    type="text"
-                    defaultValue={task.content}
-                    className="w-full bg-[#1A1F2C] p-1.5 sm:p-2 rounded text-gray-200 text-sm sm:text-base"
-                    onBlur={(e) => handleEditTask(task.id, e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handleEditTask(task.id, e.currentTarget.value);
-                      }
-                    }}
-                    autoFocus
-                  />
-                ) : (
-                  <span className="text-sm sm:text-base break-words whitespace-normal w-full">{task.content}</span>
-                )}
-              </div>
-              <div className="flex-shrink-0">
-                {/* Desktop view actions */}
-                <div className="hidden sm:flex gap-0.5 items-center invisible group-hover:visible">
-                  {task.breakdown_comments && (
-                    <TaskNotes taskId={task.id} notes={task.breakdown_comments} />
-                  )}
-                  <TaskActionButtons
-                    onEdit={() => setEditingTaskId(task.id)}
-                    onDelete={() => onDelete(task.id)}
-                    onComplete={() => onComplete(task.id)}
-                  />
-                </div>
-                {/* Mobile view dropdown */}
-                <div className="sm:hidden">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-32 bg-[#2A2F3C] border-gray-700">
-                      <DropdownMenuItem onClick={() => setEditingTaskId(task.id)} className="text-gray-200">
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onDelete(task.id)} className="text-gray-200">
-                        Delete
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onComplete(task.id)} className="text-gray-200">
-                        Complete
-                      </DropdownMenuItem>
-                      {task.breakdown_comments && (
-                        <DropdownMenuItem onClick={() => {}} className="text-gray-200">
-                          View Notes
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-            </div>
+    <Card className="p-4 bg-[#1A1F2C] border-gray-700">
+      <CategoryHeader
+        title={category}
+        taskCount={tasks.length}
+        icon={Icon}
+        onRename={() => onRenameCategory?.(category)}
+        onDelete={() => onDeleteCategory?.(category)}
+        onMove={() => onMoveCategory?.(category)}
+        hasItems={tasks.length > 0}
+      />
+      <div className="mt-4 space-y-2">
+        {tasks.map((task) => (
+          <div
+            key={task.id}
+            className="p-2 bg-gray-800 rounded-lg text-sm text-gray-100 cursor-pointer hover:bg-gray-700"
+            onClick={() => onBreakdownStart?.(task.content, task.id)}
+          >
+            {task.content}
           </div>
         ))}
       </div>
