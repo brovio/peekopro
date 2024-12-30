@@ -151,7 +151,7 @@ const MindDump = ({ tasks, onTasksChange }: MindDumpProps) => {
               </div>
               <TaskClassificationButtons 
                 taskId={task.id}
-                onClassify={handleManualClassification}
+                onMove={handleManualClassification}
               />
             </div>
           ))}

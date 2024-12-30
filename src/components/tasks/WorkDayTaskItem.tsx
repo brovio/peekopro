@@ -118,10 +118,11 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
         {showReclassify ? (
           <TaskClassificationButtons
             taskId={task.id}
-            onClassify={(taskId, category) => {
+            onMove={(taskId, category) => {
               onMove?.(taskId, category);
               setShowReclassify(false);
             }}
+            onClose={() => setShowReclassify(false)}
           />
         ) : (
           <div className="bg-gray-700/50 rounded-md px-1">
@@ -144,7 +145,7 @@ const WorkDayTaskItem = ({ task, onAddSubtask, onDelete, onMove }: WorkDayTaskIt
         open={showQuestions}
         onOpenChange={setShowQuestions}
         questions={questions}
-        onSubmit={handleQuestionResponse}
+        onSubmit={onQuestionResponse}
       />
     </>
   );
