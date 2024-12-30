@@ -17,7 +17,7 @@ const TaskItem = ({ task, onDelete, onMove }: TaskItemProps) => {
     <div className="group relative p-2 bg-[#2A2F3C] rounded-md text-gray-200">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <div className="cursor-move touch-manipulation">
+          <div className="touch-none cursor-grab active:cursor-grabbing">
             <FileText className="h-4 w-4 text-gray-400" />
           </div>
           <span className="break-words whitespace-normal w-full">{task.content}</span>

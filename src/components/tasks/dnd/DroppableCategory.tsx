@@ -26,6 +26,10 @@ const DroppableCategory = ({
 }: DroppableCategoryProps) => {
   const { setNodeRef, isOver } = useDroppable({
     id: category,
+    data: {
+      type: 'category',
+      category
+    }
   });
 
   const Icon = getCategoryIcon(category);
