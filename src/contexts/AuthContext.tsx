@@ -1,105 +1,71 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
-import { Session } from '@supabase/supabase-js';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  isLoading: boolean;  // Added this line
+  isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  user: any | null;
+  user: User | null;
   session: Session | null;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType>({
+  isAuthenticated: false,
+  isLoading: true,
+  login: async () => {},
+  logout: async () => {},
+  user: null,
+  session: null,
+});
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<any>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const session = supabase.auth.getSession();
+    if (session) {
+      setUser(session.user);
       setSession(session);
-      setIsAuthenticated(!!session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    });
-
-    // Set up auth state listener
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setIsAuthenticated(!!session);
-      setUser(session?.user ?? null);
-
-      if (!session) {
-        // Clear any local state
-        localStorage.removeItem('supabase.auth.token');
-        navigate("/login");
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [navigate]);
+      setIsAuthenticated(true);
+    }
+    setIsLoading(false);
+  }, []);
 
   const login = async (email: string, password: string) => {
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (error) throw error;
-      navigate("/");
-    } catch (error: any) {
-      toast({
-        title: "Login failed",
-        description: error.message,
-        variant: "destructive",
-      });
-      throw error;
-    }
+    const { user, session, error } = await supabase.auth.signIn({ email, password });
+    if (error) throw error;
+    setUser(user);
+    setSession(session);
+    setIsAuthenticated(true);
+    navigate("/dashboard");
   };
 
   const logout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
-      // Clear session state
-      setSession(null);
-      setIsAuthenticated(false);
-      setUser(null);
-      
-      // Clear local storage
-      localStorage.removeItem('supabase.auth.token');
-      
-      navigate("/login");
-    } catch (error: any) {
-      toast({
-        title: "Logout failed",
-        description: error.message,
-        variant: "destructive",
-      });
-      throw error;
-    }
+    await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
+    setIsAuthenticated(false);
+    navigate("/");
   };
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout, user, session }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        isLoading,
+        login,
+        logout,
+        user,
+        session,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

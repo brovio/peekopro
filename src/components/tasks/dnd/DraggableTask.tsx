@@ -35,7 +35,7 @@ const DraggableTask = ({ task, category, onAddSubtask, onDelete, onMove }: Dragg
     opacity: isDragging ? 0.5 : 1,
     position: isDragging ? 'relative' : 'static',
     zIndex: isDragging ? 999 : 'auto',
-  };
+  } as React.CSSProperties;
 
   const dragHandle = (
     <button 
@@ -51,7 +51,7 @@ const DraggableTask = ({ task, category, onAddSubtask, onDelete, onMove }: Dragg
   return (
     <div 
       ref={setNodeRef} 
-      style={style as React.CSSProperties}
+      style={style}
       className="touch-manipulation mb-2"
     >
       {category === "Work Day" ? (
