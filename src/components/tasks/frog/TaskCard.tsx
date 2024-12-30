@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { BookOpen, Briefcase, Dumbbell, Play, MoreVertical } from "lucide-react";
+import { BookOpen, Briefcase, Dumbbell, Play, MoreVertical, Edit, Trash2, MoveRight } from "lucide-react";
 import { useState } from "react";
 import TaskActionButtons from "./TaskActionButtons";
 import TaskNotes from "./TaskNotes";
@@ -59,9 +59,37 @@ const TaskCard = ({
       "bg-[#1A1F2C] hover:bg-[#242938]",
       `border-2 ${borderColor || 'border-gray-700'}`
     )}>
-      <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
-        <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${iconColorClass}`} />
-        <h2 className="text-base sm:text-xl font-semibold text-gray-100 truncate sm:text-clip">{category}</h2>
+      <div className="flex items-center justify-between gap-2 sm:gap-3 mb-2 sm:mb-4">
+        <div className="flex items-center gap-2">
+          <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${iconColorClass}`} />
+          <h2 className="text-base sm:text-xl font-semibold text-gray-100 truncate sm:text-clip">{category}</h2>
+        </div>
+        {category !== "#1" && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreVertical className="h-4 w-4 text-gray-300" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 bg-[#1A1F2C] border-gray-700">
+              <DropdownMenuItem className="text-gray-200">
+                <Edit className="mr-2 h-4 w-4" />
+                Rename Category
+              </DropdownMenuItem>
+              {tasks.length > 0 ? (
+                <DropdownMenuItem className="text-gray-200">
+                  <MoveRight className="mr-2 h-4 w-4" />
+                  Move Tasks
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem className="text-gray-200">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Category
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
       <div className="space-y-1.5 sm:space-y-2">
         {tasks.map(task => (
