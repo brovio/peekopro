@@ -7,7 +7,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { getCategoryIcon } from "../utils/categoryIcons";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface MoveCategoryDialogProps {
   isOpen: boolean;
@@ -35,22 +41,18 @@ const MoveCategoryDialog = ({
             Select a category to move all tasks to
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-2">
-          {availableCategories.map((category) => {
-            const Icon = getCategoryIcon(category);
-            return (
-              <Button
-                key={category}
-                variant={selectedCategory === category ? "default" : "outline"}
-                onClick={() => onCategorySelect(category)}
-                className="justify-start"
-              >
-                <Icon className="h-4 w-4 mr-2" />
-                <span>{category}</span>
-              </Button>
-            );
-          })}
-        </div>
+        <Select value={selectedCategory} onValueChange={onCategorySelect}>
+          <SelectTrigger className="bg-[#141e38] border-gray-700 text-gray-100">
+            <SelectValue placeholder="Select a category" />
+          </SelectTrigger>
+          <SelectContent className="bg-[#1A1F2C] border-gray-700">
+            {availableCategories.map((category) => (
+              <SelectItem key={category} value={category} className="text-gray-200">
+                {category}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
