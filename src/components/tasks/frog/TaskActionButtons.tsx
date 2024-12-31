@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Edit } from "lucide-react";
+import { Edit, MoveHorizontal } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,7 +32,8 @@ const TaskActionButtons = ({ onEdit, onDelete, onComplete, onMove }: TaskActionB
         </DropdownMenuItem>
         {onMove && (
           <DropdownMenuItem onClick={onMove} className="text-gray-200">
-            Move
+            <MoveHorizontal className="mr-2 h-4 w-4" />
+            Move to...
           </DropdownMenuItem>
         )}
         <DropdownMenuItem onClick={onComplete} className="text-gray-200">
