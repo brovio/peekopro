@@ -13,6 +13,7 @@ import CategoryHeader from "./CategoryHeader";
 import TaskProgress from "./TaskProgress";
 import CategoryContent from "./CategoryContent";
 import { useState } from "react";
+import { Json } from "@/integrations/supabase/types";
 
 export interface CategoryListBoxProps {
   title: string;
@@ -56,10 +57,13 @@ export const CategoryListBox = ({
 
       const updatedSubtasks = [...(task.subtasks || []), newSubtask];
       
+      // Convert the subtasks array to a JSON-compatible format
+      const subtasksJson = JSON.parse(JSON.stringify(updatedSubtasks)) as Json;
+      
       const { error } = await supabase
         .from('tasks')
         .update({
-          subtasks: updatedSubtasks
+          subtasks: subtasksJson
         })
         .eq('id', taskId);
 
