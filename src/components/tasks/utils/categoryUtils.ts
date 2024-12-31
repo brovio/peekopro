@@ -1,9 +1,5 @@
 export const availableCategories = [
   "#1", 
-  "Work", 
-  "Fitness", 
-  "Habit", 
-  "Journal", 
   "Complete", 
   "Uncategorized",
   "Urgent",
