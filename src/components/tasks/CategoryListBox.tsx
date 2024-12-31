@@ -11,6 +11,9 @@ import TaskProgress from "./TaskProgress";
 import CategoryContent from "./CategoryContent";
 import { useState } from "react";
 import { handleCategoryOperations } from "./handlers/categoryOperations";
+import EditCategoryDialog from "./dialogs/EditCategoryDialog";
+import DeleteCategoryDialog from "./dialogs/DeleteCategoryDialog";
+import MoveCategoryDialog from "./dialogs/MoveCategoryDialog";
 
 export interface CategoryListBoxProps {
   title: string;

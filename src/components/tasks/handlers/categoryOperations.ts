@@ -4,14 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { deleteEmptyCategory, getAvailableCategories } from "../utils/categoryUtils";
 import { User } from "@supabase/supabase-js";
 import { QueryClient } from "@tanstack/react-query";
-import { Toast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 interface CategoryOperationsProps {
   user: User | null;
   title: string;
   tasks: Task[];
   queryClient: QueryClient;
-  toast: Toast;
+  toast: typeof toast;
   setIsEditDialogOpen: (value: boolean) => void;
   setIsDeleteDialogOpen: (value: boolean) => void;
   setIsMoveDialogOpen: (value: boolean) => void;
