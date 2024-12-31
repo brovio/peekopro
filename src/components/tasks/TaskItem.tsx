@@ -1,8 +1,14 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Task } from "@/types/task";
-import { FileText, Trash2, ArrowRight, User, Check, RefreshCw } from "lucide-react";
+import { FileText, Trash2, ArrowRight, User, Check, RefreshCw, MoveHorizontal } from "lucide-react";
 import TaskClassificationButtons from "./TaskClassificationButtons";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface TaskItemProps {
   task: Task;
@@ -20,6 +26,25 @@ const TaskItem = ({ task, onDelete, onMove }: TaskItemProps) => {
           <span className="break-words whitespace-normal w-full">{task.content}</span>
         </div>
         <div className="flex gap-0.5 items-center invisible group-hover:visible">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="h-7 w-7 text-gray-300 hover:text-gray-100"
+              >
+                <MoveHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 bg-[#1A1F2C] border-gray-700">
+              <DropdownMenuItem 
+                onClick={() => setShowReclassify(true)}
+                className="text-gray-200"
+              >
+                Move to...
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button 
             variant="ghost" 
             size="icon" 
