@@ -1,75 +1,51 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { Session, User } from "@supabase/supabase-js";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/components/ui/use-toast";
+import { Session } from '@supabase/supabase-js';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  user: User | null;
+  user: any | null;
   session: Session | null;
 }
 
-const AuthContext = createContext<AuthContextType>({
-  isAuthenticated: false,
-  isLoading: true,
-  login: async () => {},
-  logout: async () => {},
-  user: null,
-  session: null,
-});
+const AuthContext = createContext<AuthContextType | null>(null);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Initialize auth state
-    const initializeAuth = async () => {
-      try {
-        // Get initial session
-        const { data: { session: initialSession }, error: sessionError } = await supabase.auth.getSession();
-        if (sessionError) throw sessionError;
-
-        if (initialSession) {
-          setSession(initialSession);
-          setUser(initialSession.user);
-          setIsAuthenticated(true);
-        }
-      } catch (error) {
-        console.error('Error initializing auth:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    initializeAuth();
-
-    // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-      console.log('Auth state changed:', event, currentSession?.user?.email);
-      
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        setIsAuthenticated(!!currentSession);
-        navigate('/');
-      } else if (event === 'SIGNED_OUT') {
-        setSession(null);
-        setUser(null);
-        setIsAuthenticated(false);
-        navigate('/login');
-      }
-      
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setIsAuthenticated(!!session);
+      setUser(session?.user ?? null);
       setIsLoading(false);
     });
 
-    // Cleanup subscription
+    // Set up auth state listener
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setIsAuthenticated(!!session);
+      setUser(session?.user ?? null);
+
+      if (!session) {
+        // Clear any local state
+        localStorage.removeItem('supabase.auth.token');
+        navigate("/login");
+      }
+    });
+
     return () => {
       subscription.unsubscribe();
     };
@@ -77,19 +53,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ 
-        email, 
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
         password,
       });
-      
       if (error) throw error;
-
-      setUser(data.user);
-      setSession(data.session);
-      setIsAuthenticated(true);
       navigate("/");
-    } catch (error) {
-      console.error('Login error:', error);
+    } catch (error: any) {
+      toast({
+        title: "Login failed",
+        description: error.message,
+        variant: "destructive",
+      });
       throw error;
     }
   };
@@ -99,27 +74,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
-      setUser(null);
+      // Clear session state
       setSession(null);
       setIsAuthenticated(false);
+      setUser(null);
+      
+      // Clear local storage
+      localStorage.removeItem('supabase.auth.token');
+      
       navigate("/login");
-    } catch (error) {
-      console.error('Logout error:', error);
+    } catch (error: any) {
+      toast({
+        title: "Logout failed",
+        description: error.message,
+        variant: "destructive",
+      });
       throw error;
     }
   };
 
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <AuthContext.Provider
-      value={{
-        isAuthenticated,
-        isLoading,
-        login,
-        logout,
-        user,
-        session,
-      }}
-    >
+    <AuthContext.Provider value={{ isAuthenticated, login, logout, user, session }}>
       {children}
     </AuthContext.Provider>
   );

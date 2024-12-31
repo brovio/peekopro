@@ -1,14 +1,13 @@
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu as MenuIcon, Home, FileText, SplitSquareVertical, Settings, BookOpen, Image, GalleryHorizontal, LogOut } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 
 const Menu = () => {
   const { logout } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
@@ -26,10 +25,6 @@ const Menu = () => {
     }
   };
 
-  const handleNavigation = (path: string) => {
-    navigate(path);
-  };
-
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -39,62 +34,48 @@ const Menu = () => {
       </SheetTrigger>
       <SheetContent side="left" className="w-64">
         <nav className="flex flex-col gap-2 mt-8">
-          <Button 
-            variant="ghost" 
-            className="w-full justify-start"
-            onClick={() => handleNavigation("/")}
-          >
-            <Home className="mr-2 h-5 w-5" />
-            Home
-          </Button>
-          <Button 
-            variant="ghost" 
-            className="w-full justify-start"
-            onClick={() => handleNavigation("/subtask")}
-          >
-            <SplitSquareVertical className="mr-2 h-5 w-5" />
-            Subtask It!
-          </Button>
-          <Button 
-            variant="ghost" 
-            className="w-full justify-start"
-            onClick={() => handleNavigation("/notes")}
-          >
-            <FileText className="mr-2 h-5 w-5" />
-            Notes
-          </Button>
-          <Button 
-            variant="ghost" 
-            className="w-full justify-start"
-            onClick={() => handleNavigation("/journal")}
-          >
-            <BookOpen className="mr-2 h-5 w-5" />
-            Journal
-          </Button>
-          <Button 
-            variant="ghost" 
-            className="w-full justify-start"
-            onClick={() => handleNavigation("/images")}
-          >
-            <Image className="mr-2 h-5 w-5" />
-            Images
-          </Button>
-          <Button 
-            variant="ghost" 
-            className="w-full justify-start"
-            onClick={() => handleNavigation("/gallery")}
-          >
-            <GalleryHorizontal className="mr-2 h-5 w-5" />
-            Gallery
-          </Button>
-          <Button 
-            variant="ghost" 
-            className="w-full justify-start"
-            onClick={() => handleNavigation("/options")}
-          >
-            <Settings className="mr-2 h-5 w-5" />
-            Options
-          </Button>
+          <Link to="/">
+            <Button variant="ghost" className="w-full justify-start">
+              <Home className="mr-2 h-5 w-5" />
+              Home
+            </Button>
+          </Link>
+          <Link to="/subtask">
+            <Button variant="ghost" className="w-full justify-start">
+              <SplitSquareVertical className="mr-2 h-5 w-5" />
+              Subtask It!
+            </Button>
+          </Link>
+          <Link to="/notes">
+            <Button variant="ghost" className="w-full justify-start">
+              <FileText className="mr-2 h-5 w-5" />
+              Notes
+            </Button>
+          </Link>
+          <Link to="/journal">
+            <Button variant="ghost" className="w-full justify-start">
+              <BookOpen className="mr-2 h-5 w-5" />
+              Journal
+            </Button>
+          </Link>
+          <Link to="/images">
+            <Button variant="ghost" className="w-full justify-start">
+              <Image className="mr-2 h-5 w-5" />
+              Images
+            </Button>
+          </Link>
+          <Link to="/gallery">
+            <Button variant="ghost" className="w-full justify-start">
+              <GalleryHorizontal className="mr-2 h-5 w-5" />
+              Gallery
+            </Button>
+          </Link>
+          <Link to="/options">
+            <Button variant="ghost" className="w-full justify-start">
+              <Settings className="mr-2 h-5 w-5" />
+              Options
+            </Button>
+          </Link>
           <Button 
             variant="ghost" 
             className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-500/10"
