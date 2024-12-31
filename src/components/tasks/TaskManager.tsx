@@ -4,28 +4,37 @@ import { useSettings } from "@/contexts/SettingsContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
 
 const TaskManager = () => {
   const { visibleCategories } = useSettings();
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
+  const [retryCount, setRetryCount] = useState(0);
   
-  const { data: tasks = [], error, isLoading } = useQuery({
+  const { data: tasks = [], error, isLoading, refetch } = useQuery({
     queryKey: ['tasks', user?.id],
     queryFn: async () => {
       if (!user?.id || !isAuthenticated) {
         throw new Error('User not authenticated');
       }
       
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('*')
-        .eq('user_id', user.id);
-      
-      if (error) {
-        console.error('Supabase error:', error);
+      try {
+        const { data, error } = await supabase
+          .from('tasks')
+          .select('*')
+          .eq('user_id', user.id);
+        
+        if (error) {
+          console.error('Supabase error:', error);
+          throw error;
+        }
+        
+        return data || [];
+      } catch (error: any) {
+        console.error('Task fetch error:', error);
         toast({
           title: "Error fetching tasks",
           description: error.message,
@@ -33,8 +42,6 @@ const TaskManager = () => {
         });
         throw error;
       }
-      
-      return data || [];
     },
     enabled: !!user?.id && isAuthenticated,
     retry: (failureCount, error) => {
@@ -42,8 +49,21 @@ const TaskManager = () => {
       if (error.message === 'User not authenticated') return false;
       return failureCount < 3;
     },
+    retryDelay: (attemptIndex) => Math.min(1000 * (2 ** attemptIndex), 30000),
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
+
+  // Effect to handle authentication-related retries
+  useEffect(() => {
+    if (error && retryCount < 3) {
+      const timer = setTimeout(() => {
+        setRetryCount(prev => prev + 1);
+        refetch();
+      }, 2000 * (retryCount + 1)); // Exponential backoff
+
+      return () => clearTimeout(timer);
+    }
+  }, [error, retryCount, refetch]);
 
   if (!isAuthenticated) {
     return (
@@ -80,7 +100,9 @@ const TaskManager = () => {
           <CardTitle className="text-gray-100">Task Manager</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-red-400">Failed to load tasks. Please try again later.</div>
+          <div className="text-red-400">
+            Failed to load tasks. {retryCount < 3 ? "Retrying..." : "Please try again later."}
+          </div>
         </CardContent>
       </Card>
     );
