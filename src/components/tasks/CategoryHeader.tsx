@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { MoreVertical, Edit, Trash2 } from "lucide-react";
+import { MoreVertical, Edit, Trash2, MoveHorizontal } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
 interface CategoryHeaderProps {
@@ -45,11 +46,17 @@ const CategoryHeader = ({
               <Edit className="mr-2 h-4 w-4" />
               Rename Category
             </DropdownMenuItem>
+            
+            <DropdownMenuSeparator className="bg-gray-700" />
+            
             <DropdownMenuItem onClick={onMove} className="text-gray-200">
-              <Edit className="mr-2 h-4 w-4" />
+              <MoveHorizontal className="mr-2 h-4 w-4" />
               Move Tasks
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={onDelete} className="text-gray-200">
+            
+            <DropdownMenuSeparator className="bg-gray-700" />
+            
+            <DropdownMenuItem onClick={onDelete} className="text-red-400 hover:text-red-300 hover:bg-red-900/10">
               <Trash2 className="mr-2 h-4 w-4" />
               {hasItems ? "Delete All Tasks" : "Delete Category"}
             </DropdownMenuItem>
