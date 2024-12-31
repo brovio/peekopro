@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import TaskQuestionsDialog from "@/components/tasks/questions/TaskQuestionsDialog";
 import TaskBreakdown from "@/components/tasks/breakdown/TaskBreakdown";
@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
 import ApiKeyManager from "@/components/ui/ApiKeyManager";
+import CreateCategoryModal from "@/components/tasks/CreateCategoryModal";
 import { Task } from "@/types/task";
 
 type CategorizedTask = Pick<Task, 'id' | 'content' | 'category' | 'completed' | 'breakdown_comments'>;
@@ -27,6 +28,7 @@ const Test = () => {
   const [breakdownTaskId, setBreakdownTaskId] = useState<string | null>(null);
   const [showOnlyBreakdown, setShowOnlyBreakdown] = useState(false);
   const [showApiManager, setShowApiManager] = useState(false);
+  const [showCreateCategory, setShowCreateCategory] = useState(false);
   const { toast } = useToast();
   const frogInputRef = useRef<HTMLInputElement>(null);
   const [placeholder, setPlaceholder] = useState("Monkey Minding Much?");
@@ -265,6 +267,33 @@ const Test = () => {
     }
   };
 
+  const handleCreateCategory = async (categoryName: string) => {
+    if (!user?.id) return;
+    
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ category: categoryName })
+        .eq('category', 'Uncategorized')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['frog-tasks'] });
+      
+      toast({
+        title: "Category created",
+        description: `New category "${categoryName}" has been created`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error creating category",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoadingTasks) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -293,6 +322,13 @@ const Test = () => {
                     onChange={(e) => setFrogTask(e.target.value)}
                     className="flex-1 bg-[#2A2F3C] border-gray-700 text-gray-100"
                   />
+                  <Button
+                    type="button"
+                    onClick={() => setShowCreateCategory(true)}
+                    className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white px-3"
+                  >
+                    <Plus className="h-5 w-5" />
+                  </Button>
                   <Button 
                     type="submit"
                     className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
@@ -350,10 +386,14 @@ const Test = () => {
           questions={questions}
           onSubmit={handleQuestionResponse}
         />
+        <CreateCategoryModal
+          open={showCreateCategory}
+          onOpenChange={setShowCreateCategory}
+          onCreateCategory={handleCreateCategory}
+        />
       </div>
     </div>
   );
 };
 
 export default Test;
-
