@@ -13,6 +13,7 @@ interface CategoryHeaderProps {
   icon: any;
   onRename: () => void;
   onDelete: () => void;
+  onMove: () => void;
   hasItems: boolean;
 }
 
@@ -22,6 +23,7 @@ const CategoryHeader = ({
   icon: Icon,
   onRename,
   onDelete,
+  onMove,
   hasItems
 }: CategoryHeaderProps) => {
   return (
@@ -42,6 +44,10 @@ const CategoryHeader = ({
             <DropdownMenuItem onClick={onRename} className="text-gray-200">
               <Edit className="mr-2 h-4 w-4" />
               Rename Category
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onMove} className="text-gray-200">
+              <Edit className="mr-2 h-4 w-4" />
+              Move Tasks
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onDelete} className="text-gray-200">
               <Trash2 className="mr-2 h-4 w-4" />
