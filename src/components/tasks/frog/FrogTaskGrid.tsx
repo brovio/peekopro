@@ -219,6 +219,30 @@ const FrogTaskGrid = ({ tasks, onBreakdownStart }: FrogTaskGridProps) => {
   // Get all unique categories for the select dropdown
   const allCategories = [...new Set(tasks.map(task => task.category))];
 
+  const handleMoveTask = async (taskId: string, toCategory: string) => {
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ category: toCategory })
+        .eq('id', taskId);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['frog-tasks'] });
+      
+      toast({
+        title: "Task moved",
+        description: `Task has been moved to ${toCategory}`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error moving task",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="grid gap-6 animate-fade-in">
       {/* #1 Section - Full width */}
@@ -234,6 +258,7 @@ const FrogTaskGrid = ({ tasks, onBreakdownStart }: FrogTaskGridProps) => {
         onBreakdown={handleBreakdownClick}
         showBreakdownButton
         availableCategories={allCategories}
+        onMoveTask={handleMoveTask}
       />
 
       {/* Work Section - Full width */}
@@ -252,6 +277,7 @@ const FrogTaskGrid = ({ tasks, onBreakdownStart }: FrogTaskGridProps) => {
         onMoveTasksToCategory={handleMoveTasksToCategory}
         onDeleteCategory={handleDeleteCategory}
         availableCategories={allCategories}
+        onMoveTask={handleMoveTask}
       />
 
       {/* Fitness, Habit, Journal Grid - Responsive */}
@@ -273,6 +299,7 @@ const FrogTaskGrid = ({ tasks, onBreakdownStart }: FrogTaskGridProps) => {
             onMoveTasksToCategory={handleMoveTasksToCategory}
             onDeleteCategory={handleDeleteCategory}
             availableCategories={allCategories}
+            onMoveTask={handleMoveTask}
           />
         ))}
       </div>
@@ -297,6 +324,7 @@ const FrogTaskGrid = ({ tasks, onBreakdownStart }: FrogTaskGridProps) => {
               onMoveTasksToCategory={handleMoveTasksToCategory}
               onDeleteCategory={handleDeleteCategory}
               availableCategories={allCategories}
+              onMoveTask={handleMoveTask}
             />
           ))}
         </div>

@@ -48,6 +48,7 @@ interface TaskCardProps {
   onMoveTasksToCategory?: (fromCategory: string, toCategory: string) => void;
   onDeleteCategory?: (category: string) => void;
   availableCategories?: string[];
+  onMoveTask?: (taskId: string, toCategory: string) => void;
 }
 
 const TaskCard = ({ 
@@ -64,7 +65,8 @@ const TaskCard = ({
   onRenameCategory,
   onMoveTasksToCategory,
   onDeleteCategory,
-  availableCategories = []
+  availableCategories = [],
+  onMoveTask
 }: TaskCardProps) => {
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -91,6 +93,12 @@ const TaskCard = ({
       onRenameCategory?.(category, newCategoryName);
     }
     setIsRenaming(false);
+  };
+
+  const handleMoveTask = (taskId: string, toCategory: string) => {
+    if (onMoveTask) {
+      onMoveTask(taskId, toCategory);
+    }
   };
 
   // Safely handle color class
@@ -168,6 +176,8 @@ const TaskCard = ({
                   onEdit={() => setEditingTaskId(task.id)}
                   onDelete={() => onDelete(task.id)}
                   onComplete={() => onComplete(task.id)}
+                  onMove={(toCategory) => handleMoveTask(task.id, toCategory)}
+                  currentCategory={category}
                 />
               </div>
             </div>
