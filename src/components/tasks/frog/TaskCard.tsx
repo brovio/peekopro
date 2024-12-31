@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { Icon } from "lucide-react";
+import { LucideIcon } from "lucide-react";
 import { useState } from "react";
 import TaskCardHeader from "./card/TaskCardHeader";
 import TaskCardList from "./card/TaskCardList";
@@ -16,7 +16,7 @@ interface Task {
 
 interface TaskCardProps {
   category: string;
-  icon: typeof Icon;
+  icon: LucideIcon;
   color: string;
   borderColor: string;
   tasks: Task[];
@@ -34,7 +34,7 @@ interface TaskCardProps {
 
 const TaskCard = ({ 
   category,
-  icon,
+  icon: IconComponent,
   color,
   borderColor,
   tasks,
@@ -91,7 +91,7 @@ const TaskCard = ({
       `border-2 ${borderColor || 'border-gray-700'}`
     )}>
       <TaskCardHeader
-        icon={icon}
+        icon={IconComponent}
         iconColorClass={iconColorClass}
         category={category}
         onRename={() => setIsRenaming(true)}

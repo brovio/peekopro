@@ -1,4 +1,4 @@
-import { Icon } from "lucide-react";
+import { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,7 +9,7 @@ import {
 import { MoreVertical } from "lucide-react";
 
 interface TaskCardHeaderProps {
-  icon: typeof Icon;
+  icon: LucideIcon;
   iconColorClass: string;
   category: string;
   onRename: () => void;
