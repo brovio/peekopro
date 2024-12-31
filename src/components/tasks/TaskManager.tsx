@@ -10,18 +10,24 @@ import { useState, useEffect } from "react";
 
 const TaskManager = () => {
   const { visibleCategories } = useSettings();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, session } = useAuth();
   const { toast } = useToast();
   const [retryCount, setRetryCount] = useState(0);
   
   const { data: tasks = [], error, isLoading, refetch } = useQuery({
     queryKey: ['tasks', user?.id],
     queryFn: async () => {
-      if (!user?.id || !isAuthenticated) {
+      if (!user?.id || !isAuthenticated || !session) {
         throw new Error('User not authenticated');
       }
-      
+
       try {
+        // Ensure the client has the latest session
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        if (!currentSession) {
+          throw new Error('Session expired');
+        }
+
         const { data, error } = await supabase
           .from('tasks')
           .select('*')
@@ -35,18 +41,27 @@ const TaskManager = () => {
         return data || [];
       } catch (error: any) {
         console.error('Task fetch error:', error);
-        toast({
-          title: "Error fetching tasks",
-          description: error.message,
-          variant: "destructive",
-        });
+        if (error.message === 'Session expired') {
+          // Handle session expiration
+          toast({
+            title: "Session expired",
+            description: "Please log in again",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error fetching tasks",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
         throw error;
       }
     },
-    enabled: !!user?.id && isAuthenticated,
+    enabled: !!user?.id && isAuthenticated && !!session,
     retry: (failureCount, error) => {
-      // Only retry if it's not an authentication error
-      if (error.message === 'User not authenticated') return false;
+      // Don't retry on authentication errors
+      if (error.message === 'User not authenticated' || error.message === 'Session expired') return false;
       return failureCount < 3;
     },
     retryDelay: (attemptIndex) => Math.min(1000 * (2 ** attemptIndex), 30000),
@@ -65,7 +80,7 @@ const TaskManager = () => {
     }
   }, [error, retryCount, refetch]);
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !session) {
     return (
       <Card className="bg-[#141e38] border-gray-700">
         <CardHeader>
