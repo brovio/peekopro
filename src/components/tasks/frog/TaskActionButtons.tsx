@@ -1,40 +1,48 @@
 import { Button } from "@/components/ui/button";
-import { FileText, Trash2, Check } from "lucide-react";
+import { Edit } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface TaskActionButtonsProps {
   onEdit: () => void;
   onDelete: () => void;
   onComplete: () => void;
+  onMove?: () => void;
 }
 
-const TaskActionButtons = ({ onEdit, onDelete, onComplete }: TaskActionButtonsProps) => {
+const TaskActionButtons = ({ onEdit, onDelete, onComplete, onMove }: TaskActionButtonsProps) => {
   return (
-    <div className="flex gap-1">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-8 w-8 p-0"
-        onClick={onEdit}
-      >
-        <FileText className="h-4 w-4" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-8 w-8 p-0"
-        onClick={onDelete}
-      >
-        <Trash2 className="h-4 w-4" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-8 w-8 p-0"
-        onClick={onComplete}
-      >
-        <Check className="h-4 w-4" />
-      </Button>
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+        >
+          <Edit className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-48 bg-[#1A1F2C] border-gray-700">
+        <DropdownMenuItem onClick={onEdit} className="text-gray-200">
+          Rename
+        </DropdownMenuItem>
+        {onMove && (
+          <DropdownMenuItem onClick={onMove} className="text-gray-200">
+            Move
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuItem onClick={onComplete} className="text-gray-200">
+          Mark Complete
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onDelete} className="text-gray-200 text-red-400">
+          Delete
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 
