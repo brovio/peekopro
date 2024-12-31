@@ -4,91 +4,48 @@ import { useSettings } from "@/contexts/SettingsContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
 
 const TaskManager = () => {
   const { visibleCategories } = useSettings();
-  const { user, isAuthenticated, session } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
-  const [retryCount, setRetryCount] = useState(0);
   
-  const { data: tasks = [], error, isLoading, refetch } = useQuery({
+  const { data: tasks = [], error, isLoading } = useQuery({
     queryKey: ['tasks', user?.id],
     queryFn: async () => {
-      if (!user?.id || !isAuthenticated || !session) {
+      if (!user?.id || !isAuthenticated) {
         throw new Error('User not authenticated');
       }
-
-      try {
-        // Initialize Supabase client with the current session
-        if (!supabase.auth.getSession()) {
-          await supabase.auth.initialize();
-        }
-
-        // Ensure the client has the latest session
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
-        if (!currentSession) {
-          throw new Error('Session expired');
-        }
-
-        // Set the session in the client
-        supabase.auth.setSession(currentSession);
-
-        const { data, error } = await supabase
-          .from('tasks')
-          .select('*')
-          .eq('user_id', user.id);
-        
-        if (error) {
-          console.error('Supabase error:', error);
-          throw error;
-        }
-        
-        return data || [];
-      } catch (error: any) {
-        console.error('Task fetch error:', error);
-        if (error.message === 'Session expired') {
-          // Handle session expiration
-          toast({
-            title: "Session expired",
-            description: "Please log in again",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Error fetching tasks",
-            description: error.message,
-            variant: "destructive",
-          });
-        }
+      
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', user.id);
+      
+      if (error) {
+        console.error('Supabase error:', error);
+        toast({
+          title: "Error fetching tasks",
+          description: error.message,
+          variant: "destructive",
+        });
         throw error;
       }
+      
+      return data || [];
     },
-    enabled: !!user?.id && isAuthenticated && !!session,
+    enabled: !!user?.id && isAuthenticated,
     retry: (failureCount, error) => {
-      // Don't retry on authentication errors
-      if (error.message === 'User not authenticated' || error.message === 'Session expired') return false;
+      // Only retry if it's not an authentication error
+      if (error.message === 'User not authenticated') return false;
       return failureCount < 3;
     },
-    retryDelay: (attemptIndex) => Math.min(1000 * (2 ** attemptIndex), 30000),
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
 
-  // Effect to handle authentication-related retries
-  useEffect(() => {
-    if (error && retryCount < 3) {
-      const timer = setTimeout(() => {
-        setRetryCount(prev => prev + 1);
-        refetch();
-      }, 2000 * (retryCount + 1)); // Exponential backoff
-
-      return () => clearTimeout(timer);
-    }
-  }, [error, retryCount, refetch]);
-
-  if (!isAuthenticated || !session) {
+  if (!isAuthenticated) {
     return (
       <Card className="bg-[#141e38] border-gray-700">
         <CardHeader>
@@ -123,9 +80,7 @@ const TaskManager = () => {
           <CardTitle className="text-gray-100">Task Manager</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-red-400">
-            Failed to load tasks. {retryCount < 3 ? "Retrying..." : "Please try again later."}
-          </div>
+          <div className="text-red-400">Failed to load tasks. Please try again later.</div>
         </CardContent>
       </Card>
     );
