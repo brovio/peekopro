@@ -5,15 +5,12 @@ import { useSettings } from "@/contexts/SettingsContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
-import { getCategoryIcon, deleteEmptyCategory, getAvailableCategories } from "./utils/categoryUtils";
-import EditCategoryDialog from "./dialogs/EditCategoryDialog";
-import DeleteCategoryDialog from "./dialogs/DeleteCategoryDialog";
-import MoveCategoryDialog from "./dialogs/MoveCategoryDialog";
+import { getCategoryIcon } from "./utils/categoryUtils";
 import CategoryHeader from "./CategoryHeader";
 import TaskProgress from "./TaskProgress";
 import CategoryContent from "./CategoryContent";
 import { useState } from "react";
-import { Json } from "@/integrations/supabase/types";
+import { handleCategoryOperations } from "./handlers/categoryOperations";
 
 export interface CategoryListBoxProps {
   title: string;
@@ -38,9 +35,6 @@ export const CategoryListBox = ({
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isMoveDialogOpen, setIsMoveDialogOpen] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState(title);
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
 
   const handleAddSubtask = async (taskId: string) => {
     if (!user || !onTaskUpdate) return;
@@ -58,7 +52,7 @@ export const CategoryListBox = ({
       const updatedSubtasks = [...(task.subtasks || []), newSubtask];
       
       // Convert the subtasks array to a JSON-compatible format
-      const subtasksJson = JSON.parse(JSON.stringify(updatedSubtasks)) as Json;
+      const subtasksJson = JSON.parse(JSON.stringify(updatedSubtasks));
       
       const { error } = await supabase
         .from('tasks')
@@ -83,99 +77,26 @@ export const CategoryListBox = ({
     }
   };
 
-  const handleRename = async () => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('tasks')
-        .update({ category: newCategoryName })
-        .eq('category', title)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      setIsEditDialogOpen(false);
-      
-      toast({
-        title: "Category renamed",
-        description: `Successfully renamed category to ${newCategoryName}`,
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error renaming category",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!user || tasks.length > 0) return;
-
-    try {
-      const deleted = await deleteEmptyCategory(supabase, user.id, title);
-      
-      if (deleted) {
-        queryClient.invalidateQueries({ queryKey: ['tasks'] });
-        setIsDeleteDialogOpen(false);
-        
-        toast({
-          title: "Category deleted",
-          description: "Successfully deleted the category",
-        });
-      } else {
-        toast({
-          title: "Cannot delete category",
-          description: "Category still contains tasks",
-          variant: "destructive",
-        });
-      }
-    } catch (error: any) {
-      toast({
-        title: "Error deleting category",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleMove = async () => {
-    if (!user || !selectedCategory) return;
-
-    try {
-      const { error } = await supabase
-        .from('tasks')
-        .update({ category: selectedCategory })
-        .eq('category', title)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      await deleteEmptyCategory(supabase, user.id, title);
-
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      setIsMoveDialogOpen(false);
-      
-      toast({
-        title: "Tasks moved",
-        description: `Successfully moved tasks to ${selectedCategory}`,
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error moving tasks",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const loadAvailableCategories = async () => {
-    if (!user) return;
-    const categories = await getAvailableCategories(supabase, user.id);
-    setAvailableCategories(categories.filter(cat => cat !== title));
-  };
+  const {
+    handleRename,
+    handleDelete,
+    handleMove,
+    loadAvailableCategories,
+    newCategoryName,
+    setNewCategoryName,
+    selectedCategory,
+    setSelectedCategory,
+    availableCategories
+  } = handleCategoryOperations({
+    user,
+    title,
+    tasks,
+    queryClient,
+    toast,
+    setIsEditDialogOpen,
+    setIsDeleteDialogOpen,
+    setIsMoveDialogOpen
+  });
 
   const Icon = getCategoryIcon(title);
 
