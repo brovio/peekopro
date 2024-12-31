@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { LucideIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TaskCardHeader from "./card/TaskCardHeader";
 import TaskCardList from "./card/TaskCardList";
 import TaskCardDialogs from "./card/TaskCardDialogs";
@@ -53,8 +53,7 @@ const TaskCard = ({
   const [newCategoryName, setNewCategoryName] = useState(category);
   const [filteredCategories, setFilteredCategories] = useState<string[]>([]);
 
-  // Update filtered categories whenever availableCategories or category changes
-  useState(() => {
+  useEffect(() => {
     setFilteredCategories(availableCategories.filter(cat => cat !== category));
   }, [availableCategories, category]);
 
