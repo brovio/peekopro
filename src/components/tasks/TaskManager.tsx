@@ -22,11 +22,19 @@ const TaskManager = () => {
       }
 
       try {
+        // Initialize Supabase client with the current session
+        if (!supabase.auth.getSession()) {
+          await supabase.auth.initialize();
+        }
+
         // Ensure the client has the latest session
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         if (!currentSession) {
           throw new Error('Session expired');
         }
+
+        // Set the session in the client
+        supabase.auth.setSession(currentSession);
 
         const { data, error } = await supabase
           .from('tasks')
