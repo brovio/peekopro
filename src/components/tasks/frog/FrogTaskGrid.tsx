@@ -1,11 +1,13 @@
 import { cn } from "@/lib/utils";
-import { Trophy, FileText } from "lucide-react";
+import { Trophy, FileText, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
 import TaskCard from "./TaskCard";
 import CompletedTasksSection from "./CompletedTasksSection";
+import CreateCategoryModal from "../CreateCategoryModal";
+import { Button } from "@/components/ui/button";
 
 interface FrogTaskGridProps {
   tasks: {
@@ -20,7 +22,7 @@ interface FrogTaskGridProps {
 const FrogTaskGrid = ({ tasks, onBreakdownStart }: FrogTaskGridProps) => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const handleEditTask = async (taskId: string, newContent: string) => {
     try {
@@ -103,72 +105,28 @@ const FrogTaskGrid = ({ tasks, onBreakdownStart }: FrogTaskGridProps) => {
     }
   };
 
-  const handleRenameCategory = async (oldCategory: string, newCategory: string) => {
+  const handleCreateCategory = async (name: string, icon: string, color: string) => {
     try {
-      const { error } = await supabase
-        .from('tasks')
-        .update({ category: newCategory })
-        .eq('category', oldCategory);
+      const tasksToUpdate = tasks.filter(task => task.category === "Uncategorized");
+      
+      for (const task of tasksToUpdate) {
+        const { error } = await supabase
+          .from('tasks')
+          .update({ category: name })
+          .eq('id', task.id);
 
-      if (error) throw error;
+        if (error) throw error;
+      }
 
       queryClient.invalidateQueries({ queryKey: ['frog-tasks'] });
       
       toast({
-        title: "Category renamed",
-        description: `Successfully renamed category to ${newCategory}`,
+        title: "Category created",
+        description: `Successfully created category ${name}`,
       });
     } catch (error: any) {
       toast({
-        title: "Error renaming category",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleMoveTasksToCategory = async (fromCategory: string, toCategory: string) => {
-    try {
-      const { error } = await supabase
-        .from('tasks')
-        .update({ category: toCategory })
-        .eq('category', fromCategory);
-
-      if (error) throw error;
-
-      queryClient.invalidateQueries({ queryKey: ['frog-tasks'] });
-      
-      toast({
-        title: "Tasks moved",
-        description: `Successfully moved tasks to ${toCategory}`,
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error moving tasks",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDeleteCategory = async (category: string) => {
-    try {
-      const { error } = await supabase
-        .from('tasks')
-        .delete()
-        .eq('category', category);
-
-      if (error) throw error;
-
-      queryClient.invalidateQueries({ queryKey: ['frog-tasks'] });
-      
-      toast({
-        title: "Category deleted",
-        description: "Category and all its tasks have been deleted",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error deleting category",
+        title: "Error creating category",
         description: error.message,
         variant: "destructive",
       });
@@ -180,7 +138,6 @@ const FrogTaskGrid = ({ tasks, onBreakdownStart }: FrogTaskGridProps) => {
 
   const completedTasks = tasks.filter(task => task.category === 'Complete' || task.completed);
 
-  // Get unique categories from tasks, excluding special categories
   const uniqueCategories = [...new Set(tasks.map(task => task.category))]
     .filter(category => category && !['#1', 'Complete', 'Uncategorized'].includes(category));
 
@@ -198,40 +155,12 @@ const FrogTaskGrid = ({ tasks, onBreakdownStart }: FrogTaskGridProps) => {
       case "#1":
         return "bg-[#9b87f5] border-[#9b87f5]";
       default:
-        return "bg-[#6366F1] border-[#6366F1]"; // Default color for custom categories
-    }
-  };
-
-  // Get all unique categories for the select dropdown
-  const allCategories = [...new Set(tasks.map(task => task.category))];
-
-  const handleMoveTask = async (taskId: string, toCategory: string) => {
-    try {
-      const { error } = await supabase
-        .from('tasks')
-        .update({ category: toCategory })
-        .eq('id', taskId);
-
-      if (error) throw error;
-
-      queryClient.invalidateQueries({ queryKey: ['frog-tasks'] });
-      
-      toast({
-        title: "Task moved",
-        description: `Task has been moved to ${toCategory}`,
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error moving task",
-        description: error.message,
-        variant: "destructive",
-      });
+        return "bg-[#6366F1] border-[#6366F1]";
     }
   };
 
   return (
     <div className="grid gap-6 animate-fade-in">
-      {/* #1 Section - Full width */}
       <TaskCard
         category="#1"
         icon={Trophy}
@@ -243,11 +172,15 @@ const FrogTaskGrid = ({ tasks, onBreakdownStart }: FrogTaskGridProps) => {
         onComplete={handleCompleteTask}
         onBreakdown={handleBreakdownClick}
         showBreakdownButton
-        availableCategories={allCategories}
-        onMoveTask={handleMoveTask}
       />
 
-      {/* Custom Categories Grid - Responsive */}
+      <Button
+        onClick={() => setShowCreateModal(true)}
+        className="w-full h-24 border-2 border-dashed border-gray-700 bg-transparent hover:bg-gray-800/50 transition-colors"
+      >
+        <Plus className="h-6 w-6 text-gray-400" />
+      </Button>
+
       {uniqueCategories.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {uniqueCategories.map(category => (
@@ -263,18 +196,18 @@ const FrogTaskGrid = ({ tasks, onBreakdownStart }: FrogTaskGridProps) => {
               onComplete={handleCompleteTask}
               onBreakdown={handleBreakdownClick}
               showBreakdownButton
-              onRenameCategory={handleRenameCategory}
-              onMoveTasksToCategory={handleMoveTasksToCategory}
-              onDeleteCategory={handleDeleteCategory}
-              availableCategories={allCategories}
-              onMoveTask={handleMoveTask}
             />
           ))}
         </div>
       )}
 
-      {/* Complete Section */}
       <CompletedTasksSection tasks={completedTasks} />
+
+      <CreateCategoryModal
+        open={showCreateModal}
+        onOpenChange={setShowCreateModal}
+        onCreateCategory={handleCreateCategory}
+      />
     </div>
   );
 };
