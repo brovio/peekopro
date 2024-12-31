@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import TaskCardHeader from "./card/TaskCardHeader";
 import TaskCardList from "./card/TaskCardList";
 import TaskCardDialogs from "./card/TaskCardDialogs";
+import { isDefaultCategory } from "../utils/categoryUtils";
 
 interface Task {
   id: string;
@@ -54,16 +55,20 @@ const TaskCard = ({
   const [filteredCategories, setFilteredCategories] = useState<string[]>([]);
 
   useEffect(() => {
-    setFilteredCategories(availableCategories.filter(cat => cat !== category));
+    const filtered = availableCategories.filter(cat => 
+      cat !== category && !isDefaultCategory(cat)
+    );
+    setFilteredCategories(filtered);
   }, [availableCategories, category]);
 
   const handleDeleteCategory = () => {
-    if (selectedCategory) {
+    if (tasks.length > 0 && selectedCategory) {
       onMoveTasksToCategory?.(category, selectedCategory);
     } else {
       onDeleteCategory?.(category);
     }
     setIsDeleteDialogOpen(false);
+    setSelectedCategory("");
   };
 
   const handleRenameCategory = () => {
@@ -79,9 +84,7 @@ const TaskCard = ({
     }
   };
 
-  // Safely handle color class
   const iconColorClass = color?.replace('bg-', 'text-') || 'text-gray-400';
-  const isDefaultCategory = category === "#1";
 
   return (
     <Card className={cn(
@@ -95,7 +98,7 @@ const TaskCard = ({
         category={category}
         onRename={() => setIsRenaming(true)}
         onDelete={() => setIsDeleteDialogOpen(true)}
-        isDefaultCategory={isDefaultCategory}
+        isDefaultCategory={isDefaultCategory(category)}
       />
 
       <TaskCardList
