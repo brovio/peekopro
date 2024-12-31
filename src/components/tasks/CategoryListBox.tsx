@@ -5,6 +5,7 @@ import { useSettings } from "@/contexts/SettingsContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
+import { Json } from "@/integrations/supabase/types";
 import TaskItem from "./TaskItem";
 import WorkDayTaskItem from "./WorkDayTaskItem";
 import { useState } from "react";

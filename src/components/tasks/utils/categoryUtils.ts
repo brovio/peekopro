@@ -49,7 +49,7 @@ export const getAvailableCategories = async (supabase: any, userId: string): Pro
   }
 
   const categories = tasks
-    .map(task => task.category)
+    .map((task: { category: string }) => task.category)
     .filter((category: string) => category && !isDefaultCategory(category));
 
   return [...new Set(categories)];
