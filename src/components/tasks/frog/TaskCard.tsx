@@ -28,6 +28,7 @@ interface TaskCardProps {
   onRenameCategory?: (category: string, newName: string) => void;
   onMoveTasksToCategory?: (fromCategory: string, toCategory: string) => void;
   onDeleteCategory?: (category: string) => void;
+  availableCategories?: string[];
   onMoveTask?: (taskId: string, toCategory: string) => void;
 }
 
@@ -43,6 +44,7 @@ const TaskCard = ({
   onRenameCategory,
   onMoveTasksToCategory,
   onDeleteCategory,
+  availableCategories = [],
   onMoveTask
 }: TaskCardProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -53,8 +55,8 @@ const TaskCard = ({
 
   // Update filtered categories whenever availableCategories or category changes
   useState(() => {
-    setFilteredCategories([]);
-  }, [category]);
+    setFilteredCategories(availableCategories.filter(cat => cat !== category));
+  }, [availableCategories, category]);
 
   const handleDeleteCategory = () => {
     if (selectedCategory) {
