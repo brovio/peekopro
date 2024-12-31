@@ -184,7 +184,6 @@ const TaskCard = ({
                   onComplete={() => onComplete(task.id)}
                   onMove={(toCategory) => handleMoveTask(task.id, toCategory)}
                   currentCategory={category}
-                  availableCategories={filteredCategories}
                 />
               </div>
             </div>
