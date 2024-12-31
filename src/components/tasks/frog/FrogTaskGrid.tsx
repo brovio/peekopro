@@ -174,12 +174,21 @@ const FrogTaskGrid = ({ tasks, onBreakdownStart }: FrogTaskGridProps) => {
         showBreakdownButton
       />
 
-      <Button
-        onClick={() => setShowCreateModal(true)}
-        className="w-full h-24 border-2 border-dashed border-gray-700 bg-transparent hover:bg-gray-800/50 transition-colors"
-      >
-        <Plus className="h-6 w-6 text-gray-400" />
-      </Button>
+      <div className="flex gap-2">
+        <Button
+          onClick={() => setShowCreateModal(true)}
+          className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
+          size="icon"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+        <Button
+          onClick={() => setShowCreateModal(true)}
+          className="w-full h-24 border-2 border-dashed border-gray-700 bg-transparent hover:bg-gray-800/50 transition-colors"
+        >
+          <Plus className="h-6 w-6 text-gray-400" />
+        </Button>
+      </div>
 
       {uniqueCategories.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
