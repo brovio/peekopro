@@ -58,7 +58,8 @@ export const getAvailableCategories = async (supabase: any, userId: string): Pro
       category !== null && !isDefaultCategory(category)
     );
 
-  return [...new Set(categories)];
+  // Explicitly type the Set as string[]
+  return Array.from(new Set<string>(categories));
 };
 
 export const deleteEmptyCategory = async (supabase: any, userId: string, category: string) => {
