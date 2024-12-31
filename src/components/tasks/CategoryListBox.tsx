@@ -8,14 +8,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import TaskItem from "./TaskItem";
 import WorkDayTaskItem from "./WorkDayTaskItem";
 import { useState } from "react";
-import { getCategoryIcon } from "./utils/categoryIcons";
+import { getCategoryIcon, deleteEmptyCategory, getAvailableCategories } from "./utils/categoryUtils";
 import EditCategoryDialog from "./dialogs/EditCategoryDialog";
 import DeleteCategoryDialog from "./dialogs/DeleteCategoryDialog";
 import MoveCategoryDialog from "./dialogs/MoveCategoryDialog";
-import { Json } from "@/integrations/supabase/types";
 import CategoryHeader from "./CategoryHeader";
 import TaskProgress from "./TaskProgress";
-import { availableCategories } from "./utils/categoryUtils";
 
 export interface CategoryListBoxProps {
   title: string;
@@ -42,6 +40,7 @@ export const CategoryListBox = ({
   const [isMoveDialogOpen, setIsMoveDialogOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState(title);
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
 
   const handleAddSubtask = async (taskId: string) => {
     if (!user || !onTaskUpdate) return;
@@ -116,21 +115,23 @@ export const CategoryListBox = ({
     if (!user || tasks.length > 0) return;
 
     try {
-      const { error } = await supabase
-        .from('tasks')
-        .delete()
-        .eq('category', title)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      setIsDeleteDialogOpen(false);
+      const deleted = await deleteEmptyCategory(supabase, user.id, title);
       
-      toast({
-        title: "Category deleted",
-        description: "Successfully deleted the category",
-      });
+      if (deleted) {
+        queryClient.invalidateQueries({ queryKey: ['tasks'] });
+        setIsDeleteDialogOpen(false);
+        
+        toast({
+          title: "Category deleted",
+          description: "Successfully deleted the category",
+        });
+      } else {
+        toast({
+          title: "Cannot delete category",
+          description: "Category still contains tasks",
+          variant: "destructive",
+        });
+      }
     } catch (error: any) {
       toast({
         title: "Error deleting category",
@@ -152,6 +153,9 @@ export const CategoryListBox = ({
 
       if (error) throw error;
 
+      // After moving tasks, try to delete the empty category
+      await deleteEmptyCategory(supabase, user.id, title);
+
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       setIsMoveDialogOpen(false);
       
@@ -168,6 +172,12 @@ export const CategoryListBox = ({
     }
   };
 
+  const loadAvailableCategories = async () => {
+    if (!user) return;
+    const categories = await getAvailableCategories(supabase, user.id);
+    setAvailableCategories(categories.filter(cat => cat !== title));
+  };
+
   const Icon = getCategoryIcon(title);
 
   return (
@@ -177,9 +187,15 @@ export const CategoryListBox = ({
           title={title}
           taskCount={tasks.length}
           icon={Icon}
-          onRename={() => setIsEditDialogOpen(true)}
+          onRename={() => {
+            loadAvailableCategories();
+            setIsEditDialogOpen(true);
+          }}
           onDelete={() => setIsDeleteDialogOpen(true)}
-          onMove={() => setIsMoveDialogOpen(true)}
+          onMove={() => {
+            loadAvailableCategories();
+            setIsMoveDialogOpen(true);
+          }}
           hasItems={tasks.length > 0}
         />
         {categorySettings[title]?.showProgress && (
@@ -229,7 +245,7 @@ export const CategoryListBox = ({
       <MoveCategoryDialog
         isOpen={isMoveDialogOpen}
         onOpenChange={setIsMoveDialogOpen}
-        availableCategories={availableCategories.filter(cat => cat !== title)}
+        availableCategories={availableCategories}
         selectedCategory={selectedCategory}
         onCategorySelect={setSelectedCategory}
         onMove={handleMove}
