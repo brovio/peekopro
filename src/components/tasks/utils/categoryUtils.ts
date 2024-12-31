@@ -1,1 +1,1 @@
-export const availableCategories = ["#1", "Work", "Fitness", "Habit", "Journal"];
+export const availableCategories = ["#1", "Work", "Fitness", "Habit", "Journal", "Complete", "Uncategorized"];
