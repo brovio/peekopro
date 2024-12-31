@@ -1,12 +1,12 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { availableCategories } from "../utils/categoryUtils";
 
 interface MoveTaskModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onMove: (category: string) => void;
   currentCategory: string;
-  availableCategories: string[];
 }
 
 const MoveTaskModal = ({
@@ -14,7 +14,6 @@ const MoveTaskModal = ({
   onOpenChange,
   onMove,
   currentCategory,
-  availableCategories
 }: MoveTaskModalProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
