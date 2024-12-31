@@ -5,16 +5,14 @@ import { useSettings } from "@/contexts/SettingsContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
-import { Json } from "@/integrations/supabase/types";
-import TaskItem from "./TaskItem";
-import WorkDayTaskItem from "./WorkDayTaskItem";
-import { useState } from "react";
 import { getCategoryIcon, deleteEmptyCategory, getAvailableCategories } from "./utils/categoryUtils";
 import EditCategoryDialog from "./dialogs/EditCategoryDialog";
 import DeleteCategoryDialog from "./dialogs/DeleteCategoryDialog";
 import MoveCategoryDialog from "./dialogs/MoveCategoryDialog";
 import CategoryHeader from "./CategoryHeader";
 import TaskProgress from "./TaskProgress";
+import CategoryContent from "./CategoryContent";
+import { useState } from "react";
 
 export interface CategoryListBoxProps {
   title: string;
@@ -46,41 +44,38 @@ export const CategoryListBox = ({
   const handleAddSubtask = async (taskId: string) => {
     if (!user || !onTaskUpdate) return;
 
-    const task = tasks.find(t => t.id === taskId);
-    if (task) {
-      try {
-        const newSubtask = {
-          id: crypto.randomUUID(),
-          content: "New subtask",
-          completed: false
-        };
+    try {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
 
-        const updatedSubtasks = [...(task.subtasks || []), newSubtask];
-        
-        // Convert the subtasks array to a JSON-compatible format
-        const subtasksJson = JSON.parse(JSON.stringify(updatedSubtasks)) as Json;
+      const newSubtask = {
+        id: crypto.randomUUID(),
+        content: "New subtask",
+        completed: false
+      };
 
-        const { error } = await supabase
-          .from('tasks')
-          .update({
-            subtasks: subtasksJson
-          })
-          .eq('id', taskId);
-
-        if (error) throw error;
-
-        onTaskUpdate(taskId, {
+      const updatedSubtasks = [...(task.subtasks || []), newSubtask];
+      
+      const { error } = await supabase
+        .from('tasks')
+        .update({
           subtasks: updatedSubtasks
-        });
+        })
+        .eq('id', taskId);
 
-        queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      } catch (error: any) {
-        toast({
-          title: "Failed to add subtask",
-          description: error.message,
-          variant: "destructive",
-        });
-      }
+      if (error) throw error;
+
+      onTaskUpdate(taskId, {
+        subtasks: updatedSubtasks
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    } catch (error: any) {
+      toast({
+        title: "Failed to add subtask",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -154,7 +149,6 @@ export const CategoryListBox = ({
 
       if (error) throw error;
 
-      // After moving tasks, try to delete the empty category
       await deleteEmptyCategory(supabase, user.id, title);
 
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
@@ -204,28 +198,14 @@ export const CategoryListBox = ({
         )}
       </CardHeader>
       <CardContent className="space-y-2">
-        {tasks.length === 0 ? (
-          <div className="text-sm text-gray-400 italic">No tasks in this category</div>
-        ) : (
-          tasks.map((task) => (
-            title === "Work Day" ? (
-              <WorkDayTaskItem
-                key={task.id}
-                task={task}
-                onAddSubtask={handleAddSubtask}
-                onDelete={onTaskDelete}
-                onMove={onTaskMove}
-              />
-            ) : (
-              <TaskItem
-                key={task.id}
-                task={task}
-                onDelete={onTaskDelete}
-                onMove={onTaskMove}
-              />
-            )
-          ))
-        )}
+        <CategoryContent
+          title={title}
+          tasks={tasks}
+          onTaskUpdate={onTaskUpdate}
+          onTaskDelete={onTaskDelete}
+          onTaskMove={onTaskMove}
+          onAddSubtask={handleAddSubtask}
+        />
       </CardContent>
 
       <EditCategoryDialog
