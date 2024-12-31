@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { availableCategories } from "../utils/categoryUtils";
+import { availableCategories as defaultCategories } from "../utils/categoryUtils";
 
 interface TaskActionButtonsProps {
   onEdit: () => void;
@@ -15,6 +15,7 @@ interface TaskActionButtonsProps {
   onComplete: () => void;
   onMove: (category: string) => void;
   currentCategory?: string;
+  availableCategories?: string[];
 }
 
 const TaskActionButtons = ({ 
@@ -22,7 +23,8 @@ const TaskActionButtons = ({
   onDelete, 
   onComplete, 
   onMove,
-  currentCategory 
+  currentCategory,
+  availableCategories = defaultCategories
 }: TaskActionButtonsProps) => {
   return (
     <DropdownMenu>
