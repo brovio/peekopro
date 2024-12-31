@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { BookOpen, Briefcase, Dumbbell, Play, MoreVertical, Edit, Trash2, MoveRight } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TaskActionButtons from "./TaskActionButtons";
 import TaskNotes from "./TaskNotes";
 import { Button } from "@/components/ui/button";
@@ -73,6 +73,12 @@ const TaskCard = ({
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [isRenaming, setIsRenaming] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState(category);
+  const [filteredCategories, setFilteredCategories] = useState<string[]>([]);
+
+  // Update filtered categories whenever availableCategories or category changes
+  useEffect(() => {
+    setFilteredCategories(availableCategories.filter(cat => cat !== category));
+  }, [availableCategories, category]);
 
   const handleEditTask = (taskId: string, newContent: string) => {
     onEdit(taskId, newContent);
@@ -178,6 +184,7 @@ const TaskCard = ({
                   onComplete={() => onComplete(task.id)}
                   onMove={(toCategory) => handleMoveTask(task.id, toCategory)}
                   currentCategory={category}
+                  availableCategories={filteredCategories}
                 />
               </div>
             </div>
@@ -207,13 +214,11 @@ const TaskCard = ({
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#2A2F3C] border-gray-700">
-                  {availableCategories
-                    .filter(cat => cat !== category)
-                    .map((cat) => (
-                      <SelectItem key={cat} value={cat} className="text-gray-200">
-                        {cat}
-                      </SelectItem>
-                    ))}
+                  {filteredCategories.map((cat) => (
+                    <SelectItem key={cat} value={cat} className="text-gray-200">
+                      {cat}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
