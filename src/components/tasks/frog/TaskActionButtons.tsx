@@ -1,20 +1,29 @@
 import { Button } from "@/components/ui/button";
-import { Edit, MoveHorizontal } from "lucide-react";
+import { Edit, MoveHorizontal, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { availableCategories } from "../utils/categoryUtils";
 
 interface TaskActionButtonsProps {
   onEdit: () => void;
   onDelete: () => void;
   onComplete: () => void;
-  onMove?: () => void;
+  onMove: (category: string) => void;
+  currentCategory?: string;
 }
 
-const TaskActionButtons = ({ onEdit, onDelete, onComplete, onMove }: TaskActionButtonsProps) => {
+const TaskActionButtons = ({ 
+  onEdit, 
+  onDelete, 
+  onComplete, 
+  onMove,
+  currentCategory 
+}: TaskActionButtonsProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -30,15 +39,31 @@ const TaskActionButtons = ({ onEdit, onDelete, onComplete, onMove }: TaskActionB
         <DropdownMenuItem onClick={onEdit} className="text-gray-200">
           Rename
         </DropdownMenuItem>
-        {onMove && (
-          <DropdownMenuItem onClick={onMove} className="text-gray-200">
-            <MoveHorizontal className="mr-2 h-4 w-4" />
-            Move to...
-          </DropdownMenuItem>
-        )}
+        
+        <DropdownMenuSeparator className="bg-gray-700" />
+        
+        <DropdownMenuItem className="text-gray-200 font-semibold px-2 py-1.5 cursor-default">
+          Move to...
+        </DropdownMenuItem>
+        
+        {availableCategories.map(category => (
+          category !== currentCategory && (
+            <DropdownMenuItem
+              key={category}
+              onClick={() => onMove(category)}
+              className="text-gray-200 pl-4"
+            >
+              {category}
+            </DropdownMenuItem>
+          )
+        ))}
+        
+        <DropdownMenuSeparator className="bg-gray-700" />
+        
         <DropdownMenuItem onClick={onComplete} className="text-gray-200">
           Mark Complete
         </DropdownMenuItem>
+        
         <DropdownMenuItem onClick={onDelete} className="text-gray-200 text-red-400">
           Delete
         </DropdownMenuItem>
