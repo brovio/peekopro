@@ -36,6 +36,10 @@ export const isDefaultCategory = (category: string): boolean => {
   return ["#1", "Work", "Fitness", "Habit", "Journal", "Complete"].includes(category);
 };
 
+interface TaskWithCategory {
+  category: string | null;
+}
+
 export const getAvailableCategories = async (supabase: any, userId: string): Promise<string[]> => {
   const { data: tasks, error } = await supabase
     .from('tasks')
@@ -49,8 +53,10 @@ export const getAvailableCategories = async (supabase: any, userId: string): Pro
   }
 
   const categories = tasks
-    .map((task: { category: string }) => task.category)
-    .filter((category: string) => category && !isDefaultCategory(category));
+    .map((task: TaskWithCategory) => task.category)
+    .filter((category: string | null): category is string => 
+      category !== null && !isDefaultCategory(category)
+    );
 
   return [...new Set(categories)];
 };
