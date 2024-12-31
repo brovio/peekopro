@@ -16,7 +16,6 @@ interface TaskActionButtonsProps {
   onComplete: () => void;
   onMove: (category: string) => void;
   currentCategory?: string;
-  availableCategories?: string[];
 }
 
 const TaskActionButtons = ({ 
@@ -25,7 +24,6 @@ const TaskActionButtons = ({
   onComplete, 
   onMove,
   currentCategory = "",
-  availableCategories = []
 }: TaskActionButtonsProps) => {
   const [showMoveModal, setShowMoveModal] = useState(false);
 
@@ -74,7 +72,6 @@ const TaskActionButtons = ({
         onOpenChange={setShowMoveModal}
         onMove={onMove}
         currentCategory={currentCategory}
-        availableCategories={availableCategories}
       />
     </>
   );
