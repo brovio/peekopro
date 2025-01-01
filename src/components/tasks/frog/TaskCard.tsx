@@ -69,20 +69,28 @@ const TaskCard = ({
   onMoveTask
 }: TaskCardProps) => {
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState("");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [isRenaming, setIsRenaming] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState(category);
   const [filteredCategories, setFilteredCategories] = useState<string[]>([]);
 
-  // Update filtered categories whenever availableCategories or category changes
   useEffect(() => {
     setFilteredCategories(availableCategories.filter(cat => cat !== category));
   }, [availableCategories, category]);
 
-  const handleEditTask = (taskId: string, newContent: string) => {
-    onEdit(taskId, newContent);
-    setEditingTaskId(null);
+  const handleEditStart = (taskId: string, content: string) => {
+    setEditingTaskId(taskId);
+    setEditingContent(content);
+  };
+
+  const handleEditTask = (taskId: string) => {
+    if (editingContent.trim()) {
+      onEdit(taskId, editingContent);
+      setEditingTaskId(null);
+      setEditingContent("");
+    }
   };
 
   const handleDeleteCategory = () => {
@@ -107,7 +115,6 @@ const TaskCard = ({
     }
   };
 
-  // Safely handle color class
   const iconColorClass = color?.replace('bg-', 'text-') || 'text-gray-400';
 
   return (
@@ -160,12 +167,13 @@ const TaskCard = ({
                 {editingTaskId === task.id ? (
                   <input
                     type="text"
-                    defaultValue={task.content}
+                    value={editingContent}
+                    onChange={(e) => setEditingContent(e.target.value)}
                     className="w-full bg-[#1A1F2C] p-1.5 sm:p-2 rounded text-gray-200 text-sm sm:text-base"
-                    onBlur={(e) => handleEditTask(task.id, e.target.value)}
+                    onBlur={() => handleEditTask(task.id)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
-                        handleEditTask(task.id, e.currentTarget.value);
+                        handleEditTask(task.id);
                       }
                     }}
                     autoFocus
@@ -179,7 +187,7 @@ const TaskCard = ({
                   <TaskNotes taskId={task.id} notes={task.breakdown_comments} />
                 )}
                 <TaskActionButtons
-                  onEdit={() => setEditingTaskId(task.id)}
+                  onEdit={() => handleEditStart(task.id, task.content)}
                   onDelete={() => onDelete(task.id)}
                   onComplete={() => onComplete(task.id)}
                   onMove={(toCategory) => handleMoveTask(task.id, toCategory)}
